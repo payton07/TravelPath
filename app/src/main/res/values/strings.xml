@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">TravelPath</string>
+
+    <!-- Common Strings -->
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="edit">Edit</string>
+    <string name="pdf">PDF</string>
+
+    <!-- MainActivity (Dashboard) Strings -->
+    <string name="main_title">Build your journey</string>
+    <string name="main_subtitle">Define your preferences.</string>
+    <string name="header_interests">WHAT ARE YOUR INTERESTS?</string>
+    <string name="header_bento">BUDGET &amp; DURATION</string>
+    <string name="header_effort">EFFORT LEVEL</string>
+    <string name="header_weather">WEATHER PREFERENCE</string>
+    
+    <string name="chip_culture">Culture</string>
+    <string name="chip_food">Food</string>
+    <string name="chip_nature">Nature</string>
+    
+    <string name="label_budget">BUDGET</string>
+    <string name="label_duration">DURATION</string>
+    <string name="default_budget_range">€20 - €150</string>
+    <string name="default_duration_range">4h - 8h</string>
+    
+    <string name="effort_easy">Easy</string>
+    <string name="effort_moderate">Moderate</string>
+    <string name="effort_high">High</string>
+    
+    <string name="weather_snow">SNOW</string>
+    <string name="weather_rain">RAIN</string>
+    <string name="weather_sun">SUN</string>
+    
+    <string name="btn_generate">Generate Journey</string>
+    <string name="generating_toast">Generating your journey...</string>
+
+    <!-- RouteActivity Strings -->
+    <string name="route_title">Find your perfect\nrhythm.</string>
+    <string name="route_subtitle">Choose from our 3 AI-optimized routes for your mood.</string>
+    
+    <string name="economy">ECONOMY</string>
+    <string name="economy_title">The Budget Explorer</string>
+    <string name="economy_desc">€25 • 4h • Easy</string>
+    
+    <string name="balanced">BALANCED</string>
+    <string name="balanced_title">The Gourmet Walker</string>
+    <string name="balanced_desc">€45 • 3.5h • Moderate</string>
+    <string name="popular">POPULAR</string>
+    
+    <string name="comfort">COMFORT</string>
+    <string name="comfort_title">The Luxury Stroller</string>
+    <string name="comfort_desc">€120 • 5h • Easy</string>
+    
+    <string name="stats_header">Total Coverage today</string>
+    <string name="stats_value">8.4km Journey</string>
+
+    <!-- SelectedRouteActivity Strings -->
+    <string name="route_coverage_badge">4.2 km Total Route</string>
+    <string name="selected_route_date">TUESDAY, OCT 24</string>
+    <string name="selected_route_name">Parisian Art\nWalk</string>
+    <string name="weather_warning_title">Indoor activity recommended</string>
+    <string name="weather_warning_desc">Heavy rain expected from 12:00 PM</string>
+    <string name="activity_1_time">10:00 - 12:00</string>
+    <string name="activity_1_name">The Louvre Museum</string>
+    <string name="activity_1_rating">★ 4.8 (2.4k reviews)</string>
+    <string name="travel_mode_walk">15 min walk</string>
+    <string name="activity_2_time">12:30 - 14:00</string>
+    <string name="activity_2_name">Bistro Lane Dining</string>
+    <string name="activity_2_desc">French Cuisine • $$</string>
+    
+    <!-- SavedRoutesActivity Strings -->
+    <string name="saved_routes_title">Saved\nJourneys</string>
+    <string name="saved_routes_empty">No journeys saved yet.\nStart exploring!</string>
+    
+    <!-- Item Card Strings -->
+    <string name="cost">COÛT</string>
+    <string name="duration">DURÉE</string>
+    <string name="effort">EFFORT</string>
+    <string name="btn_select_route">Sélectionner ce parcours</string>
+    <string name="weather_placeholder">22°C Ensoleillé</string>
+
+</resources>

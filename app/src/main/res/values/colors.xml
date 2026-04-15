@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF191C1E</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Emerald Voyage - Precise Palette (Slate & Emerald) -->
+    <color name="emerald_primary">#10B981</color> <!-- Emerald 500 -->
+    <color name="emerald_accent">#34D399</color> <!-- Emerald 400 -->
+    <color name="emerald_light">#064E3B</color> <!-- Emerald 900 for dark surfaces -->
+    
+    <color name="bg_main">#020617</color> <!-- Slate 950 -->
+    <color name="card_bg">#0F172A</color> <!-- Slate 900 -->
+    <color name="border_color">#1E293B</color> <!-- Slate 800 -->
+    
+    <color name="text_primary">#F8FAFC</color> <!-- Slate 50 -->
+    <color name="text_secondary">#CBD5E1</color> <!-- Slate 300 -->
+    <color name="text_muted">#64748B</color> <!-- Slate 500 -->
+
+    <!-- Status specific -->
+    <color name="chip_inactive_bg">#F2F4F6</color>
+    <color name="chip_inactive_text">#505F76</color>
+    
+    <color name="warning_bg">#FDE2E2</color> <!-- Rouge très clair pour alertes -->
+    <color name="warning_text">#991B1B</color> <!-- Rouge foncé pour texte alerte -->
+</resources>

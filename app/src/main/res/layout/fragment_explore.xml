@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:paddingBottom="100dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:paddingTop="60dp">
+
+        <!-- Title & User Profile -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/main_title"
+            android:textColor="@color/text_primary"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/imgProfile"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imgProfile"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:scaleType="centerCrop"
+            android:background="@color/emerald_light"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/main_subtitle"
+            android:textColor="@color/text_muted"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
+
+        <!-- Interests Section -->
+        <TextView
+            android:id="@+id/tvInterestsHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/header_interests"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvSubtitle" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupInterests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:chipSpacingHorizontal="12dp"
+            app:layout_constraintTop_toBottomOf="@+id/tvInterestsHeader">
+            
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCulture"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:text="@string/chip_culture"
+                android:checkable="true"
+                app:checkedIconVisible="false"
+                android:textColor="@color/chip_text_selector"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                app:chipCornerRadius="28dp"
+                app:chipIcon="@android:drawable/ic_menu_compass"
+                app:chipIconTint="@color/chip_text_selector" />
+            
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFood"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:text="@string/chip_food"
+                android:checkable="true"
+                app:checkedIconVisible="false"
+                android:textColor="@color/chip_text_selector"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                app:chipCornerRadius="28dp"
+                app:chipStrokeColor="@color/border_color"
+                app:chipIcon="@android:drawable/ic_menu_info_details"
+                app:chipIconTint="@color/chip_text_selector" />
+            
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNature"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:text="@string/chip_nature"
+                android:checkable="true"
+                app:checkedIconVisible="false"
+                android:textColor="@color/chip_text_selector"
+                app:chipBackgroundColor="@color/chip_background_selector"
+                app:chipCornerRadius="28dp"
+                app:chipIcon="@android:drawable/ic_menu_gallery"
+                app:chipIconTint="@color/chip_text_selector" />
+            
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- Bento Grid Section -->
+        <TextView
+            android:id="@+id/tvBentoHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/header_bento"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chipGroupInterests" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardBudget"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="8dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/card_bg"
+            app:strokeColor="@color/border_color"
+            app:strokeWidth="1dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/cardDuration"
+            app:layout_constraintTop_toBottomOf="@+id/tvBentoHeader">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_myplaces" app:tint="@color/emerald_primary" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/label_budget" android:textColor="@color/emerald_accent" android:textSize="10sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvBudgetRange" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/default_budget_range" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
+                <com.google.android.material.slider.RangeSlider android:id="@+id/sliderBudgetRange" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:valueFrom="0" android:valueTo="500" app:values="@array/initial_budget_values" app:thumbColor="@color/emerald_accent" app:trackColorActive="@color/emerald_primary" app:labelBehavior="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardDuration"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginStart="8dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/card_bg"
+            app:strokeColor="@color/border_color"
+            app:strokeWidth="1dp"
+            app:layout_constraintStart_toEndOf="@+id/cardBudget"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvBentoHeader">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+                <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@android:drawable/ic_menu_recent_history" app:tint="@color/emerald_primary" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/label_duration" android:textColor="@color/emerald_accent" android:textSize="10sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvDurationRange" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/default_duration_range" android:textColor="@color/text_primary" android:textSize="18sp" android:textStyle="bold" />
+                <com.google.android.material.slider.RangeSlider android:id="@+id/sliderDurationRange" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:valueFrom="1" android:valueTo="12" app:values="@array/initial_duration_values" app:thumbColor="@color/emerald_accent" app:trackColorActive="@color/emerald_primary" app:labelBehavior="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Effort Level -->
+        <TextView
+            android:id="@+id/tvEffortHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/header_effort"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/cardBudget" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/toggleEffort"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:singleSelection="true"
+            app:selectionRequired="true"
+            app:checkedButton="@+id/btnEasy"
+            app:layout_constraintTop_toBottomOf="@+id/tvEffortHeader">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnEasy" style="?attr/materialButtonOutlinedStyle" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:text="@string/effort_easy" app:cornerRadius="28dp" app:strokeColor="@color/border_color" android:textColor="@color/text_primary" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnModerate" style="?attr/materialButtonOutlinedStyle" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:text="@string/effort_moderate" app:strokeColor="@color/border_color" android:textColor="@color/text_primary" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnHigh" style="?attr/materialButtonOutlinedStyle" android:layout_width="0dp" android:layout_weight="1" android:layout_height="56dp" android:text="@string/effort_high" app:strokeColor="@color/border_color" android:textColor="@color/text_primary" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <!-- Weather -->
+        <TextView
+            android:id="@+id/tvWeatherHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/header_weather"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/toggleEffort" />
+
+        <LinearLayout
+            android:id="@+id/layoutWeather"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@+id/tvWeatherHeader">
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSnow" android:layout_width="0dp" android:layout_height="100dp" android:layout_weight="1" app:cardCornerRadius="24dp" app:cardElevation="0dp" app:strokeColor="@color/border_color" app:strokeWidth="1dp" app:cardBackgroundColor="@color/card_bg" android:clickable="true" android:focusable="true">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:orientation="vertical">
+                    <ImageView android:id="@+id/icSnow" android:layout_width="32dp" android:layout_height="32dp" android:src="@android:drawable/ic_menu_day" app:tint="@color/text_secondary" />
+                    <TextView android:id="@+id/tvSnow" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_snow" android:textColor="@color/text_muted" android:textSize="10sp" android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <View android:layout_width="12dp" android:layout_height="match_parent" />
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardRain" android:layout_width="0dp" android:layout_height="100dp" android:layout_weight="1" app:cardCornerRadius="24dp" app:cardElevation="0dp" app:strokeColor="@color/border_color" app:strokeWidth="1dp" app:cardBackgroundColor="@color/card_bg" android:clickable="true" android:focusable="true">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:orientation="vertical">
+                    <ImageView android:id="@+id/icRain" android:layout_width="32dp" android:layout_height="32dp" android:src="@android:drawable/ic_menu_view" app:tint="@color/text_secondary" />
+                    <TextView android:id="@+id/tvRain" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_rain" android:textColor="@color/text_muted" android:textSize="10sp" android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <View android:layout_width="12dp" android:layout_height="match_parent" />
+            <com.google.android.material.card.MaterialCardView android:id="@+id/cardSun" android:layout_width="0dp" android:layout_height="100dp" android:layout_weight="1" app:cardCornerRadius="24dp" app:cardElevation="0dp" app:cardBackgroundColor="@color/emerald_primary" android:clickable="true" android:focusable="true">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:orientation="vertical">
+                    <ImageView android:id="@+id/icSun" android:layout_width="32dp" android:layout_height="32dp" android:src="@android:drawable/ic_menu_compass" app:tint="@color/white" />
+                    <TextView android:id="@+id/tvSun" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_sun" android:textColor="@color/white" android:textSize="10sp" android:textStyle="bold" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRegenerate"
+            android:layout_width="match_parent"
+            android:layout_height="72dp"
+            android:layout_marginTop="32dp"
+            android:text="@string/btn_generate"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:cornerRadius="36dp"
+            app:backgroundTint="@color/emerald_primary"
+            app:icon="@android:drawable/ic_menu_rotate"
+            app:iconGravity="end"
+            app:layout_constraintTop_toBottomOf="@+id/layoutWeather" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
