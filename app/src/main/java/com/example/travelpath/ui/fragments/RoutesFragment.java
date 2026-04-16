@@ -1,9 +1,12 @@
 package com.example.travelpath.ui.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -17,6 +20,7 @@ import java.util.List;
 
 public class RoutesFragment extends Fragment {
 
+    private static final String TAG = "RoutesFragment";
     private static final String ARG_CRITERIA = "search_criteria";
     private FragmentRoutesBinding binding;
     private RouteViewModel viewModel;
@@ -43,19 +47,26 @@ public class RoutesFragment extends Fragment {
 
         binding.btnBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
 
+        // On cache les cartes au début pour ne pas montrer de fausses infos
+        binding.cardRouteEconomy.setVisibility(View.GONE);
+        binding.cardRouteBalanced.setVisibility(View.GONE);
+        binding.cardRouteComfort.setVisibility(View.GONE);
+
+        observeViewModel();
+
         if (getArguments() != null) {
             SearchCriteria criteria = (SearchCriteria) getArguments().getSerializable(ARG_CRITERIA);
             if (criteria != null) {
                 viewModel.generateRoutes(criteria);
             }
         }
-
-        observeViewModel();
     }
 
     private void observeViewModel() {
         viewModel.getIsGenerating().observe(getViewLifecycleOwner(), isGenerating -> {
-            // Afficher un loader si nécessaire
+            if (isGenerating) {
+                Toast.makeText(getContext(), "Connexion au serveur...", Toast.LENGTH_SHORT).show();
+            }
         });
 
         viewModel.getRoutes().observe(getViewLifecycleOwner(), itineraries -> {
@@ -63,30 +74,54 @@ public class RoutesFragment extends Fragment {
                 updateUI(itineraries);
             }
         });
+
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null) {
+                String message = error;
+                if (error.contains("PERMISSION_DENIED")) {
+                    message = "Accès refusé. Vérifiez les permissions 'allUsers' sur la console Firebase.";
+                }
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private void updateUI(List<Itinerary> itineraries) {
-        // Mapping simple pour cette démo (Economy, Balanced, Comfort)
         for (Itinerary itinerary : itineraries) {
-            if ("ECONOMY".equals(itinerary.getRouteType())) {
-                setupCard(binding.cardRouteEconomy, itinerary);
-            } else if ("BALANCED".equals(itinerary.getRouteType())) {
-                setupCard(binding.cardRouteBalanced, itinerary);
-            } else if ("COMFORT".equals(itinerary.getRouteType())) {
-                setupCard(binding.cardRouteComfort, itinerary);
+            String type = itinerary.getRouteType();
+            if (type == null) continue;
+
+            switch (type.toUpperCase()) {
+                case "ECONOMY":
+                    fillCard(binding.cardRouteEconomy, binding.tvEconomyTitle, binding.tvEconomyDesc, itinerary);
+                    break;
+                case "BALANCED":
+                    fillCard(binding.cardRouteBalanced, binding.tvBalancedTitle, binding.tvBalancedDesc, itinerary);
+                    break;
+                case "COMFORT":
+                    fillCard(binding.cardRouteComfort, binding.tvComfortTitle, binding.tvComfortDesc, itinerary);
+                    break;
             }
         }
     }
 
-    private void setupCard(com.google.android.material.card.MaterialCardView card, Itinerary itinerary) {
+    private void fillCard(View card, TextView titleView, TextView descView, Itinerary itinerary) {
+        card.setVisibility(View.VISIBLE);
+        titleView.setText(itinerary.getName());
+        descView.setText(String.format("%s • %s • %s", itinerary.getCost() + "€", itinerary.getDuration(), itinerary.getEffort()));
         card.setOnClickListener(v -> openDetail(itinerary));
-        // On pourrait aussi mettre à jour les textes des cartes ici si on avait des IDs plus précis
     }
 
     private void openDetail(Itinerary itinerary) {
+        Log.d(TAG, "Navigation vers les détails de : " + itinerary.getName());
+        
+        // Petit retour tactile
+        Toast.makeText(getContext(), "Chargement du parcours...", Toast.LENGTH_SHORT).show();
+
         RouteDetailFragment fragment = RouteDetailFragment.newInstance(itinerary);
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out, android.R.anim.fade_in, android.R.anim.fade_out)
                 .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();

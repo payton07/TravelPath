@@ -96,12 +96,25 @@
                     android:orientation="vertical"
                     android:padding="20dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/economy" android:textColor="@color/emerald_accent" android:textSize="10sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/economy_title" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/economy_desc" android:textColor="@color/text_muted" android:textSize="14sp" />
+                    <TextView 
+                        android:id="@+id/tvEconomyTitle"
+                        android:layout_width="wrap_content" 
+                        android:layout_height="wrap_content" 
+                        android:text="@string/economy_title" 
+                        android:textColor="@color/text_primary" 
+                        android:textSize="20sp" 
+                        android:textStyle="bold" />
+                    <TextView 
+                        android:id="@+id/tvEconomyDesc"
+                        android:layout_width="wrap_content" 
+                        android:layout_height="wrap_content" 
+                        android:text="@string/economy_desc" 
+                        android:textColor="@color/text_muted" 
+                        android:textSize="14sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Option 2: Balanced (Most Popular) -->
+            <!-- Option 2: Balanced -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardRouteBalanced"
                 android:layout_width="match_parent"
@@ -123,8 +136,21 @@
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/balanced" android:textColor="@color/emerald_accent" android:textSize="10sp" android:textStyle="bold" />
                         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentEnd="true" android:background="@drawable/bg_badge_popular" android:paddingHorizontal="8dp" android:paddingVertical="2dp" android:text="@string/popular" android:textColor="@color/white" android:textSize="8sp" />
                     </RelativeLayout>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/balanced_title" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/balanced_desc" android:textColor="@color/text_muted" android:textSize="14sp" />
+                    <TextView 
+                        android:id="@+id/tvBalancedTitle"
+                        android:layout_width="wrap_content" 
+                        android:layout_height="wrap_content" 
+                        android:text="@string/balanced_title" 
+                        android:textColor="@color/text_primary" 
+                        android:textSize="20sp" 
+                        android:textStyle="bold" />
+                    <TextView 
+                        android:id="@+id/tvBalancedDesc"
+                        android:layout_width="wrap_content" 
+                        android:layout_height="wrap_content" 
+                        android:text="@string/balanced_desc" 
+                        android:textColor="@color/text_muted" 
+                        android:textSize="14sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -145,8 +171,21 @@
                     android:orientation="vertical"
                     android:padding="20dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/comfort" android:textColor="@color/emerald_accent" android:textSize="10sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/comfort_title" android:textColor="@color/text_primary" android:textSize="20sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/comfort_desc" android:textColor="@color/text_muted" android:textSize="14sp" />
+                    <TextView 
+                        android:id="@+id/tvComfortTitle"
+                        android:layout_width="wrap_content" 
+                        android:layout_height="wrap_content" 
+                        android:text="@string/comfort_title" 
+                        android:textColor="@color/text_primary" 
+                        android:textSize="20sp" 
+                        android:textStyle="bold" />
+                    <TextView 
+                        android:id="@+id/tvComfortDesc"
+                        android:layout_width="wrap_content" 
+                        android:layout_height="wrap_content" 
+                        android:text="@string/comfort_desc" 
+                        android:textColor="@color/text_muted" 
+                        android:textSize="14sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -165,7 +204,14 @@
                     android:padding="24dp">
                     <ImageView android:layout_width="32dp" android:layout_height="32dp" android:src="@android:drawable/ic_menu_mapmode" app:tint="@color/white" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/stats_header" android:textColor="@color/emerald_light" android:textSize="12sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/stats_value" android:textColor="@color/white" android:textSize="24sp" android:textStyle="bold" />
+                    <TextView 
+                        android:id="@+id/tvTotalDistance"
+                        android:layout_width="wrap_content" 
+                        android:layout_height="wrap_content" 
+                        android:text="@string/stats_value" 
+                        android:textColor="@color/white" 
+                        android:textSize="24sp" 
+                        android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

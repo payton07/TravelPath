@@ -1,9 +1,11 @@
 package com.example.travelpath.data.repository;
 
 import android.content.Context;
+import com.example.travelpath.data.FirebaseManager;
 import com.example.travelpath.data.dao.ItineraryDao;
 import com.example.travelpath.data.database.AppDatabase;
 import com.example.travelpath.data.entities.Itinerary;
+import com.example.travelpath.data.models.SearchCriteria;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -19,33 +21,57 @@ public class TravelRepository {
         itineraryDao = db.itineraryDao();
     }
 
-    public Completable insert(Itinerary itinerary) {
-        return itineraryDao.insert(itinerary)
+    /**
+     * Logique de génération hybride (Cache local -> Cloud -> Sauvegarde cache).
+     */
+    public Single<List<Itinerary>> generateJourneys(SearchCriteria criteria) {
+        // 1. Vérifier le cache local pour cette ville
+        return itineraryDao.getItinerariesByCity(criteria.getDestinationCity())
+                .flatMap(localResults -> {
+                    if (!localResults.isEmpty()) {
+                        // On a des résultats en cache !
+                        return Single.just(localResults);
+                    } else {
+                        // 2. Si vide, appeler le serveur
+                        return FirebaseManager.getInstance().generateJourneys(criteria)
+                                .flatMap(cloudResults -> {
+                                    // 3. Sauvegarder dans Room pour la prochaine fois
+                                    return saveToCache(cloudResults).andThen(Single.just(cloudResults));
+                                });
+                    }
+                })
                 .subscribeOn(Schedulers.io());
+    }
+
+    private Completable saveToCache(List<Itinerary> itineraries) {
+        return Completable.fromAction(() -> {
+            for (Itinerary it : itineraries) {
+                itineraryDao.insert(it).blockingAwait();
+            }
+        });
+    }
+
+    public Completable insert(Itinerary itinerary) {
+        return itineraryDao.insert(itinerary).subscribeOn(Schedulers.io());
     }
 
     public Completable update(Itinerary itinerary) {
-        return itineraryDao.update(itinerary)
-                .subscribeOn(Schedulers.io());
+        return itineraryDao.update(itinerary).subscribeOn(Schedulers.io());
     }
 
     public Completable delete(Itinerary itinerary) {
-        return itineraryDao.delete(itinerary)
-                .subscribeOn(Schedulers.io());
+        return itineraryDao.delete(itinerary).subscribeOn(Schedulers.io());
     }
 
     public Flowable<List<Itinerary>> getAllItineraries() {
-        return itineraryDao.getAllItineraries()
-                .subscribeOn(Schedulers.io());
+        return itineraryDao.getAllItineraries().subscribeOn(Schedulers.io());
     }
 
     public Flowable<List<Itinerary>> getSavedItineraries() {
-        return itineraryDao.getSavedItineraries()
-                .subscribeOn(Schedulers.io());
+        return itineraryDao.getSavedItineraries().subscribeOn(Schedulers.io());
     }
 
     public Single<Itinerary> getItineraryById(int id) {
-        return itineraryDao.getItineraryById(id)
-                .subscribeOn(Schedulers.io());
+        return itineraryDao.getItineraryById(id).subscribeOn(Schedulers.io());
     }
 }

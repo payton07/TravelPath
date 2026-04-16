@@ -18,6 +18,10 @@ public class MainViewModel extends AndroidViewModel {
     private final CompositeDisposable disposables = new CompositeDisposable();
 
     private final MutableLiveData<String> userName = new MutableLiveData<>();
+    private final MutableLiveData<String> destinationCity = new MutableLiveData<>("Paris");
+    private final MutableLiveData<String> destinationPlaceId = new MutableLiveData<>();
+    private final MutableLiveData<List<String>> mandatoryPois = new MutableLiveData<>(new ArrayList<>());
+    
     private final MutableLiveData<Integer> budgetMin = new MutableLiveData<>();
     private final MutableLiveData<Integer> budgetMax = new MutableLiveData<>();
     private final MutableLiveData<Integer> durationMin = new MutableLiveData<>(4);
@@ -33,10 +37,47 @@ public class MainViewModel extends AndroidViewModel {
         loadPreferences();
     }
 
-    public LiveData<List<String>> getWeatherPreferences() { return weatherPreferences; }
+    public LiveData<String> getUserName() { return userName; }
+    public LiveData<String> getDestinationCity() { return destinationCity; }
+    public LiveData<String> getDestinationPlaceId() { return destinationPlaceId; }
+    public LiveData<List<String>> getMandatoryPois() { return mandatoryPois; }
+    public LiveData<Integer> getBudgetMin() { return budgetMin; }
+    public LiveData<Integer> getBudgetMax() { return budgetMax; }
     public LiveData<Integer> getDurationMin() { return durationMin; }
     public LiveData<Integer> getDurationMax() { return durationMax; }
     public LiveData<String> getEffortLevel() { return effortLevel; }
+    public LiveData<List<String>> getSelectedInterests() { return selectedInterests; }
+    public LiveData<List<String>> getWeatherPreferences() { return weatherPreferences; }
+
+    public void setDestination(String city, String placeId) {
+        destinationCity.setValue(city);
+        destinationPlaceId.setValue(placeId);
+    }
+
+    public void addMandatoryPoi(String poiName) {
+        List<String> current = mandatoryPois.getValue();
+        if (current != null && !poiName.isEmpty() && !current.contains(poiName)) {
+            current.add(poiName);
+            mandatoryPois.setValue(new ArrayList<>(current));
+        }
+    }
+
+    public void removeMandatoryPoi(String poiName) {
+        List<String> current = mandatoryPois.getValue();
+        if (current != null) {
+            current.remove(poiName);
+            mandatoryPois.setValue(new ArrayList<>(current));
+        }
+    }
+
+    public void setBudgetRange(int min, int max) {
+        budgetMin.setValue(min);
+        budgetMax.setValue(max);
+        disposables.add(preferencesManager.setBudgetRange(min, max)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe());
+    }
 
     public void setDurationRange(int min, int max) {
         durationMin.setValue(min);
@@ -47,12 +88,25 @@ public class MainViewModel extends AndroidViewModel {
         effortLevel.setValue(effort);
     }
 
+    public void toggleInterest(String interest) {
+        List<String> current = selectedInterests.getValue();
+        if (current != null) {
+            List<String> updated = new ArrayList<>(current);
+            if (updated.contains(interest)) {
+                updated.remove(interest);
+            } else {
+                updated.add(interest);
+            }
+            selectedInterests.setValue(updated);
+        }
+    }
+
     public void toggleWeatherPreference(String weather) {
         List<String> current = weatherPreferences.getValue();
         if (current != null) {
             List<String> updated = new ArrayList<>(current);
             if (updated.contains(weather)) {
-                if (updated.size() > 1) { // On garde au moins une option
+                if (updated.size() > 1) {
                     updated.remove(weather);
                 }
             } else {
@@ -77,30 +131,6 @@ public class MainViewModel extends AndroidViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(budgetMax::setValue));
-    }
-
-    public LiveData<String> getUserName() { return userName; }
-    public LiveData<Integer> getBudgetMin() { return budgetMin; }
-    public LiveData<Integer> getBudgetMax() { return budgetMax; }
-    public LiveData<List<String>> getSelectedInterests() { return selectedInterests; }
-
-    public void setBudgetRange(int min, int max) {
-        disposables.add(preferencesManager.setBudgetRange(min, max)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe());
-    }
-
-    public void toggleInterest(String interest) {
-        List<String> current = selectedInterests.getValue();
-        if (current != null) {
-            if (current.contains(interest)) {
-                current.remove(interest);
-            } else {
-                current.add(interest);
-            }
-            selectedInterests.setValue(current);
-        }
     }
 
     @Override

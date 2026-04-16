@@ -14,7 +14,7 @@ import java.util.List;
 @Dao
 public interface ItineraryDao {
 
-    @Insert
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
     Completable insert(Itinerary itinerary);
 
     @Update
@@ -31,4 +31,7 @@ public interface ItineraryDao {
 
     @Query("SELECT * FROM itineraries WHERE id = :id")
     Single<Itinerary> getItineraryById(int id);
+
+    @Query("SELECT * FROM itineraries WHERE destinationCity = :city ORDER BY id DESC")
+    Single<List<Itinerary>> getItinerariesByCity(String city);
 }

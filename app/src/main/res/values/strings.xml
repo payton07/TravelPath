@@ -35,6 +35,12 @@
     <string name="btn_generate">Generate Journey</string>
     <string name="generating_toast">Generating your journey...</string>
 
+    <string name="header_destination">WHERE ARE YOU GOING?</string>
+    <string name="header_mandatory">MANDATORY STOPS</string>
+    <string name="hint_destination">Search for a city...</string>
+    <string name="hint_mandatory">Add a place (e.g. Eiffel Tower)</string>
+    <string name="btn_add">Add</string>
+
     <!-- RouteActivity Strings -->
     <string name="route_title">Find your perfect\nrhythm.</string>
     <string name="route_subtitle">Choose from our 3 AI-optimized routes for your mood.</string>
@@ -79,5 +85,12 @@
     <string name="effort">EFFORT</string>
     <string name="btn_select_route">Sélectionner ce parcours</string>
     <string name="weather_placeholder">22°C Ensoleillé</string>
+
+    <!-- PDF Export Strings -->
+    <string name="pdf_generating">Génération du PDF en cours...</string>
+    <string name="pdf_success">PDF généré, téléchargement...</string>
+    <string name="pdf_error">Erreur : %1$s</string>
+    <string name="pdf_download_title">Itinéraire TravelPath</string>
+    <string name="pdf_download_desc">Téléchargement du parcours : %1$s</string>
 
 </resources>

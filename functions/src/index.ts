@@ -3,21 +3,29 @@ import * as admin from "firebase-admin";
 import PDFDocument = require("pdfkit");
 import { v4 as uuidv4 } from "uuid";
 
+import { JourneyService } from "./services/JourneyService";
+
 admin.initializeApp();
 
+const journeyService = new JourneyService();
+
 /**
- * Endpoint Optionnel IA :
- * Si un jour on décide d'utiliser Claude ou Mistral, c'est ici qu'on l'appellera
- * pour ne pas exposer la clé API côté Android.
+ * Endpoint IA / Classique :
+ * Génère 3 itinéraires basés sur les critères.
  */
 export const generateJourneys = functions.https.onCall(async (data, context) => {
     functions.logger.info("generateJourneys appelé avec :", data);
     
-    return {
-        status: "success",
-        message: "Connecté au backend Firebase TravelPath !",
-        data: data
-    };
+    try {
+        const itineraries = await journeyService.generate(data);
+        return {
+            status: "success",
+            data: itineraries
+        };
+    } catch (error) {
+        functions.logger.error("Erreur génération :", error);
+        throw new functions.https.HttpsError('internal', 'Erreur lors de la génération des parcours');
+    }
 });
 
 /**

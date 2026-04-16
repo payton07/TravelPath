@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,12 +36,38 @@ public class ExploreFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
 
+        setupDestinationAutocomplete();
+        setupMandatoryPois();
         setupSliders();
         setupInterests();
         setupEffortToggle();
         setupWeatherSelection();
         setupActions();
         observeViewModel();
+    }
+
+    private void setupDestinationAutocomplete() {
+        // Pour la démo, on utilise une liste simple. 
+        // À connecter au PlacesClient pour une autocomplétion réelle.
+        String[] cities = {"Paris, France", "London, UK", "Rome, Italy", "New York, USA", "Tokyo, Japan"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), 
+                android.R.layout.simple_dropdown_item_1line, cities);
+        binding.autoCompleteDest.setAdapter(adapter);
+        
+        binding.autoCompleteDest.setOnItemClickListener((parent, view, position, id) -> {
+            String selection = (String) parent.getItemAtPosition(position);
+            viewModel.setDestination(selection, "mock_place_id_" + selection);
+        });
+    }
+
+    private void setupMandatoryPois() {
+        binding.btnAddMandatory.setOnClickListener(v -> {
+            String poi = binding.etMandatory.getText().toString().trim();
+            if (!poi.isEmpty()) {
+                viewModel.addMandatoryPoi(poi);
+                binding.etMandatory.setText("");
+            }
+        });
     }
 
     private void setupSliders() {
@@ -89,6 +116,8 @@ public class ExploreFragment extends Fragment {
     private void setupActions() {
         binding.btnRegenerate.setOnClickListener(v -> {
             SearchCriteria criteria = new SearchCriteria()
+                    .destination(viewModel.getDestinationCity().getValue(), viewModel.getDestinationPlaceId().getValue())
+                    .mandatoryPois(viewModel.getMandatoryPois().getValue())
                     .budget(viewModel.getBudgetMin().getValue(), viewModel.getBudgetMax().getValue())
                     .duration(viewModel.getDurationMin().getValue(), viewModel.getDurationMax().getValue())
                     .interests(viewModel.getSelectedInterests().getValue())
@@ -112,6 +141,25 @@ public class ExploreFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getWeatherPreferences().observe(getViewLifecycleOwner(), this::updateWeatherUI);
+        
+        viewModel.getMandatoryPois().observe(getViewLifecycleOwner(), this::updateMandatoryChips);
+
+        viewModel.getDestinationCity().observe(getViewLifecycleOwner(), city -> {
+            if (!city.equals(binding.autoCompleteDest.getText().toString())) {
+                binding.autoCompleteDest.setText(city, false);
+            }
+        });
+    }
+
+    private void updateMandatoryChips(List<String> pois) {
+        binding.chipGroupMandatory.removeAllViews();
+        for (String poi : pois) {
+            Chip chip = new Chip(requireContext());
+            chip.setText(poi);
+            chip.setCloseIconVisible(true);
+            chip.setOnCloseIconClickListener(v -> viewModel.removeMandatoryPoi(poi));
+            binding.chipGroupMandatory.addView(chip);
+        }
     }
 
     private void updateWeatherUI(List<String> selectedWeathers) {

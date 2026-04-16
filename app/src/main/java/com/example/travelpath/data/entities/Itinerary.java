@@ -15,6 +15,7 @@ public class Itinerary implements Serializable {
     private int id;
 
     private String name;
+    private String destinationCity; // Ville de destination
     private String description;
     private double cost;
     private String duration; // e.g., "5.5h"
@@ -22,14 +23,13 @@ public class Itinerary implements Serializable {
     private String weather;  // e.g., "SUN, CLOUD"
     private String steps;    // Noms des étapes séparés par des virgules
     private String imageUrl;
+    private String poiCoordinatesJson; // Liste des coordonnées GPS au format JSON
 
     private boolean isSaved;
 
     /**
      * Type de route : ECONOMY / BALANCED / COMFORT.
-     * Non persisté en base (champ transient pour l'affichage immédiat).
      */
-    @Ignore
     private String routeType;
 
     public Itinerary() {}
@@ -40,6 +40,9 @@ public class Itinerary implements Serializable {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getDestinationCity() { return destinationCity; }
+    public void setDestinationCity(String destinationCity) { this.destinationCity = destinationCity; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -61,6 +64,9 @@ public class Itinerary implements Serializable {
 
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public String getPoiCoordinatesJson() { return poiCoordinatesJson; }
+    public void setPoiCoordinatesJson(String poiCoordinatesJson) { this.poiCoordinatesJson = poiCoordinatesJson; }
 
     public boolean isSaved() { return isSaved; }
     public void setSaved(boolean saved) { isSaved = saved; }
