@@ -1,19 +1,21 @@
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
+import * as dotenv from "dotenv";
 import PDFDocument = require("pdfkit");
 import { v4 as uuidv4 } from "uuid";
+
+// Charger les variables d'environnement (.env)
+dotenv.config();
 
 import { JourneyService } from "./services/JourneyService";
 
 admin.initializeApp();
 
+// Configuration régionale
+const region = "us-central1";
 const journeyService = new JourneyService();
 
-/**
- * Endpoint IA / Classique :
- * Génère 3 itinéraires basés sur les critères.
- */
-export const generateJourneys = functions.https.onCall(async (data, context) => {
+export const generateJourneys = functions.region(region).https.onCall(async (data, context) => {
     functions.logger.info("generateJourneys appelé avec :", data);
     
     try {
@@ -31,7 +33,7 @@ export const generateJourneys = functions.https.onCall(async (data, context) => 
 /**
  * Génération du PDF pour un itinéraire
  */
-export const generatePDF = functions.https.onCall(async (data, context) => {
+export const generatePDF = functions.region(region).https.onCall(async (data, context) => {
     functions.logger.info("generatePDF appelé avec :", data);
     
     // Le client Android va nous envoyer l'objet Itinerary entier 
@@ -46,12 +48,19 @@ export const generatePDF = functions.https.onCall(async (data, context) => {
         const bucket = admin.storage().bucket();
         const filename = `pdfs/travelpath_${uuidv4()}.pdf`;
         const file = bucket.file(filename);
+        
+        functions.logger.info(`Début génération PDF: ${filename} pour le seau: ${bucket.name}`);
 
         // 2. Créer le flux d'écriture vers Firebase Storage
         const writeStream = file.createWriteStream({
             metadata: {
                 contentType: 'application/pdf',
-            }
+            },
+            resumable: false
+        });
+
+        writeStream.on('error', (err) => {
+            functions.logger.error("Erreur de flux d'écriture Storage:", err);
         });
 
         // 3. Créer le document PDFKit
@@ -113,19 +122,21 @@ export const generatePDF = functions.https.onCall(async (data, context) => {
             writeStream.on('error', reject);
         });
 
-        // 5. Générer une URL signée valable 2 heures
-        const [signedUrl] = await file.getSignedUrl({
-            action: 'read',
-            expires: Date.now() + 2 * 60 * 60 * 1000, // 2 heures
-        });
-
-        functions.logger.info("PDF généré et uploadé avec succès", { url: signedUrl });
-
-        // 6. Retourner l'URL au client Android
-        return {
-            status: "success",
-            url: signedUrl
-        };
+        // 5. Générer une URL signée
+        // Note: getSignedUrl nécessite souvent le rôle 'Service Account Token Creator'
+        try {
+            const [signedUrl] = await file.getSignedUrl({
+                action: 'read',
+                expires: Date.now() + 2 * 60 * 60 * 1000, // 2 heures
+            });
+            functions.logger.info("URL signée générée", { url: signedUrl });
+            return { status: "success", url: signedUrl };
+        } catch (signError: any) {
+            functions.logger.error("Erreur getSignedUrl, tentative alternative...", signError);
+            // Alternative: URL publique si le bucket le permet ou URL Firebase standard
+            const publicUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(filename)}?alt=media`;
+            return { status: "success", url: publicUrl };
+        }
 
     } catch (error) {
         functions.logger.error("Erreur lors de la génération du PDF", error);

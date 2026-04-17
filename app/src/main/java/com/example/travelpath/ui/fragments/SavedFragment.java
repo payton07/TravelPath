@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import com.example.travelpath.R;
 import com.example.travelpath.databinding.FragmentSavedBinding;
 import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
 
@@ -16,6 +17,7 @@ public class SavedFragment extends Fragment {
 
     private FragmentSavedBinding binding;
     private SavedRoutesViewModel viewModel;
+    private RouteAdapter adapter;
 
     @Nullable
     @Override
@@ -34,7 +36,16 @@ public class SavedFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
+        adapter = new RouteAdapter(itinerary -> {
+            RouteDetailFragment detailFragment = RouteDetailFragment.newInstance(itinerary);
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, detailFragment)
+                    .addToBackStack(null)
+                    .commit();
+        });
         binding.rvSavedRoutes.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.rvSavedRoutes.setAdapter(adapter);
     }
 
     private void observeViewModel() {
@@ -45,7 +56,7 @@ public class SavedFragment extends Fragment {
             } else {
                 binding.tvEmptyMessage.setVisibility(View.GONE);
                 binding.rvSavedRoutes.setVisibility(View.VISIBLE);
-                // Mettre à jour l'adaptateur
+                adapter.setItineraries(itineraries);
             }
         });
     }

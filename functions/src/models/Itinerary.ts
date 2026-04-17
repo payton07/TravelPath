@@ -1,3 +1,5 @@
+import { RouteMode } from './RouteMode';
+
 export interface Itinerary {
     id?: string;
     name: string;
@@ -9,5 +11,5 @@ export interface Itinerary {
     steps: string;
     poiCoordinates?: {lat: number, lng: number}[];
     imageUrl?: string;
-    routeType: 'ECONOMY' | 'BALANCED' | 'COMFORT';
+    routeType: RouteMode;
 }

@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import com.example.travelpath.R;
 import com.example.travelpath.data.FirebaseManager;
 import com.example.travelpath.data.entities.Itinerary;
+import com.example.travelpath.data.repository.TravelRepository;
 import com.example.travelpath.databinding.FragmentRouteDetailBinding;
 import com.example.travelpath.databinding.ItemTimelineStepBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -37,6 +38,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     private final CompositeDisposable disposables = new CompositeDisposable();
     private Itinerary itinerary;
     private GoogleMap googleMap;
+    private TravelRepository repository;
 
     public static RouteDetailFragment newInstance(Itinerary itinerary) {
         RouteDetailFragment fragment = new RouteDetailFragment();
@@ -56,6 +58,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        repository = new TravelRepository(requireContext());
 
         binding.btnBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
 
@@ -64,11 +67,44 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
             if (itinerary != null) {
                 updateUI(itinerary);
                 setupPdfExport(itinerary);
+                setupActions();
                 
                 // Initialisation de la Map
                 binding.mapView.onCreate(savedInstanceState);
                 binding.mapView.getMapAsync(this);
             }
+        }
+    }
+
+    private void setupActions() {
+        updateSaveButtonState();
+        binding.btnSaveRoute.setOnClickListener(v -> {
+            itinerary.setSaved(!itinerary.isSaved());
+            disposables.add(repository.update(itinerary)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(() -> {
+                        updateSaveButtonState();
+                        String msg = itinerary.isSaved() ? "Parcours sauvegardé !" : "Parcours retiré des favoris";
+                        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                    }, throwable -> {
+                        Toast.makeText(getContext(), "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
+                    }));
+        });
+    }
+
+    private void updateSaveButtonState() {
+        if (itinerary.isSaved()) {
+            binding.btnSaveRoute.setText("Saved");
+            binding.btnSaveRoute.setIconResource(android.R.drawable.btn_star_big_on);
+            binding.btnSaveRoute.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.emerald_primary)));
+            binding.btnSaveRoute.setTextColor(getResources().getColor(R.color.white));
+            binding.btnSaveRoute.setIconTint(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.white)));
+        } else {
+            binding.btnSaveRoute.setText(getString(R.string.save));
+            binding.btnSaveRoute.setIconResource(android.R.drawable.ic_menu_save);
+            binding.btnSaveRoute.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.emerald_light)));
+            binding.btnSaveRoute.setTextColor(getResources().getColor(R.color.emerald_primary));
+            binding.btnSaveRoute.setIconTint(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.emerald_primary)));
         }
     }
 

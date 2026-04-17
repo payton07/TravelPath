@@ -3,6 +3,10 @@ import { Itinerary } from "../models/Itinerary";
 import { ItineraryStrategy } from "../strategies/ItineraryStrategy";
 import { ClassicRuleStrategy } from "../strategies/ClassicRuleStrategy";
 
+import { GooglePlacesService } from "./GooglePlacesService";
+import { RoutingService } from "./RoutingService";
+import { Logger } from "../utils/Logger";
+
 /**
  * Service central pilotant la génération d'itinéraires.
  * Gère le choix de la stratégie et le futur cache serveur Firestore.
@@ -11,9 +15,11 @@ export class JourneyService {
     private strategy: ItineraryStrategy;
 
     constructor() {
-        // Par défaut on utilise la règle classique. 
-        // On pourra ajouter une logique pour choisir l'IA selon l'utilisateur ou la ville.
-        this.strategy = new ClassicRuleStrategy();
+        // Injection des services nécessaires à la stratégie
+        const placesService = new GooglePlacesService(new Logger('GooglePlacesService'));
+        const routingService = new RoutingService();
+        
+        this.strategy = new ClassicRuleStrategy(placesService, routingService);
     }
 
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
