@@ -27,6 +27,7 @@ public class TravelRepository {
     public Single<List<Itinerary>> generateJourneys(SearchCriteria criteria) {
         // 1. Vérifier le cache local pour cette ville
         return itineraryDao.getItinerariesByCity(criteria.getDestinationCity())
+                .subscribeOn(Schedulers.io())
                 .flatMap(localResults -> {
                     if (!localResults.isEmpty()) {
                         // On a des résultats en cache !
@@ -34,6 +35,7 @@ public class TravelRepository {
                     } else {
                         // 2. Si vide, appeler le serveur
                         return FirebaseManager.getInstance().generateJourneys(criteria)
+                                .observeOn(Schedulers.io()) // RETOUR EN ARRIÈRE-PLAN ICI
                                 .flatMap(cloudResults -> {
                                     // 3. Sauvegarder dans Room pour la prochaine fois
                                     return saveToCache(cloudResults).andThen(Single.just(cloudResults));

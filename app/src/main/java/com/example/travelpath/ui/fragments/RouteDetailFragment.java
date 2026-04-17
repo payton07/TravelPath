@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +17,7 @@ import com.example.travelpath.R;
 import com.example.travelpath.data.FirebaseManager;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.databinding.FragmentRouteDetailBinding;
+import com.example.travelpath.databinding.ItemTimelineStepBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -73,10 +75,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         this.googleMap = map;
-        
-        // Configuration du style de la carte (Sombre si possible, ou standard)
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        
         displayMarkers();
     }
 
@@ -94,18 +93,12 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
                 JSONObject obj = coords.getJSONObject(i);
                 LatLng position = new LatLng(obj.getDouble("lat"), obj.getDouble("lng"));
                 
-                String title = (i < stepNames.length) ? stepNames[i] : "POI " + (i + 1);
-                
-                googleMap.addMarker(new MarkerOptions()
-                        .position(position)
-                        .title((i + 1) + ". " + title));
-                
+                String title = (i < stepNames.length) ? stepNames[i] : "Step " + (i + 1);
+                googleMap.addMarker(new MarkerOptions().position(position).title(title));
                 boundsBuilder.include(position);
             }
 
-            // Centrer la caméra sur tous les points avec un padding
             googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100));
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -113,7 +106,23 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
 
     private void updateUI(Itinerary itinerary) {
         binding.tvRouteTitle.setText(itinerary.getName());
-        binding.tvDistance.setText(itinerary.getDuration()); // On affiche la durée dans le badge pour l'instant
+        binding.tvDistance.setText(itinerary.getDuration());
+
+        // Génération dynamique de la Timeline
+        binding.timelineContainer.removeAllViews();
+        String[] stepNames = itinerary.getSteps().split(" → ");
+        
+        for (int i = 0; i < stepNames.length; i++) {
+            ItemTimelineStepBinding itemBinding = ItemTimelineStepBinding.inflate(getLayoutInflater(), binding.timelineContainer, false);
+            itemBinding.tvStepNumber.setText(String.valueOf(i + 1));
+            itemBinding.tvStepName.setText(stepNames[i]);
+            
+            // Simulation d'horaires pour la démo
+            String time = (i == 0) ? "09:30 - 12:00" : (i == 1) ? "12:30 - 14:00" : "14:30 - 17:00";
+            itemBinding.tvStepTime.setText(time);
+            
+            binding.timelineContainer.addView(itemBinding.getRoot());
+        }
     }
 
     private void setupPdfExport(Itinerary itinerary) {
@@ -154,7 +163,6 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
         if (downloadManager != null) downloadManager.enqueue(request);
     }
 
-    // Gestion obligatoire du cycle de vie pour MapView
     @Override public void onResume() { super.onResume(); binding.mapView.onResume(); }
     @Override public void onPause() { super.onPause(); binding.mapView.onPause(); }
     @Override public void onDestroy() { super.onDestroy(); if (binding != null) binding.mapView.onDestroy(); }

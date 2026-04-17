@@ -79,6 +79,27 @@
                 android:textColor="@color/text_muted"
                 android:textSize="16sp" />
 
+            <!-- ProgressBar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="50dp"
+                android:visibility="gone"
+                android:indeterminateTint="@color/emerald_primary" />
+
+            <!-- Empty State -->
+            <TextView
+                android:id="@+id/tvEmptyRoutes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="50dp"
+                android:gravity="center"
+                android:text="Aucun itinéraire trouvé.\nVérifiez votre connexion ou votre ville."
+                android:textColor="@color/text_muted"
+                android:visibility="gone" />
+
             <!-- Option 1: Economy -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardRouteEconomy"

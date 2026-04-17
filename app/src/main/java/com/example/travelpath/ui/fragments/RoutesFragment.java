@@ -47,10 +47,11 @@ public class RoutesFragment extends Fragment {
 
         binding.btnBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
 
-        // On cache les cartes au début pour ne pas montrer de fausses infos
+        // Reset UI
         binding.cardRouteEconomy.setVisibility(View.GONE);
         binding.cardRouteBalanced.setVisibility(View.GONE);
         binding.cardRouteComfort.setVisibility(View.GONE);
+        binding.tvEmptyRoutes.setVisibility(View.GONE);
 
         observeViewModel();
 
@@ -64,14 +65,15 @@ public class RoutesFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getIsGenerating().observe(getViewLifecycleOwner(), isGenerating -> {
-            if (isGenerating) {
-                Toast.makeText(getContext(), "Connexion au serveur...", Toast.LENGTH_SHORT).show();
-            }
+            binding.progressBar.setVisibility(isGenerating ? View.VISIBLE : View.GONE);
         });
 
         viewModel.getRoutes().observe(getViewLifecycleOwner(), itineraries -> {
             if (itineraries != null && !itineraries.isEmpty()) {
+                binding.tvEmptyRoutes.setVisibility(View.GONE);
                 updateUI(itineraries);
+            } else if (Boolean.FALSE.equals(viewModel.getIsGenerating().getValue())) {
+                binding.tvEmptyRoutes.setVisibility(View.VISIBLE);
             }
         });
 
@@ -79,8 +81,10 @@ public class RoutesFragment extends Fragment {
             if (error != null) {
                 String message = error;
                 if (error.contains("PERMISSION_DENIED")) {
-                    message = "Accès refusé. Vérifiez les permissions 'allUsers' sur la console Firebase.";
+                    message = "Accès refusé. Vérifiez allUsers sur la console.";
                 }
+                binding.tvEmptyRoutes.setText(message);
+                binding.tvEmptyRoutes.setVisibility(View.VISIBLE);
                 Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
             }
         });
@@ -113,11 +117,6 @@ public class RoutesFragment extends Fragment {
     }
 
     private void openDetail(Itinerary itinerary) {
-        Log.d(TAG, "Navigation vers les détails de : " + itinerary.getName());
-        
-        // Petit retour tactile
-        Toast.makeText(getContext(), "Chargement du parcours...", Toast.LENGTH_SHORT).show();
-
         RouteDetailFragment fragment = RouteDetailFragment.newInstance(itinerary);
         requireActivity().getSupportFragmentManager()
                 .beginTransaction()
