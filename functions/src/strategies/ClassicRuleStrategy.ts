@@ -94,6 +94,8 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
      * @throws  Ne lance pas d'exception : retourne [] en cas d'erreur ou de pool vide.
      */
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
+        console.log(`[ClassicRuleStrategy] Génération pour la ville : "${criteria.destinationCity}"`);
+        // 1. Récupérer les vrais POIs via Google
         const rawPool = await this.fetchPOIPool(criteria);
         if (rawPool.length === 0) return [];
 
@@ -267,13 +269,20 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
 
         for (const poi of pool) {
             if (this.isAlreadySelected(poi, draft))         continue;
-            if (poi.preferredTimeSlot !== slot)              continue;
-
+            
+            // Priorité au créneau, mais on accepte d'autres POIs si le score est très bon
+            // ou si on n'a rien trouvé pour ce créneau spécifique.
+            const isCorrectSlot = (poi.preferredTimeSlot === slot);
+            
             const travelTime = this.computeTravelTimeTo(poi, draft.lastPOI);
-
             if (!this.fitsWithinConstraints(poi, travelTime, draft, criteria)) continue;
 
-            const score = this.computeScore(poi, mode, travelTime, draft);
+            let score = this.computeScore(poi, mode, travelTime, draft);
+            
+            // Bonus majeur pour le respect du créneau horaire
+            if (isCorrectSlot) {
+                score += 10; 
+            }
 
             if (score > bestScore) {
                 bestScore = score;

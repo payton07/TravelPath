@@ -70,9 +70,11 @@ type TimeSlot = 'morning' | 'afternoon' | 'evening';
  * Évaluées dans l'ordre — la première correspondance gagne.
  */
 const TIME_SLOT_RULES: Array<{ keywords: string[]; slot: TimeSlot }> = [
-    { keywords: ['food', 'restau', 'dinner', 'cuisine', 'bar'],          slot: 'evening'   },
-    { keywords: ['musée', 'museum', 'gallery', 'galerie', 'art', 'history'], slot: 'morning' },
-    { keywords: ['sport', 'hike', 'randonnée', 'vélo', 'climb'],        slot: 'morning'   },
+    { keywords: ['food', 'restau', 'dinner', 'cuisine', 'bar', 'café', 'brasserie', 'bistrot'], slot: 'evening' },
+    { keywords: ['musée', 'museum', 'gallery', 'galerie', 'art', 'history', 'monument', 'château', 'église', 'cathédrale', 'abbaye'], slot: 'morning' },
+    { keywords: ['sport', 'hike', 'randonnée', 'vélo', 'climb', 'stade', 'arena'], slot: 'morning' },
+    { keywords: ['parc', 'park', 'jardin', 'garden', 'square', 'place', 'promenade', 'quai', 'plage', 'beach'], slot: 'afternoon' },
+    { keywords: ['shopping', 'mall', 'centre commercial', 'boutique', 'magasin'], slot: 'afternoon' },
 ];
 
 const DEFAULT_TIME_SLOT: TimeSlot = 'afternoon';
@@ -96,6 +98,8 @@ export class GooglePlacesService {
         this.apiKey = process.env.MAPS_API_KEY ?? '';
         this.http   = httpClient;
         this.logger = logger;
+
+        this.logger.info(`Initialisation : Clé présente ? ${this.apiKey ? 'OUI (' + this.apiKey.length + ' chars)' : 'NON (VIDE)'}`);
 
         if (!this.apiKey) {
             // Fail-fast : log immédiat à la construction, pas à chaque appel

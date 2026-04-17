@@ -115,8 +115,19 @@ public class ExploreFragment extends Fragment {
 
     private void setupActions() {
         binding.btnRegenerate.setOnClickListener(v -> {
+            String cityInput = binding.autoCompleteDest.getText().toString().trim();
+            if (cityInput.isEmpty()) {
+                Toast.makeText(getContext(), "Please enter a destination", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Mettre à jour le ViewModel pour la cohérence
+            if (!cityInput.equals(viewModel.getDestinationCity().getValue())) {
+                viewModel.setDestination(cityInput, "manual_input_" + cityInput);
+            }
+
             SearchCriteria criteria = new SearchCriteria()
-                    .destination(viewModel.getDestinationCity().getValue(), viewModel.getDestinationPlaceId().getValue())
+                    .destination(cityInput, viewModel.getDestinationPlaceId().getValue())
                     .mandatoryPois(viewModel.getMandatoryPois().getValue())
                     .budget(viewModel.getBudgetMin().getValue(), viewModel.getBudgetMax().getValue())
                     .duration(viewModel.getDurationMin().getValue(), viewModel.getDurationMax().getValue())
