@@ -1,56 +1,13 @@
-/**
- * ╔══════════════════════════════════════════════════════════════════════════╗
- * ║          TravelPath — ClassicRuleStrategy  (Firebase / Server)         ║
- * ║  Stratégie déterministe de génération d'itinéraires sans IA            ║
- * ║  Produit 3 variantes : ECONOMY · BALANCED · COMFORT                    ║
- * ╚══════════════════════════════════════════════════════════════════════════╝
- *
- * Principes appliqués :
- *  - Single Responsibility  : chaque méthode a un rôle unique et clairement nommé
- *  - Open/Closed            : les stratégies de scoring sont isolées et extensibles
- *  - Dependency Injection   : les services sont injectés, non instanciés en dur
- *  - Immutabilité           : on ne mute jamais les pools partagées entre modes
- *  - Fail-fast + Fallback   : validation en entrée, dégradation gracieuse
- *  - Lisibilité             : nommage explicite, pas de "magic numbers"
- */
-
 import { GooglePlacesService } from '../services/GooglePlacesService';
 import { RoutingService }       from '../services/RoutingService';
 import { ItineraryStrategy }    from './ItineraryStrategy';
-import {
-    Itinerary,
-    PointOfInterest,
-    SearchCriteria,
-    RouteMode,
-    TimeSlot,
-} from '../models';
+import { Itinerary, PointOfInterest, SearchCriteria, RouteMode, TimeSlot } from '../models';
+import { JourneyConfig }        from '../config/AppConfig';
+import { Logger }               from '../utils/Logger';
 
-// ─── Constantes ──────────────────────────────────────────────────────────────
+// ─── Types internes ───────────────────────────────────────────────────────────
 
-/** Nombre de créneaux horaires (matin / après-midi / soir). */
-const TIME_SLOTS: TimeSlot[] = ['morning', 'afternoon', 'evening'];
-
-/** Seuil minimal de POIs pour appliquer un filtre par mode sans fallback. */
-const MIN_FILTERED_POOL_SIZE = 3;
-
-/**
- * Pénalité appliquée au score quand une catégorie est déjà présente dans
- * l'itinéraire en cours, pour favoriser la diversité.
- */
-const DIVERSITY_SCORE_PENALTY = 0.55;
-
-/**
- * Facteur multiplicatif de la composante "proximité géographique".
- * Plus la valeur est élevée, plus un POI proche du précédent est favorisé.
- */
-const PROXIMITY_WEIGHT = 5;
-
-// ─── Types internes ──────────────────────────────────────────────────────────
-
-/**
- * Encapsule l'état mutable d'un itinéraire pendant sa construction,
- * séparant clairement accumulation et résultat final.
- */
+/** État mutable d'un itinéraire en cours de construction. */
 interface ItineraryDraft {
     selectedPOIs:   PointOfInterest[];
     totalCost:      number;
@@ -59,148 +16,107 @@ interface ItineraryDraft {
     usedCategories: Set<string>;
 }
 
-/** Paramètres de scoring selon le mode. */
+/** Pondérations du score pour un mode donné. */
 interface ScoringConfig {
-    costPenaltyPerUnit:  number; // malus par unité de coût (€)
-    comfortBonus:        number; // bonus multiplicateur du comfortLevel
-    diversityEnabled:    boolean;
+    costPenaltyPerUnit: number;
+    comfortBonus:       number;
 }
 
-// ─── Configurations par mode ─────────────────────────────────────────────────
+// ─── Configurations de scoring par mode ──────────────────────────────────────
 
 const SCORING_CONFIGS: Record<RouteMode, ScoringConfig> = {
-    ECONOMY:  { costPenaltyPerUnit: 1 / 10, comfortBonus: 0,   diversityEnabled: true },
-    BALANCED: { costPenaltyPerUnit: 0,       comfortBonus: 0.5, diversityEnabled: true },
-    COMFORT:  { costPenaltyPerUnit: 0,       comfortBonus: 2.0, diversityEnabled: true },
+    [RouteMode.ECONOMY]:  { costPenaltyPerUnit: 0.1,  comfortBonus: 0   },
+    [RouteMode.BALANCED]: { costPenaltyPerUnit: 0,    comfortBonus: 0.5 },
+    [RouteMode.COMFORT]:  { costPenaltyPerUnit: 0,    comfortBonus: 2.0 },
 };
 
-// ─── Classe principale ───────────────────────────────────────────────────────
+const TIME_SLOTS: TimeSlot[] = ['morning', 'afternoon', 'evening'];
 
+// ─── Stratégie principale ─────────────────────────────────────────────────────
+
+/**
+ * Moteur de recommandation déterministe (sans IA).
+ * Génère 3 itinéraires (ECONOMY / BALANCED / COMFORT) depuis les mêmes critères.
+ *
+ * Pipeline :
+ *   fetchPool → filterByMode → sortByMode → buildItinerary (glouton par slot)
+ */
 export class ClassicRuleStrategy implements ItineraryStrategy {
+
+    private readonly log: Logger;
 
     constructor(
         private readonly placesService:  GooglePlacesService,
         private readonly routingService: RoutingService,
-    ) {}
+        log: Logger = new Logger('ClassicRuleStrategy'),
+    ) {
+        this.log = log;
+    }
 
     // =========================================================================
-    // Point d'entrée public
+    // Entrée publique
     // =========================================================================
 
-    /**
-     * Génère jusqu'à 3 itinéraires (ECONOMY / BALANCED / COMFORT)
-     * à partir des critères fournis par l'utilisateur.
-     *
-     * @throws  Ne lance pas d'exception : retourne [] en cas d'erreur ou de pool vide.
-     */
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
-        console.log(`[ClassicRuleStrategy] Génération pour la ville : "${criteria.destinationCity}"`);
-        // 1. Récupérer les vrais POIs via Google
-        const rawPool = await this.fetchPOIPool(criteria);
-        if (rawPool.length === 0) return [];
+        this.log.info(`Génération pour "${criteria.destinationCity}"`);
+
+        const rawPool = await this.placesService.searchPOIs(
+            criteria.destinationCity,
+            criteria.interests,
+        );
+
+        if (rawPool.length === 0) {
+            this.log.warn('Pool vide — aucun itinéraire généré.');
+            return [];
+        }
 
         return this.buildAllVariants(rawPool, criteria);
     }
 
     // =========================================================================
-    // Étape 1 — Récupération des POIs
+    // Variantes
     // =========================================================================
 
-    /**
-     * Interroge Google Places et retourne la pool brute.
-     * Encapsulé ici pour pouvoir être stubé en tests sans toucher à `generate`.
-     */
-    private async fetchPOIPool(criteria: SearchCriteria): Promise<PointOfInterest[]> {
-        return this.placesService.searchPOIs(
-            criteria.destinationCity,
-            criteria.interests,
-        );
+    private buildAllVariants(pool: PointOfInterest[], criteria: SearchCriteria): Itinerary[] {
+        return Object.values(RouteMode).flatMap(mode => {
+            const filtered   = this.filterByMode(pool, mode);
+            const prioritized = this.sortByMode(filtered, mode);
+            const itinerary  = this.buildItinerary(prioritized, criteria, mode);
+            return itinerary ? [itinerary] : [];
+        });
     }
 
     // =========================================================================
-    // Étape 2 — Génération des 3 variantes
+    // Filtrage & tri
     // =========================================================================
 
-    private buildAllVariants(
-        rawPool:  PointOfInterest[],
-        criteria: SearchCriteria,
-    ): Itinerary[] {
-        const results: Itinerary[] = [];
-
-        for (const mode of Object.values(RouteMode) as RouteMode[]) {
-            // Chaque mode travaille sur sa propre copie filtrée — jamais de mutation partagée
-            const filteredPool  = this.applyModeFilter(rawPool, mode);
-            const priorityPool  = this.sortPoolByMode(filteredPool, mode);
-            const itinerary     = this.buildItinerary(priorityPool, criteria, mode);
-
-            if (itinerary) results.push(itinerary);
-        }
-
-        return results;
+    private filterByMode(pool: PointOfInterest[], mode: RouteMode): PointOfInterest[] {
+        const subset = pool.filter(poi => this.matchesModeProfile(poi, mode));
+        return subset.length >= JourneyConfig.MIN_FILTERED_POOL_SIZE ? subset : [...pool];
     }
 
-    // =========================================================================
-    // Étape 3 — Filtrage par mode
-    // =========================================================================
-
-    /**
-     * Restreint la pool selon le profil du mode.
-     * Si le sous-ensemble est trop petit, on conserve la pool complète (fallback).
-     */
-    private applyModeFilter(
-        pool: PointOfInterest[],
-        mode: RouteMode,
-    ): PointOfInterest[] {
-        const filtered = pool.filter(poi => this.matchesModeProfile(poi, mode));
-        return filtered.length >= MIN_FILTERED_POOL_SIZE ? filtered : [...pool];
-    }
-
-    /** Critère d'éligibilité d'un POI pour un mode donné. */
     private matchesModeProfile(poi: PointOfInterest, mode: RouteMode): boolean {
         switch (mode) {
             case RouteMode.ECONOMY:  return poi.comfortLevel <= 1;
             case RouteMode.COMFORT:  return poi.comfortLevel >= 2;
-            case RouteMode.BALANCED: return true; // aucun filtre de confort
+            case RouteMode.BALANCED: return true;
         }
     }
 
-    // =========================================================================
-    // Étape 4 — Tri initial de la pool
-    // =========================================================================
-
-    /**
-     * Trie la pool pour que la sélection gloutonne démarre avec les meilleurs
-     * candidats selon le mode, réduisant le nombre d'itérations nécessaires.
-     */
-    private sortPoolByMode(
-        pool: PointOfInterest[],
-        mode: RouteMode,
-    ): PointOfInterest[] {
+    private sortByMode(pool: PointOfInterest[], mode: RouteMode): PointOfInterest[] {
         return [...pool].sort((a, b) => {
             switch (mode) {
-                case RouteMode.ECONOMY:
-                    return a.baseCost - b.baseCost;
-
-                case RouteMode.COMFORT:
-                    // Tri primaire : confort décroissant ; secondaire : rating décroissant
-                    return b.comfortLevel - a.comfortLevel || b.rating - a.rating;
-
-                case RouteMode.BALANCED:
-                default:
-                    return b.rating - a.rating;
+                case RouteMode.ECONOMY:  return a.baseCost - b.baseCost;
+                case RouteMode.COMFORT:  return (b.comfortLevel - a.comfortLevel) || (b.rating - a.rating);
+                case RouteMode.BALANCED: return b.rating - a.rating;
             }
         });
     }
 
     // =========================================================================
-    // Étape 5 — Assemblage d'un itinéraire (algorithme glouton par créneau)
+    // Assemblage glouton par créneau
     // =========================================================================
 
-    /**
-     * Construit un itinéraire en remplissant les créneaux matin / après-midi / soir.
-     * Pour chaque créneau, sélectionne le POI au meilleur score qui respecte
-     * encore le budget et la durée max.
-     */
     private buildItinerary(
         pool:     PointOfInterest[],
         criteria: SearchCriteria,
@@ -221,13 +137,9 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
 
         if (draft.selectedPOIs.length === 0) return null;
 
-        return this.assembleFinalItinerary(draft, criteria, mode);
+        return this.toItinerary(draft, criteria, mode);
     }
 
-    /**
-     * Tente de trouver le meilleur POI pour un créneau donné et met à jour
-     * le draft en conséquence. Ne fait rien si aucun candidat n'est éligible.
-     */
     private tryFillSlot(
         draft:    ItineraryDraft,
         pool:     PointOfInterest[],
@@ -235,28 +147,23 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         mode:     RouteMode,
         criteria: SearchCriteria,
     ): void {
-
-        const best = this.selectBestCandidateForSlot(
-            pool, slot, mode, criteria, draft,
-        );
-
+        const best = this.selectBest(pool, slot, mode, criteria, draft);
         if (!best) return;
 
-        // Calcul du temps de trajet depuis le POI précédent
-        const travelTime = this.computeTravelTimeTo(best, draft.lastPOI);
+        const travelTime = this.travelTimeTo(best, draft.lastPOI);
 
         draft.selectedPOIs.push(best);
-        draft.totalCost      += best.baseCost;
-        draft.totalDuration  += travelTime + best.averageDurationHours;
-        draft.lastPOI         = best;
+        draft.totalCost     += best.baseCost;
+        draft.totalDuration += travelTime + best.averageDurationHours;
+        draft.lastPOI        = best;
         draft.usedCategories.add(best.category);
     }
 
     // =========================================================================
-    // Étape 6 — Sélection du meilleur candidat pour un créneau
+    // Sélection & scoring
     // =========================================================================
 
-    private selectBestCandidateForSlot(
+    private selectBest(
         pool:     PointOfInterest[],
         slot:     TimeSlot,
         mode:     RouteMode,
@@ -268,21 +175,15 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         let bestScore: number = -Infinity;
 
         for (const poi of pool) {
-            if (this.isAlreadySelected(poi, draft))         continue;
-            
-            // Priorité au créneau, mais on accepte d'autres POIs si le score est très bon
-            // ou si on n'a rien trouvé pour ce créneau spécifique.
-            const isCorrectSlot = (poi.preferredTimeSlot === slot);
-            
-            const travelTime = this.computeTravelTimeTo(poi, draft.lastPOI);
-            if (!this.fitsWithinConstraints(poi, travelTime, draft, criteria)) continue;
+            if (this.isSelected(poi, draft)) continue;
+
+            const travelTime = this.travelTimeTo(poi, draft.lastPOI);
+            if (!this.fitsConstraints(poi, travelTime, draft, criteria)) continue;
 
             let score = this.computeScore(poi, mode, travelTime, draft);
-            
-            // Bonus majeur pour le respect du créneau horaire
-            if (isCorrectSlot) {
-                score += 10; 
-            }
+
+            // Bonus si le POI correspond au bon créneau horaire
+            if (poi.preferredTimeSlot === slot) score += JourneyConfig.SLOT_MATCH_BONUS;
 
             if (score > bestScore) {
                 bestScore = score;
@@ -293,19 +194,12 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         return bestPOI;
     }
 
-    // =========================================================================
-    // Étape 7 — Scoring
-    // =========================================================================
-
     /**
-     * Calcule le score d'attractivité d'un POI pour le mode et le contexte donnés.
-     *
-     * Formule :
-     *   score = rating
-     *         − costPenaltyPerUnit × baseCost    (malus coût pour ECONOMY)
-     *         + comfortBonus × comfortLevel       (bonus confort pour COMFORT/BALANCED)
-     *         + proximityScore                    (bonus si proche du POI précédent)
-     *         × diversityFactor                   (pénalité si catégorie déjà présente)
+     * score = rating
+     *       − costPenalty × baseCost     (malus ECONOMY)
+     *       + comfortBonus × comfortLevel (bonus COMFORT/BALANCED)
+     *       + proximityBonus              (POI proche du précédent)
+     *       × diversityFactor             (pénalité si catégorie déjà vue)
      */
     private computeScore(
         poi:        PointOfInterest,
@@ -313,34 +207,32 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         travelTime: number,
         draft:      ItineraryDraft,
     ): number {
-        const config = SCORING_CONFIGS[mode];
+        const { costPenaltyPerUnit, comfortBonus } = SCORING_CONFIGS[mode];
 
         let score = poi.rating
-            - config.costPenaltyPerUnit * poi.baseCost
-            + config.comfortBonus       * poi.comfortLevel;
+            - costPenaltyPerUnit * poi.baseCost
+            + comfortBonus       * poi.comfortLevel;
 
-        // Bonus de proximité : favorise les POIs géographiquement proches
         if (draft.lastPOI) {
-            const distance = this.routingService.calculateDistance(
+            const dist = this.routingService.calculateDistance(
                 draft.lastPOI.latitude, draft.lastPOI.longitude,
-                poi.latitude,           poi.longitude,
+                poi.latitude, poi.longitude,
             );
-            score += (1 / (1 + distance)) * PROXIMITY_WEIGHT;
+            score += (1 / (1 + dist)) * JourneyConfig.PROXIMITY_WEIGHT;
         }
 
-        // Pénalité de diversité : décourager (sans interdire) les doublons de catégorie
-        if (config.diversityEnabled && draft.usedCategories.has(poi.category)) {
-            score *= DIVERSITY_SCORE_PENALTY;
+        if (draft.usedCategories.has(poi.category)) {
+            score *= JourneyConfig.DIVERSITY_SCORE_PENALTY;
         }
 
         return score;
     }
 
     // =========================================================================
-    // Étape 8 — Construction de l'entité finale
+    // Construction de l'entité finale
     // =========================================================================
 
-    private assembleFinalItinerary(
+    private toItinerary(
         draft:    ItineraryDraft,
         criteria: SearchCriteria,
         mode:     RouteMode,
@@ -352,46 +244,36 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
             description:    this.buildDescription(mode, criteria),
             cost:           Math.round(totalCost     * 100) / 100,
             duration:       `${Math.round(totalDuration * 10) / 10}h`,
-            effort:         this.inferEffortLabel(selectedPOIs),
-            weather:        this.inferWeatherLabel(selectedPOIs),
+            effort:         this.inferEffort(selectedPOIs),
+            weather:        this.inferWeather(selectedPOIs),
             steps:          selectedPOIs.map(p => p.name).join(' → '),
             poiCoordinates: selectedPOIs.map(p => ({ lat: p.latitude, lng: p.longitude })),
             routeType:      mode,
         };
     }
 
-    // =========================================================================
-    // Helpers — Génération de texte
-    // =========================================================================
+    // ─── Texte ────────────────────────────────────────────────────────────────
 
-    private buildTitle(
-        pois:     PointOfInterest[],
-        mode:     RouteMode,
-        criteria: SearchCriteria,
-    ): string {
+    private buildTitle(pois: PointOfInterest[], mode: RouteMode, criteria: SearchCriteria): string {
         const anchor = pois[0]?.name ?? criteria.destinationCity;
         const labels: Record<RouteMode, string> = {
-            ECONOMY:  `Budget Day: ${anchor} & More`,
-            BALANCED: `A Perfect Day at ${anchor}`,
-            COMFORT:  `Premium Experience at ${anchor}`,
+            [RouteMode.ECONOMY]:  `Budget Day: ${anchor} & More`,
+            [RouteMode.BALANCED]: `A Perfect Day at ${anchor}`,
+            [RouteMode.COMFORT]:  `Premium Experience at ${anchor}`,
         };
         return labels[mode];
     }
 
     private buildDescription(mode: RouteMode, criteria: SearchCriteria): string {
         const intros: Record<RouteMode, string> = {
-            ECONOMY:  'An affordable route optimised for value.',
-            BALANCED: 'A well-balanced itinerary mixing great experiences and fair prices.',
-            COMFORT:  'A premium selection prioritising quality and comfort.',
+            [RouteMode.ECONOMY]:  'An affordable route optimised for value.',
+            [RouteMode.BALANCED]: 'A well-balanced itinerary mixing great experiences and fair prices.',
+            [RouteMode.COMFORT]:  'A premium selection prioritising quality and comfort.',
         };
         return `${intros[mode]} A curated day trip in ${criteria.destinationCity}.`;
     }
 
-    /**
-     * Déduit le niveau d'effort dominant à partir des POIs sélectionnés.
-     * Stratégie : moyenne des effortScore, arrondie au label le plus proche.
-     */
-    private inferEffortLabel(pois: PointOfInterest[]): string {
+    private inferEffort(pois: PointOfInterest[]): string {
         if (pois.length === 0) return 'Easy';
         const avg = pois.reduce((sum, p) => sum + (p.effortScore ?? 1), 0) / pois.length;
         if (avg <= 1.4) return 'Easy';
@@ -399,56 +281,43 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         return 'High';
     }
 
-    /**
-     * Retourne la compatibilité météo globale (intersection des compatibilités).
-     */
-    private inferWeatherLabel(pois: PointOfInterest[]): string {
+    private inferWeather(pois: PointOfInterest[]): string {
         if (pois.length === 0) return 'Any';
-
-        const allConditions = ['SUN', 'CLOUD', 'RAIN'];
-        const intersection  = allConditions.filter(condition =>
+        const conditions = ['SUN', 'CLOUD', 'RAIN'];
+        const compatible = conditions.filter(c =>
             pois.every(p =>
                 !p.weatherCompatibility ||
                 p.weatherCompatibility.includes('ANY') ||
-                p.weatherCompatibility.includes(condition),
+                p.weatherCompatibility.includes(c),
             ),
         );
-
-        return intersection.length > 0 ? intersection.join(', ') : 'Varies';
+        return compatible.length > 0 ? compatible.join(', ') : 'Varies';
     }
 
-    // =========================================================================
-    // Helpers — Calculs
-    // =========================================================================
+    // ─── Helpers ──────────────────────────────────────────────────────────────
 
-    private computeTravelTimeTo(
-        destination: PointOfInterest,
-        origin:      PointOfInterest | null,
-    ): number {
+    private travelTimeTo(dest: PointOfInterest, origin: PointOfInterest | null): number {
         if (!origin) return 0;
-        const distance = this.routingService.calculateDistance(
-            origin.latitude,      origin.longitude,
-            destination.latitude, destination.longitude,
+        const dist = this.routingService.calculateDistance(
+            origin.latitude, origin.longitude,
+            dest.latitude,   dest.longitude,
         );
-        return this.routingService.estimateTravelTimeHours(distance);
+        return this.routingService.estimateTravelTimeHours(dist);
     }
 
-    private fitsWithinConstraints(
+    private fitsConstraints(
         poi:        PointOfInterest,
         travelTime: number,
         draft:      ItineraryDraft,
         criteria:   SearchCriteria,
     ): boolean {
-        const projectedCost     = draft.totalCost     + poi.baseCost;
-        const projectedDuration = draft.totalDuration + travelTime + poi.averageDurationHours;
-
         return (
-            projectedCost     <= criteria.budgetMax      &&
-            projectedDuration <= criteria.durationMaxHours
+            draft.totalCost     + poi.baseCost                              <= criteria.budgetMax       &&
+            draft.totalDuration + travelTime + poi.averageDurationHours     <= criteria.durationMaxHours
         );
     }
 
-    private isAlreadySelected(poi: PointOfInterest, draft: ItineraryDraft): boolean {
+    private isSelected(poi: PointOfInterest, draft: ItineraryDraft): boolean {
         return draft.selectedPOIs.some(p => p.id === poi.id);
     }
 }

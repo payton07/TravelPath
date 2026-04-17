@@ -1,34 +1,48 @@
-import { SearchCriteria } from "../models/SearchCriteria";
-import { Itinerary } from "../models/Itinerary";
-import { ItineraryStrategy } from "../strategies/ItineraryStrategy";
-import { ClassicRuleStrategy } from "../strategies/ClassicRuleStrategy";
-
-import { GooglePlacesService } from "./GooglePlacesService";
-import { RoutingService } from "./RoutingService";
-import { Logger } from "../utils/Logger";
+import { SearchCriteria, Itinerary }  from '../models';
+import { ItineraryStrategy }           from '../strategies/ItineraryStrategy';
+import { ClassicRuleStrategy }         from '../strategies/ClassicRuleStrategy';
+import { GooglePlacesService }         from './GooglePlacesService';
+import { RoutingService }              from './RoutingService';
+import { Logger }                      from '../utils/Logger';
 
 /**
- * Service central pilotant la génération d'itinéraires.
- * Gère le choix de la stratégie et le futur cache serveur Firestore.
+ * Orchestre la génération d'itinéraires.
+ *
+ * Responsabilités :
+ *   - Déléguer à la stratégie active
+ *   - (TODO) Cache Firestore avant/après génération
+ *   - (TODO) Métriques / analytics
+ *
+ * La stratégie est injectable pour faciliter les tests et l'évolution
+ * vers un mode IA sans modifier ce service.
  */
 export class JourneyService {
-    private strategy: ItineraryStrategy;
 
-    constructor() {
-        // Injection des services nécessaires à la stratégie
-        const placesService = new GooglePlacesService(new Logger('GooglePlacesService'));
-        const routingService = new RoutingService();
-        
-        this.strategy = new ClassicRuleStrategy(placesService, routingService);
+    private readonly log: Logger;
+
+    constructor(
+        private readonly strategy: ItineraryStrategy = JourneyService.defaultStrategy(),
+        log: Logger = new Logger('JourneyService'),
+    ) {
+        this.log = log;
     }
 
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
-        // TODO: Vérifier le cache Firestore ici avant de générer
-        
+        this.log.info(`Début génération — ville: "${criteria.destinationCity}"`);
+
+        // TODO: Vérifier le cache Firestore ici
         const itineraries = await this.strategy.generate(criteria);
-        
         // TODO: Sauvegarder dans le cache Firestore ici
-        
+
+        this.log.info(`${itineraries.length} itinéraire(s) généré(s).`);
         return itineraries;
+    }
+
+    // ─── Fabrique de la stratégie par défaut ──────────────────────────────────
+
+    private static defaultStrategy(): ItineraryStrategy {
+        const placesService  = new GooglePlacesService();
+        const routingService = new RoutingService();
+        return new ClassicRuleStrategy(placesService, routingService);
     }
 }
