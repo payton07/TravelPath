@@ -36,13 +36,22 @@ public class SavedFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new RouteAdapter(itinerary -> {
-            RouteDetailFragment detailFragment = RouteDetailFragment.newInstance(itinerary);
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, detailFragment)
-                    .addToBackStack(null)
-                    .commit();
+        adapter = new RouteAdapter(new RouteAdapter.OnRouteClickListener() {
+            @Override
+            public void onRouteClick(Itinerary itinerary) {
+                RouteDetailFragment detailFragment = RouteDetailFragment.newInstance(itinerary);
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, detailFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+
+            @Override
+            public void onLikeClick(Itinerary itinerary) {
+                itinerary.setSaved(!itinerary.isSaved());
+                com.example.travelpath.TravelApplication.getRepository().update(itinerary).subscribe();
+            }
         });
         binding.rvSavedRoutes.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvSavedRoutes.setAdapter(adapter);

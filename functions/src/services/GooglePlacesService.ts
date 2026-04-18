@@ -10,6 +10,11 @@ interface PlacesApiResult {
     name:         string;
     rating?:      number;
     price_level?: number;
+    photos?:      Array<{ photo_reference: string }>;
+    opening_hours?: {
+        open_now?: boolean;
+        weekday_text?: string[];
+    };
     geometry: { location: { lat: number; lng: number } };
 }
 
@@ -121,6 +126,11 @@ export class GooglePlacesService {
     private normalize(result: PlacesApiResult, category: string): PointOfInterest {
         const priceLevel = result.price_level ?? 1;
 
+        // TÂCHE 5 : Construction des URLs de photos
+        const photoUrls = result.photos
+            ?.slice(0, 3)
+            .map(p => this.buildPhotoUrl(p.photo_reference)) ?? [];
+
         return {
             id:                   result.place_id,
             name:                 result.name,
@@ -134,7 +144,16 @@ export class GooglePlacesService {
             weatherCompatibility: ['ANY'],
             effortScore:          PlacesConfig.DEFAULTS.EFFORT_SCORE,
             comfortLevel:         priceLevel                                    ?? PlacesConfig.DEFAULTS.COMFORT_LEVEL,
+            photoUrls,
+            openingHours: result.opening_hours ? {
+                isOpenNow: result.opening_hours.open_now ?? true,
+                weekdayText: result.opening_hours.weekday_text ?? []
+            } : undefined
         };
+    }
+
+    private buildPhotoUrl(ref: string): string {
+        return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${this.apiKey}`;
     }
 
     private resolveTimeSlot(category: string, name: string): TimeSlot {
@@ -160,6 +179,7 @@ export class GooglePlacesService {
             baseCost: cost, rating, averageDurationHours: duration,
             preferredTimeSlot: slot, weatherCompatibility: weather,
             effortScore: effort, comfortLevel: comfort,
+            photoUrls: []
         });
 
         return [

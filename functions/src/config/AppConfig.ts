@@ -13,15 +13,17 @@
 // ─── Variables d'environnement ────────────────────────────────────────────────
 
 export const Env = {
-    MAPS_API_KEY:  process.env.MAPS_API_KEY  ?? '',
-    NODE_ENV:      process.env.NODE_ENV      ?? 'development',
-    FIREBASE_REGION: process.env.FIREBASE_REGION ?? 'us-central1',
+    MAPS_API_KEY:         process.env.MAPS_API_KEY  ?? '',
+    OPENWEATHER_API_KEY:  process.env.OPENWEATHER_API_KEY ?? '',
+    NODE_ENV:             process.env.NODE_ENV      ?? 'development',
+    FIREBASE_REGION:      process.env.FIREBASE_REGION ?? 'us-central1',
 } as const;
 
 // ─── Google Places ────────────────────────────────────────────────────────────
 
 export const PlacesConfig = {
     BASE_URL:              'https://maps.googleapis.com/maps/api/place/textsearch/json',
+    DIRECTIONS_URL:        'https://maps.googleapis.com/maps/api/directions/json',
     MAX_RESULTS_PER_INTEREST: 8,
 
     /** Coût moyen estimé (€) par price_level Google (0–4). */

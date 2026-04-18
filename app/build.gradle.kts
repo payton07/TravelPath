@@ -85,6 +85,14 @@ dependencies {
     // Google Maps & Places
     implementation(libs.google.maps)
     implementation(libs.google.places)
+    implementation(libs.google.maps.utils)
+
+    // Glide
+    implementation(libs.glide)
+    annotationProcessor(libs.glide.compiler)
+
+    // Gson
+    implementation(libs.gson)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

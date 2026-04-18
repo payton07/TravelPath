@@ -19,16 +19,21 @@ export interface PointOfInterest {
     rating:               number;
     averageDurationHours: number;
     preferredTimeSlot:    TimeSlot;
-    weatherCompatibility: string[];
+    weatherCompatibility: string[]; // ex: ['SUN', 'RAIN', 'ANY']
     effortScore:          number;
     comfortLevel:         number;
+    photoUrls?:           string[]; // URLs complètes vers Places Photo API
+    openingHours?: {
+        isOpenNow:   boolean;
+        weekdayText: string[];
+    };
 }
 
 // ─── SearchCriteria ───────────────────────────────────────────────────────────
 export interface SearchCriteria {
     destinationCity:     string;
     destinationPlaceId?: string;
-    mandatoryPois:       string[];
+    mandatoryPois:       string[]; // Liste de noms ou IDs à inclure absolument
     budgetMin:           number;
     budgetMax:           number;
     durationMinHours:    number;
@@ -36,6 +41,7 @@ export interface SearchCriteria {
     interests:           string[];
     effortLevel:         string;
     weatherPreferences:  string[];
+    excludeIds?:         string[]; // Pour la regénération (Tâche 4)
 }
 
 // ─── Itinerary ────────────────────────────────────────────────────────────────
@@ -51,6 +57,8 @@ export interface Itinerary {
     poiCoordinates?: { lat: number; lng: number }[];
     imageUrl?:       string;
     routeType:       RouteMode;
+    fullSteps?:      PointOfInterest[]; // Détails riches pour l'UI Android
+    encodedPolyline?: string;           // Pour le tracé sur la carte (Sprint 3)
 }
 
 // ─── Barrel ───────────────────────────────────────────────────────────────────

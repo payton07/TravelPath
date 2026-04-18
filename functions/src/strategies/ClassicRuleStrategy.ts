@@ -37,9 +37,6 @@ const TIME_SLOTS: TimeSlot[] = ['morning', 'afternoon', 'evening'];
 /**
  * Moteur de recommandation déterministe (sans IA).
  * Génère 3 itinéraires (ECONOMY / BALANCED / COMFORT) depuis les mêmes critères.
- *
- * Pipeline :
- *   fetchPool → filterByMode → sortByMode → buildItinerary (glouton par slot)
  */
 export class ClassicRuleStrategy implements ItineraryStrategy {
 
@@ -52,10 +49,6 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
     ) {
         this.log = log;
     }
-
-    // =========================================================================
-    // Entrée publique
-    // =========================================================================
 
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
         this.log.info(`Génération pour "${criteria.destinationCity}"`);
@@ -70,25 +63,49 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
             return [];
         }
 
-        return this.buildAllVariants(rawPool, criteria);
+        // TÂCHE 2 : Filtre météo global
+        const weatherSafePool = this.filterByWeather(rawPool, criteria.weatherPreferences);
+
+        return this.buildAllVariants(weatherSafePool, criteria);
+    }
+
+    private filterByWeather(pool: PointOfInterest[], prefs: string[]): PointOfInterest[] {
+        if (!prefs || prefs.length === 0) return pool;
+
+        const filtered = pool.filter(p => 
+            p.weatherCompatibility.includes('ANY') || 
+            p.weatherCompatibility.some(w => prefs.includes(w))
+        );
+
+        if (filtered.length < JourneyConfig.MIN_FILTERED_POOL_SIZE) {
+            this.log.warn('Filtre météo trop restrictif — utilisation pool complète.');
+            return pool;
+        }
+
+        return filtered;
     }
 
     // =========================================================================
-    // Variantes
+    // Étape 3 — Génération des variantes (avec Polyline TÂCHE 8)
     // =========================================================================
 
-    private buildAllVariants(pool: PointOfInterest[], criteria: SearchCriteria): Itinerary[] {
-        return Object.values(RouteMode).flatMap(mode => {
+    private async buildAllVariants(pool: PointOfInterest[], criteria: SearchCriteria): Promise<Itinerary[]> {
+        const variantPromises = Object.values(RouteMode).map(async mode => {
             const filtered   = this.filterByMode(pool, mode);
             const prioritized = this.sortByMode(filtered, mode);
             const itinerary  = this.buildItinerary(prioritized, criteria, mode);
-            return itinerary ? [itinerary] : [];
+            
+            if (itinerary && itinerary.fullSteps && itinerary.fullSteps.length >= 2) {
+                // TÂCHE 8 : Récupérer le tracé réel
+                itinerary.encodedPolyline = await this.routingService.getRoutePolyline(itinerary.fullSteps);
+            }
+            
+            return itinerary;
         });
-    }
 
-    // =========================================================================
-    // Filtrage & tri
-    // =========================================================================
+        const results = await Promise.all(variantPromises);
+        return results.filter((it): it is Itinerary => it !== null);
+    }
 
     private filterByMode(pool: PointOfInterest[], mode: RouteMode): PointOfInterest[] {
         const subset = pool.filter(poi => this.matchesModeProfile(poi, mode));
@@ -113,31 +130,53 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         });
     }
 
-    // =========================================================================
-    // Assemblage glouton par créneau
-    // =========================================================================
-
     private buildItinerary(
         pool:     PointOfInterest[],
         criteria: SearchCriteria,
         mode:     RouteMode,
     ): Itinerary | null {
 
-        const draft: ItineraryDraft = {
-            selectedPOIs:   [],
-            totalCost:      0,
-            totalDuration:  0,
-            lastPOI:        null,
-            usedCategories: new Set(),
-        };
+        const draft = this.initDraftWithMandatory(pool, criteria);
 
         for (const slot of TIME_SLOTS) {
+            if (draft.selectedPOIs.some(p => p.preferredTimeSlot === slot)) continue;
             this.tryFillSlot(draft, pool, slot, mode, criteria);
         }
 
         if (draft.selectedPOIs.length === 0) return null;
 
+        draft.selectedPOIs.sort((a, b) => {
+            const order = { 'morning': 0, 'afternoon': 1, 'evening': 2 };
+            return order[a.preferredTimeSlot] - order[b.preferredTimeSlot];
+        });
+
         return this.toItinerary(draft, criteria, mode);
+    }
+
+    private initDraftWithMandatory(pool: PointOfInterest[], criteria: SearchCriteria): ItineraryDraft {
+        const mandatory = pool.filter(p => 
+            criteria.mandatoryPois.includes(p.id) || 
+            criteria.mandatoryPois.includes(p.name)
+        );
+
+        let cost = 0;
+        let duration = 0;
+        let last: PointOfInterest | null = null;
+
+        mandatory.forEach(p => {
+            cost += p.baseCost;
+            duration += p.averageDurationHours;
+            if (last) duration += this.travelTimeTo(p, last);
+            last = p;
+        });
+
+        return {
+            selectedPOIs:   mandatory,
+            totalCost:      cost,
+            totalDuration:  duration,
+            lastPOI:        last,
+            usedCategories: new Set(mandatory.map(p => p.category)),
+        };
     }
 
     private tryFillSlot(
@@ -159,10 +198,6 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         draft.usedCategories.add(best.category);
     }
 
-    // =========================================================================
-    // Sélection & scoring
-    // =========================================================================
-
     private selectBest(
         pool:     PointOfInterest[],
         slot:     TimeSlot,
@@ -175,6 +210,9 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         let bestScore: number = -Infinity;
 
         for (const poi of pool) {
+            // Bug 3 : Ignorer les lieux exclus (regénération)
+            if (criteria.excludeIds?.includes(poi.id)) continue;
+            
             if (this.isSelected(poi, draft)) continue;
 
             const travelTime = this.travelTimeTo(poi, draft.lastPOI);
@@ -182,7 +220,10 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
 
             let score = this.computeScore(poi, mode, travelTime, draft);
 
-            // Bonus si le POI correspond au bon créneau horaire
+            if (poi.openingHours && poi.openingHours.isOpenNow === false) {
+                score -= 20;
+            }
+
             if (poi.preferredTimeSlot === slot) score += JourneyConfig.SLOT_MATCH_BONUS;
 
             if (score > bestScore) {
@@ -194,13 +235,6 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         return bestPOI;
     }
 
-    /**
-     * score = rating
-     *       − costPenalty × baseCost     (malus ECONOMY)
-     *       + comfortBonus × comfortLevel (bonus COMFORT/BALANCED)
-     *       + proximityBonus              (POI proche du précédent)
-     *       × diversityFactor             (pénalité si catégorie déjà vue)
-     */
     private computeScore(
         poi:        PointOfInterest,
         mode:       RouteMode,
@@ -228,16 +262,13 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         return score;
     }
 
-    // =========================================================================
-    // Construction de l'entité finale
-    // =========================================================================
-
     private toItinerary(
         draft:    ItineraryDraft,
         criteria: SearchCriteria,
         mode:     RouteMode,
     ): Itinerary {
         const { selectedPOIs, totalCost, totalDuration } = draft;
+        const mainImage = selectedPOIs.find(p => p.photoUrls && p.photoUrls.length > 0)?.photoUrls?.[0];
 
         return {
             name:           this.buildTitle(selectedPOIs, mode, criteria),
@@ -249,10 +280,10 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
             steps:          selectedPOIs.map(p => p.name).join(' → '),
             poiCoordinates: selectedPOIs.map(p => ({ lat: p.latitude, lng: p.longitude })),
             routeType:      mode,
+            fullSteps:      selectedPOIs,
+            imageUrl:       mainImage
         };
     }
-
-    // ─── Texte ────────────────────────────────────────────────────────────────
 
     private buildTitle(pois: PointOfInterest[], mode: RouteMode, criteria: SearchCriteria): string {
         const anchor = pois[0]?.name ?? criteria.destinationCity;
@@ -293,8 +324,6 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         );
         return compatible.length > 0 ? compatible.join(', ') : 'Varies';
     }
-
-    // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private travelTimeTo(dest: PointOfInterest, origin: PointOfInterest | null): number {
         if (!origin) return 0;

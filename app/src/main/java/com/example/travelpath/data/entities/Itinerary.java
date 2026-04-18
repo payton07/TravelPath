@@ -1,7 +1,6 @@
 package com.example.travelpath.data.entities;
 
 import androidx.room.Entity;
-import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 import java.io.Serializable;
 
@@ -15,21 +14,20 @@ public class Itinerary implements Serializable {
     private int id;
 
     private String name;
-    private String destinationCity; // Ville de destination
+    private String destinationCity;
     private String description;
     private double cost;
-    private String duration; // e.g., "5.5h"
-    private String effort;   // e.g., "Easy", "Moderate", "High"
-    private String weather;  // e.g., "SUN, CLOUD"
-    private String steps;    // Noms des étapes séparés par des virgules
+    private String duration;
+    private String effort;
+    private String weather;
+    private String steps;
     private String imageUrl;
-    private String poiCoordinatesJson; // Liste des coordonnées GPS au format JSON
-
+    private String poiCoordinatesJson;
+    private String fullStepsJson;      // Détails complets des POIs (Photos, Horaires)
+    private String encodedPolyline;    // Tracé de la route Google Directions
+    private long cachedAt;             // Timestamp de mise en cache (Tâche 9)
+    
     private boolean isSaved;
-
-    /**
-     * Type de route : ECONOMY / BALANCED / COMFORT.
-     */
     private String routeType;
 
     public Itinerary() {}
@@ -67,6 +65,15 @@ public class Itinerary implements Serializable {
 
     public String getPoiCoordinatesJson() { return poiCoordinatesJson; }
     public void setPoiCoordinatesJson(String poiCoordinatesJson) { this.poiCoordinatesJson = poiCoordinatesJson; }
+
+    public String getFullStepsJson() { return fullStepsJson; }
+    public void setFullStepsJson(String fullStepsJson) { this.fullStepsJson = fullStepsJson; }
+
+    public String getEncodedPolyline() { return encodedPolyline; }
+    public void setEncodedPolyline(String encodedPolyline) { this.encodedPolyline = encodedPolyline; }
+
+    public long getCachedAt() { return cachedAt; }
+    public void setCachedAt(long cachedAt) { this.cachedAt = cachedAt; }
 
     public boolean isSaved() { return isSaved; }
     public void setSaved(boolean saved) { isSaved = saved; }

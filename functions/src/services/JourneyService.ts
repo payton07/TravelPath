@@ -1,48 +1,75 @@
-import { SearchCriteria, Itinerary }  from '../models';
-import { ItineraryStrategy }           from '../strategies/ItineraryStrategy';
-import { ClassicRuleStrategy }         from '../strategies/ClassicRuleStrategy';
-import { GooglePlacesService }         from './GooglePlacesService';
-import { RoutingService }              from './RoutingService';
-import { Logger }                      from '../utils/Logger';
+import { SearchCriteria, Itinerary } from '../models';
+import { ItineraryStrategy }    from '../strategies/ItineraryStrategy';
+import { ClassicRuleStrategy }   from '../strategies/ClassicRuleStrategy';
+import { GooglePlacesService }   from './GooglePlacesService';
+import { RoutingService }        from './RoutingService';
+import { FirestoreService }      from './FirestoreService';
+import { WeatherService }        from './WeatherService';
+import { Logger }                from '../utils/Logger';
 
 /**
- * Orchestre la génération d'itinéraires.
- *
- * Responsabilités :
- *   - Déléguer à la stratégie active
- *   - (TODO) Cache Firestore avant/après génération
- *   - (TODO) Métriques / analytics
- *
- * La stratégie est injectable pour faciliter les tests et l'évolution
- * vers un mode IA sans modifier ce service.
+ * Service central pilotant la génération d'itinéraires.
+ * Gère le choix de la stratégie et le cache serveur Firestore.
  */
 export class JourneyService {
-
+    private readonly strategy: ItineraryStrategy;
+    private readonly firestore: FirestoreService;
+    private readonly weather: WeatherService;
     private readonly log: Logger;
 
-    constructor(
-        private readonly strategy: ItineraryStrategy = JourneyService.defaultStrategy(),
-        log: Logger = new Logger('JourneyService'),
-    ) {
-        this.log = log;
+    constructor() {
+        this.log = new Logger('JourneyService');
+        this.firestore = new FirestoreService();
+        this.weather = new WeatherService();
+
+        // Injection des services nécessaires à la stratégie
+        const placesService = new GooglePlacesService();
+        const routingService = new RoutingService();
+        
+        this.strategy = new ClassicRuleStrategy(placesService, routingService);
     }
 
+    /**
+     * Génère des itinéraires en consultant d'abord le cache Firestore.
+     */
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
-        this.log.info(`Début génération — ville: "${criteria.destinationCity}"`);
+        // 1. Enrichir les critères avec la météo réelle si non spécifiée ou par défaut 'ANY' (Bug 2)
+        if (!criteria.weatherPreferences 
+            || criteria.weatherPreferences.length === 0 
+            || (criteria.weatherPreferences.length === 1 && criteria.weatherPreferences[0] === 'ANY')) {
+            const currentCondition = await this.weather.getCurrentCondition(criteria.destinationCity);
+            criteria.weatherPreferences = [currentCondition];
+        }
 
-        // TODO: Vérifier le cache Firestore ici
+        // 2. Générer une clé de cache unique
+        const cacheKey = this.buildCacheKey(criteria);
+
+        // 3. Vérifier le cache
+        const cached = await this.firestore.getCachedItineraries(cacheKey);
+        if (cached) {
+            this.log.info(`Retour des résultats depuis le cache pour ${criteria.destinationCity}`);
+            return cached;
+        }
+
+        // 4. Si non trouvé, générer via la stratégie
         const itineraries = await this.strategy.generate(criteria);
-        // TODO: Sauvegarder dans le cache Firestore ici
 
-        this.log.info(`${itineraries.length} itinéraire(s) généré(s).`);
+        // 5. Sauvegarder dans le cache pour 24h
+        if (itineraries.length > 0) {
+            await this.firestore.setCachedItineraries(cacheKey, itineraries);
+        }
+
         return itineraries;
     }
 
-    // ─── Fabrique de la stratégie par défaut ──────────────────────────────────
-
-    private static defaultStrategy(): ItineraryStrategy {
-        const placesService  = new GooglePlacesService();
-        const routingService = new RoutingService();
-        return new ClassicRuleStrategy(placesService, routingService);
+    /**
+     * Construit une clé de cache basée sur la ville et l'intégralité des critères (Problème partiel).
+     */
+    private buildCacheKey(criteria: SearchCriteria): string {
+        const city = criteria.destinationCity.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const sortedInterests = [...criteria.interests].sort().join('_').toLowerCase();
+        const sortedWeather = [...criteria.weatherPreferences].sort().join('_').toLowerCase();
+        
+        return `cache_${city}_${sortedInterests}_${sortedWeather}_b${criteria.budgetMax}_d${criteria.durationMaxHours}_e${criteria.effortLevel}`;
     }
 }

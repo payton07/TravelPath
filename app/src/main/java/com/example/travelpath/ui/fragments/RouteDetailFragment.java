@@ -2,20 +2,22 @@ package com.example.travelpath.ui.fragments;
 
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import com.bumptech.glide.Glide;
 import com.example.travelpath.R;
 import com.example.travelpath.data.FirebaseManager;
 import com.example.travelpath.data.entities.Itinerary;
+import com.example.travelpath.data.models.PointOfInterest;
 import com.example.travelpath.data.repository.TravelRepository;
 import com.example.travelpath.databinding.FragmentRouteDetailBinding;
 import com.example.travelpath.databinding.ItemTimelineStepBinding;
@@ -25,11 +27,17 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.maps.android.PolyUtil;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RouteDetailFragment extends Fragment implements OnMapReadyCallback {
 
@@ -66,10 +74,8 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
             itinerary = (Itinerary) getArguments().getSerializable(ARG_ITINERARY);
             if (itinerary != null) {
                 updateUI(itinerary);
-                setupPdfExport(itinerary);
                 setupActions();
                 
-                // Initialisation de la Map
                 binding.mapView.onCreate(savedInstanceState);
                 binding.mapView.getMapAsync(this);
             }
@@ -78,33 +84,79 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
 
     private void setupActions() {
         updateSaveButtonState();
-        binding.btnSaveRoute.setOnClickListener(v -> {
-            itinerary.setSaved(!itinerary.isSaved());
-            disposables.add(repository.update(itinerary)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(() -> {
-                        updateSaveButtonState();
-                        String msg = itinerary.isSaved() ? "Parcours sauvegardé !" : "Parcours retiré des favoris";
-                        Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-                    }, throwable -> {
-                        Toast.makeText(getContext(), "Erreur lors de la sauvegarde", Toast.LENGTH_SHORT).show();
-                    }));
-        });
+        binding.btnSaveRoute.setOnClickListener(v -> toggleSave());
+        binding.btnShareRoute.setOnClickListener(v -> shareItinerary());
+        binding.btnPdfExport.setOnClickListener(v -> generatePdf());
+    }
+
+    private void toggleSave() {
+        itinerary.setSaved(!itinerary.isSaved());
+        disposables.add(repository.update(itinerary)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> {
+                    updateSaveButtonState();
+                    String msg = itinerary.isSaved() ? "Parcours sauvegardé !" : "Parcours retiré";
+                    Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                }, throwable -> Toast.makeText(getContext(), "Erreur sauvegarde", Toast.LENGTH_SHORT).show()));
     }
 
     private void updateSaveButtonState() {
         if (itinerary.isSaved()) {
             binding.btnSaveRoute.setText("Saved");
             binding.btnSaveRoute.setIconResource(android.R.drawable.btn_star_big_on);
-            binding.btnSaveRoute.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.emerald_primary)));
-            binding.btnSaveRoute.setTextColor(getResources().getColor(R.color.white));
-            binding.btnSaveRoute.setIconTint(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.white)));
         } else {
             binding.btnSaveRoute.setText(getString(R.string.save));
             binding.btnSaveRoute.setIconResource(android.R.drawable.ic_menu_save);
-            binding.btnSaveRoute.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.emerald_light)));
-            binding.btnSaveRoute.setTextColor(getResources().getColor(R.color.emerald_primary));
-            binding.btnSaveRoute.setIconTint(android.content.res.ColorStateList.valueOf(getResources().getColor(R.color.emerald_primary)));
+        }
+    }
+
+    private void updateUI(Itinerary itinerary) {
+        binding.tvRouteTitle.setText(itinerary.getName());
+        binding.tvRouteDescription.setText(itinerary.getDescription());
+        binding.tvCostDetail.setText(itinerary.getCost() + "€");
+        binding.tvDurationDetail.setText(itinerary.getDuration());
+        binding.tvEffortDetail.setText(itinerary.getEffort());
+        binding.tvWeatherDetail.setText(itinerary.getWeather());
+
+        if (itinerary.getImageUrl() != null) {
+            Glide.with(this).load(itinerary.getImageUrl()).into(binding.ivRouteHeader);
+        }
+
+        buildTimeline(itinerary);
+    }
+
+    private void buildTimeline(Itinerary itinerary) {
+        binding.timelineContainer.removeAllViews();
+        
+        Gson gson = new Gson();
+        Type listType = new TypeToken<ArrayList<PointOfInterest>>(){}.getType();
+        List<PointOfInterest> poiList = gson.fromJson(itinerary.getFullStepsJson(), listType);
+
+        if (poiList == null) return;
+
+        for (int i = 0; i < poiList.size(); i++) {
+            PointOfInterest poi = poiList.get(i);
+            ItemTimelineStepBinding stepBinding = ItemTimelineStepBinding.inflate(getLayoutInflater(), binding.timelineContainer, false);
+            
+            stepBinding.tvStepNumber.setText(String.valueOf(i + 1));
+            stepBinding.tvStepName.setText(poi.getName());
+            stepBinding.tvStepTime.setText(poi.getPreferredTimeSlot().toUpperCase());
+
+            // Affichage des horaires si disponibles
+            if (poi.getOpeningHours() != null) {
+                stepBinding.tvOpeningHours.setVisibility(View.VISIBLE);
+                stepBinding.tvOpeningHours.setText(poi.getOpeningHours().isOpenNow() ? "Ouvert" : "Fermé");
+                stepBinding.tvOpeningHours.setTextColor(poi.getOpeningHours().isOpenNow() ? 
+                    getResources().getColor(R.color.emerald_primary) : getResources().getColor(android.R.color.holo_red_dark));
+            }
+
+            // Photo de l'étape
+            if (poi.getPhotoUrls() != null && !poi.getPhotoUrls().isEmpty()) {
+                stepBinding.ivStepPhoto.setVisibility(View.VISIBLE);
+                Glide.with(this).load(poi.getPhotoUrls().get(0)).into(stepBinding.ivStepPhoto);
+            }
+
+            binding.timelineContainer.addView(stepBinding.getRoot());
         }
     }
 
@@ -112,102 +164,80 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     public void onMapReady(@NonNull GoogleMap map) {
         this.googleMap = map;
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        displayMarkers();
-    }
-
-    private void displayMarkers() {
-        if (googleMap == null || itinerary == null || itinerary.getPoiCoordinatesJson() == null) return;
-
-        try {
-            JSONArray coords = new JSONArray(itinerary.getPoiCoordinatesJson());
-            if (coords.length() == 0) return;
-
-            LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
-            String[] stepNames = itinerary.getSteps().split(" → ");
-
-            for (int i = 0; i < coords.length(); i++) {
-                JSONObject obj = coords.getJSONObject(i);
-                LatLng position = new LatLng(obj.getDouble("lat"), obj.getDouble("lng"));
-                
-                String title = (i < stepNames.length) ? stepNames[i] : "Step " + (i + 1);
-                googleMap.addMarker(new MarkerOptions().position(position).title(title));
-                boundsBuilder.include(position);
-            }
-
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(), 100));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void updateUI(Itinerary itinerary) {
-        binding.tvRouteTitle.setText(itinerary.getName());
-        binding.tvDistance.setText(itinerary.getDuration());
-
-        // Génération dynamique de la Timeline
-        binding.timelineContainer.removeAllViews();
-        String[] stepNames = itinerary.getSteps().split(" → ");
         
-        for (int i = 0; i < stepNames.length; i++) {
-            ItemTimelineStepBinding itemBinding = ItemTimelineStepBinding.inflate(getLayoutInflater(), binding.timelineContainer, false);
-            itemBinding.tvStepNumber.setText(String.valueOf(i + 1));
-            itemBinding.tvStepName.setText(stepNames[i]);
-            
-            // Simulation d'horaires pour la démo
-            String time = (i == 0) ? "09:30 - 12:00" : (i == 1) ? "12:30 - 14:00" : "14:30 - 17:00";
-            itemBinding.tvStepTime.setText(time);
-            
-            binding.timelineContainer.addView(itemBinding.getRoot());
+        displayRouteOnMap();
+    }
+
+    private void displayRouteOnMap() {
+        if (googleMap == null || itinerary == null) return;
+
+        // 1. Tracer la polyline
+        if (itinerary.getEncodedPolyline() != null) {
+            List<LatLng> points = PolyUtil.decode(itinerary.getEncodedPolyline());
+            googleMap.addPolyline(new PolylineOptions()
+                    .addAll(points)
+                    .width(10)
+                    .color(getResources().getColor(R.color.emerald_primary)));
+        }
+
+        // 2. Ajouter les marqueurs
+        Gson gson = new Gson();
+        Type listType = new TypeToken<ArrayList<PointOfInterest>>(){}.getType();
+        List<PointOfInterest> poiList = gson.fromJson(itinerary.getFullStepsJson(), listType);
+
+        if (poiList != null && !poiList.isEmpty()) {
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+            for (PointOfInterest poi : poiList) {
+                LatLng pos = new LatLng(poi.getLatitude(), poi.getLongitude());
+                googleMap.addMarker(new MarkerOptions().position(pos).title(poi.getName()));
+                builder.include(pos);
+            }
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
         }
     }
 
-    private void setupPdfExport(Itinerary itinerary) {
-        binding.btnExportPdf.setOnClickListener(v -> {
-            Toast.makeText(getContext(), getString(R.string.pdf_generating), Toast.LENGTH_SHORT).show();
-            binding.btnExportPdf.setEnabled(false);
-            binding.btnExportPdf.setAlpha(0.5f);
+    private void shareItinerary() {
+        Toast.makeText(getContext(), "Génération du lien de partage...", Toast.LENGTH_SHORT).show();
+        
+        Map<String, Object> data = new HashMap<>();
+        data.put("itinerary", itinerary);
 
-            disposables.add(FirebaseManager.getInstance().generatePDF(itinerary)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            url -> {
-                                Toast.makeText(getContext(), getString(R.string.pdf_success), Toast.LENGTH_SHORT).show();
-                                downloadPDF(url, itinerary.getName());
-                                binding.btnExportPdf.setEnabled(true);
-                                binding.btnExportPdf.setAlpha(1.0f);
-                            },
-                            throwable -> {
-                                Toast.makeText(getContext(), getString(R.string.pdf_error, throwable.getMessage()), Toast.LENGTH_LONG).show();
-                                binding.btnExportPdf.setEnabled(true);
-                                binding.btnExportPdf.setAlpha(1.0f);
-                            }
-                    ));
-        });
+        FirebaseManager.getInstance().getFunctions()
+                .getHttpsCallable("shareItinerary")
+                .call(data)
+                .addOnSuccessListener(result -> {
+                    Map<String, Object> res = (Map<String, Object>) result.getData();
+                    if (res != null && "success".equals(res.get("status"))) {
+                        String shareUrl = (String) res.get("url");
+                        Intent sendIntent = new Intent();
+                        sendIntent.setAction(Intent.ACTION_SEND);
+                        sendIntent.putExtra(Intent.EXTRA_TEXT, "Découvrez mon parcours TravelPath : " + shareUrl);
+                        sendIntent.setType("text/plain");
+                        startActivity(Intent.createChooser(sendIntent, "Partager via"));
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Échec du partage", Toast.LENGTH_SHORT).show());
     }
 
-    private void downloadPDF(String url, String filenameBase) {
-        if (getContext() == null) return;
-        String safeFilename = filenameBase.replaceAll("[^a-zA-Z0-9.-]", "_") + ".pdf";
-        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
-                .setTitle(getString(R.string.pdf_download_title))
-                .setDescription(getString(R.string.pdf_download_desc, filenameBase))
-                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, safeFilename);
+    private void generatePdf() {
+        Toast.makeText(getContext(), "Génération du PDF...", Toast.LENGTH_SHORT).show();
+        disposables.add(FirebaseManager.getInstance().generatePDF(itinerary)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(url -> {
+                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                    request.setTitle("TravelPath - " + itinerary.getName());
+                    request.setDescription("Téléchargement de votre itinéraire");
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, itinerary.getName() + ".pdf");
 
-        DownloadManager downloadManager = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
-        if (downloadManager != null) downloadManager.enqueue(request);
+                    DownloadManager manager = (DownloadManager) requireContext().getSystemService(Context.DOWNLOAD_SERVICE);
+                    if (manager != null) manager.enqueue(request);
+                    Toast.makeText(getContext(), "Téléchargement démarré", Toast.LENGTH_SHORT).show();
+                }, throwable -> Toast.makeText(getContext(), "Erreur PDF : " + throwable.getMessage(), Toast.LENGTH_SHORT).show()));
     }
 
     @Override public void onResume() { super.onResume(); binding.mapView.onResume(); }
-    @Override public void onPause() { super.onPause(); binding.mapView.onPause(); }
-    @Override public void onDestroy() { super.onDestroy(); if (binding != null) binding.mapView.onDestroy(); }
+    @Override public void onPause() { super.onResume(); binding.mapView.onPause(); }
+    @Override public void onDestroy() { super.onDestroy(); binding.mapView.onDestroy(); disposables.clear(); }
     @Override public void onLowMemory() { super.onLowMemory(); binding.mapView.onLowMemory(); }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        disposables.clear();
-        binding = null;
-    }
 }

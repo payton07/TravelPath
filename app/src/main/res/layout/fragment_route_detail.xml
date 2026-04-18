@@ -171,6 +171,21 @@
                         android:layout_height="40dp"
                         android:text="@string/save"
                         app:icon="@android:drawable/ic_menu_save"
+                        app:iconTint="@color/emerald_primary"
+                        app:backgroundTint="@color/emerald_light"
+                        android:textColor="@color/emerald_primary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnShareRoute"
+                        style="@style/Widget.Material3.Button.TonalButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="8dp"
+                        android:text="Share"
+                        app:icon="@android:drawable/ic_menu_share"
+                        app:iconTint="@color/emerald_primary"
+                        app:backgroundTint="@color/emerald_light"
+                        android:textColor="@color/emerald_primary" />
                         app:iconSize="16dp"
                         app:cornerRadius="20dp"
                         app:backgroundTint="@color/emerald_light"

@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="20dp"
-    android:layout_marginVertical="10dp"
-    app:cardCornerRadius="32dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="24dp"
     app:cardElevation="0dp"
     app:cardBackgroundColor="@color/card_bg"
     app:strokeColor="@color/border_color"
@@ -14,138 +14,114 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:orientation="vertical">
 
-        <RelativeLayout
+        <!-- Image de fond / Miniature (Nouveau) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="140dp">
+            
+            <ImageView
+                android:id="@+id/ivRouteThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/bg_travel_mode" />
+            
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_badge_popular" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLike"
+                style="@style/Widget.Material3.Button.IconButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                app:icon="@android:drawable/btn_star_big_off"
+                app:iconTint="@color/white" />
+        </FrameLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:padding="16dp"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvRouteName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/economy_title"
+                android:text="Route Name"
                 android:textColor="@color/text_primary"
-                android:textSize="20sp"
+                android:textSize="18sp"
                 android:textStyle="bold" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:background="@color/bg_main"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="4dp">
-                
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@android:drawable/ic_menu_day"
-                    app:tint="@color/emerald_accent" />
-                
-                <TextView
-                    android:id="@+id/tvWeather"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:text="@string/weather_placeholder"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </RelativeLayout>
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/border_color"
-            android:layout_marginBottom="16dp" />
-
-        <GridLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:columnCount="3">
-
-            <!-- Coût -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/cost"
-                    android:textColor="@color/text_muted"
-                    android:textSize="10sp"
-                    android:letterSpacing="0.1" />
                 <TextView
                     android:id="@+id/tvCost"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="1250€"
+                    android:text="20€"
                     android:textColor="@color/emerald_primary"
                     android:textStyle="bold" />
-            </LinearLayout>
 
-            <!-- Durée -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/duration"
-                    android:textColor="@color/text_muted"
-                    android:textSize="10sp"
-                    android:letterSpacing="0.1" />
+                    android:layout_marginHorizontal="8dp"
+                    android:text="•"
+                    android:textColor="@color/text_muted" />
+
                 <TextView
                     android:id="@+id/tvDuration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="7 Jours"
-                    android:textColor="@color/emerald_primary"
-                    android:textStyle="bold" />
-            </LinearLayout>
+                    android:text="5h"
+                    android:textColor="@color/text_secondary" />
 
-            <!-- Effort -->
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:orientation="vertical">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/effort"
-                    android:textColor="@color/text_muted"
-                    android:textSize="10sp"
-                    android:letterSpacing="0.1" />
+                    android:layout_marginHorizontal="8dp"
+                    android:text="•"
+                    android:textColor="@color/text_muted" />
+
                 <TextView
                     android:id="@+id/tvEffort"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/effort_moderate"
-                    android:textColor="@color/emerald_primary"
-                    android:textStyle="bold" />
+                    android:text="Moderate"
+                    android:textColor="@color/text_secondary" />
             </LinearLayout>
-        </GridLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSelectRoute"
-            style="@style/Widget.Material3.Button.TonalButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/btn_select_route"
-            app:cornerRadius="16dp"
-            app:backgroundTint="@color/emerald_light"
-            android:textColor="@color/emerald_primary" />
+            <TextView
+                android:id="@+id/tvWeather"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="SUNNY"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSelectRoute"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/select_route"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/emerald_light"
+                android:textColor="@color/emerald_primary" />
+
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

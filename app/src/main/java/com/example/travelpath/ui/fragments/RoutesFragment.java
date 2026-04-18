@@ -1,26 +1,28 @@
 package com.example.travelpath.ui.fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import com.bumptech.glide.Glide;
 import com.example.travelpath.R;
+import com.example.travelpath.TravelApplication;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.data.models.SearchCriteria;
 import com.example.travelpath.databinding.FragmentRoutesBinding;
+import com.example.travelpath.databinding.ItemRouteCardBinding;
 import com.example.travelpath.ui.viewmodels.RouteViewModel;
 import java.util.List;
 
 public class RoutesFragment extends Fragment {
 
-    private static final String TAG = "RoutesFragment";
     private static final String ARG_CRITERIA = "search_criteria";
     private FragmentRoutesBinding binding;
     private RouteViewModel viewModel;
@@ -74,18 +76,15 @@ public class RoutesFragment extends Fragment {
                 updateUI(itineraries);
             } else if (Boolean.FALSE.equals(viewModel.getIsGenerating().getValue())) {
                 binding.tvEmptyRoutes.setVisibility(View.VISIBLE);
+                binding.tvEmptyRoutes.setText("Aucun parcours trouvé pour ces critères.");
             }
         });
 
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
             if (error != null) {
-                String message = error;
-                if (error.contains("PERMISSION_DENIED")) {
-                    message = "Accès refusé. Vérifiez allUsers sur la console.";
-                }
-                binding.tvEmptyRoutes.setText(message);
+                binding.tvEmptyRoutes.setText(error);
                 binding.tvEmptyRoutes.setVisibility(View.VISIBLE);
-                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+                Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -97,23 +96,52 @@ public class RoutesFragment extends Fragment {
 
             switch (type.toUpperCase()) {
                 case "ECONOMY":
-                    fillCard(binding.cardRouteEconomy, binding.tvEconomyTitle, binding.tvEconomyDesc, itinerary);
+                    setupCard(ItemRouteCardBinding.bind(binding.layoutEconomy.getRoot()), itinerary, binding.cardRouteEconomy);
                     break;
                 case "BALANCED":
-                    fillCard(binding.cardRouteBalanced, binding.tvBalancedTitle, binding.tvBalancedDesc, itinerary);
+                    setupCard(ItemRouteCardBinding.bind(binding.layoutBalanced.getRoot()), itinerary, binding.cardRouteBalanced);
                     break;
                 case "COMFORT":
-                    fillCard(binding.cardRouteComfort, binding.tvComfortTitle, binding.tvComfortDesc, itinerary);
+                    setupCard(ItemRouteCardBinding.bind(binding.layoutComfort.getRoot()), itinerary, binding.cardRouteComfort);
                     break;
             }
         }
     }
 
-    private void fillCard(View card, TextView titleView, TextView descView, Itinerary itinerary) {
-        card.setVisibility(View.VISIBLE);
-        titleView.setText(itinerary.getName());
-        descView.setText(String.format("%s • %s • %s", itinerary.getCost() + "€", itinerary.getDuration(), itinerary.getEffort()));
-        card.setOnClickListener(v -> openDetail(itinerary));
+    private void setupCard(ItemRouteCardBinding cardBinding, Itinerary itinerary, View parentCard) {
+        parentCard.setVisibility(View.VISIBLE);
+        cardBinding.tvRouteName.setText(itinerary.getName());
+        cardBinding.tvCost.setText(itinerary.getCost() + "€");
+        cardBinding.tvDuration.setText(itinerary.getDuration());
+        cardBinding.tvEffort.setText(itinerary.getEffort());
+        cardBinding.tvWeather.setText(itinerary.getWeather());
+
+        // Thumbnail
+        if (itinerary.getImageUrl() != null && !itinerary.getImageUrl().isEmpty()) {
+            Glide.with(this).load(itinerary.getImageUrl()).placeholder(R.drawable.bg_travel_mode).into(cardBinding.ivRouteThumbnail);
+        }
+
+        // Like Button
+        updateLikeIcon(cardBinding, itinerary.isSaved());
+        cardBinding.btnLike.setOnClickListener(v -> {
+            itinerary.setSaved(!itinerary.isSaved());
+            TravelApplication.getRepository().update(itinerary).subscribe();
+            updateLikeIcon(cardBinding, itinerary.isSaved());
+            
+            Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.heart_pop);
+            cardBinding.btnLike.startAnimation(anim);
+        });
+
+        cardBinding.btnSelectRoute.setOnClickListener(v -> openDetail(itinerary));
+        parentCard.setOnClickListener(v -> openDetail(itinerary));
+    }
+
+    private void updateLikeIcon(ItemRouteCardBinding binding, boolean isLiked) {
+        if (isLiked) {
+            binding.btnLike.setIconResource(android.R.drawable.btn_star_big_on);
+        } else {
+            binding.btnLike.setIconResource(android.R.drawable.btn_star_big_off);
+        }
     }
 
     private void openDetail(Itinerary itinerary) {

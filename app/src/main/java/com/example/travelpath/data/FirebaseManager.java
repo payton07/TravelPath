@@ -90,11 +90,22 @@ public class FirebaseManager {
                                     it.setWeather((String) map.get("weather"));
                                     it.setSteps((String) map.get("steps"));
                                     it.setRouteType((String) map.get("routeType"));
+                                    it.setImageUrl((String) map.get("imageUrl"));
+                                    it.setEncodedPolyline((String) map.get("encodedPolyline"));
+                                    it.setCachedAt(System.currentTimeMillis());
                                     
-                                    // Conversion des coordonnées GPS en JSON pour Room
+                                    com.google.gson.Gson gson = new com.google.gson.Gson();
+
+                                    // Mapping des POIs riches
+                                    Object fullSteps = map.get("fullSteps");
+                                    if (fullSteps != null) {
+                                        it.setFullStepsJson(gson.toJson(fullSteps));
+                                    }
+                                    
+                                    // Conversion des coordonnées GPS
                                     Object coords = map.get("poiCoordinates");
                                     if (coords != null) {
-                                        it.setPoiCoordinatesJson(new com.google.gson.Gson().toJson(coords));
+                                        it.setPoiCoordinatesJson(gson.toJson(coords));
                                     }
                                     
                                     itineraries.add(it);
