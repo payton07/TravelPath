@@ -134,26 +134,35 @@ export const rateItinerary = fn.https.onCall(async (data, context) => {
 
 export const shareItinerary = fn.https.onCall(async (data, _context) => {
     const { itinerary } = data;
+    functions.logger.info('shareItinerary — Début du traitement', { name: itinerary?.name });
+
     if (!itinerary || !itinerary.name) {
-        throw new functions.https.HttpsError('invalid-argument', 'Itinéraire invalide.');
+        throw new functions.https.HttpsError('invalid-argument', 'Itinéraire invalide (nom manquant).');
     }
 
     try {
         const db = admin.firestore();
-        const shareId = uuidv4().slice(0, 8); // Lien court
+        const shareId = uuidv4().slice(0, 8);
         
-        await db.collection('shared_itineraries').doc(shareId).set({
-            ...itinerary,
-            sharedAt: admin.firestore.FieldValue.serverTimestamp(),
-            expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000 // Expire dans 30 jours
-        });
+        const docData = {
+            name: itinerary.name,
+            description: itinerary.description || "",
+            cost: itinerary.cost || 0,
+            duration: itinerary.duration || "",
+            steps: itinerary.steps || "",
+            imageUrl: itinerary.imageUrl || "",
+            sharedAt: Date.now(), // Utilisation d'un timestamp simple pour éviter les soucis FieldValue
+            expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000)
+        };
 
-        // En production, on renverrait l'URL de la webapp ou un deep link
+        functions.logger.info(`Tentative d'écriture Firestore: shared_itineraries/${shareId}`);
+        await db.collection('shared_itineraries').doc(shareId).set(docData);
+        functions.logger.info('Écriture Firestore réussie');
+
         const shareUrl = `https://travelpath-e8f03.web.app/share/${shareId}`;
-        
         return { status: 'success', shareId, url: shareUrl };
-    } catch (err) {
-        functions.logger.error('Erreur partage itinéraire', err);
-        throw new functions.https.HttpsError('internal', 'Impossible de partager l\'itinéraire.');
+    } catch (err: any) {
+        functions.logger.error('Erreur partage itinéraire détail:', { error: err.message, stack: err.stack });
+        throw new functions.https.HttpsError('internal', `Erreur technique : ${err.message}`);
     }
 });

@@ -86,7 +86,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
         updateSaveButtonState();
         binding.btnSaveRoute.setOnClickListener(v -> toggleSave());
         binding.btnShareRoute.setOnClickListener(v -> shareItinerary());
-        binding.btnPdfExport.setOnClickListener(v -> generatePdf());
+        binding.btnExportPdf.setOnClickListener(v -> generatePdf());
     }
 
     private void toggleSave() {
@@ -118,11 +118,23 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
         binding.tvEffortDetail.setText(itinerary.getEffort());
         binding.tvWeatherDetail.setText(itinerary.getWeather());
 
-        if (itinerary.getImageUrl() != null) {
+        if (itinerary.getImageUrl() != null && !itinerary.getImageUrl().isEmpty()) {
             Glide.with(this).load(itinerary.getImageUrl()).into(binding.ivRouteHeader);
+            binding.ivRouteHeader.setVisibility(View.VISIBLE);
         }
 
+        updateWeatherWarning(itinerary.getWeather());
         buildTimeline(itinerary);
+    }
+
+    private void updateWeatherWarning(String weather) {
+        if (weather != null && (weather.contains("RAIN") || weather.contains("SNOW"))) {
+            binding.cardWeatherWarning.setVisibility(View.VISIBLE);
+            binding.tvWarningTitle.setText("Alerte météo : " + weather);
+            binding.tvWarningDesc.setText("Des précipitations sont prévues. Prévoyez des activités en intérieur.");
+        } else {
+            binding.cardWeatherWarning.setVisibility(View.GONE);
+        }
     }
 
     private void buildTimeline(Itinerary itinerary) {
@@ -142,7 +154,6 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
             stepBinding.tvStepName.setText(poi.getName());
             stepBinding.tvStepTime.setText(poi.getPreferredTimeSlot().toUpperCase());
 
-            // Affichage des horaires si disponibles
             if (poi.getOpeningHours() != null) {
                 stepBinding.tvOpeningHours.setVisibility(View.VISIBLE);
                 stepBinding.tvOpeningHours.setText(poi.getOpeningHours().isOpenNow() ? "Ouvert" : "Fermé");
@@ -150,7 +161,6 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
                     getResources().getColor(R.color.emerald_primary) : getResources().getColor(android.R.color.holo_red_dark));
             }
 
-            // Photo de l'étape
             if (poi.getPhotoUrls() != null && !poi.getPhotoUrls().isEmpty()) {
                 stepBinding.ivStepPhoto.setVisibility(View.VISIBLE);
                 Glide.with(this).load(poi.getPhotoUrls().get(0)).into(stepBinding.ivStepPhoto);
@@ -164,15 +174,13 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     public void onMapReady(@NonNull GoogleMap map) {
         this.googleMap = map;
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        
         displayRouteOnMap();
     }
 
     private void displayRouteOnMap() {
         if (googleMap == null || itinerary == null) return;
 
-        // 1. Tracer la polyline
-        if (itinerary.getEncodedPolyline() != null) {
+        if (itinerary.getEncodedPolyline() != null && !itinerary.getEncodedPolyline().isEmpty()) {
             List<LatLng> points = PolyUtil.decode(itinerary.getEncodedPolyline());
             googleMap.addPolyline(new PolylineOptions()
                     .addAll(points)
@@ -180,7 +188,6 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
                     .color(getResources().getColor(R.color.emerald_primary)));
         }
 
-        // 2. Ajouter les marqueurs
         Gson gson = new Gson();
         Type listType = new TypeToken<ArrayList<PointOfInterest>>(){}.getType();
         List<PointOfInterest> poiList = gson.fromJson(itinerary.getFullStepsJson(), listType);
@@ -199,8 +206,17 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     private void shareItinerary() {
         Toast.makeText(getContext(), "Génération du lien de partage...", Toast.LENGTH_SHORT).show();
         
+        // Construction manuelle de la map pour éviter les problèmes de sérialisation
+        Map<String, Object> itineraryMap = new HashMap<>();
+        itineraryMap.put("name", itinerary.getName());
+        itineraryMap.put("description", itinerary.getDescription());
+        itineraryMap.put("cost", itinerary.getCost());
+        itineraryMap.put("duration", itinerary.getDuration());
+        itineraryMap.put("steps", itinerary.getSteps());
+        itineraryMap.put("imageUrl", itinerary.getImageUrl());
+
         Map<String, Object> data = new HashMap<>();
-        data.put("itinerary", itinerary);
+        data.put("itinerary", itineraryMap);
 
         FirebaseManager.getInstance().getFunctions()
                 .getHttpsCallable("shareItinerary")
@@ -216,7 +232,9 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
                         startActivity(Intent.createChooser(sendIntent, "Partager via"));
                     }
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Échec du partage", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Échec du partage : " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
     }
 
     private void generatePdf() {
@@ -237,7 +255,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     }
 
     @Override public void onResume() { super.onResume(); binding.mapView.onResume(); }
-    @Override public void onPause() { super.onResume(); binding.mapView.onPause(); }
-    @Override public void onDestroy() { super.onDestroy(); binding.mapView.onDestroy(); disposables.clear(); }
+    @Override public void onPause() { binding.mapView.onPause(); super.onPause(); }
+    @Override public void onDestroy() { binding.mapView.onDestroy(); super.onDestroy(); disposables.clear(); }
     @Override public void onLowMemory() { super.onLowMemory(); binding.mapView.onLowMemory(); }
 }

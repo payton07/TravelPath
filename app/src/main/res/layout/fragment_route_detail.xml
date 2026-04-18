@@ -108,6 +108,14 @@
                         android:id="@+id/mapView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
+                        
+                    <!-- Header Image (Over map or separate, using it as an overlay for now if preferred) -->
+                    <ImageView
+                        android:id="@+id/ivRouteHeader"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -186,23 +194,58 @@
                         app:iconTint="@color/emerald_primary"
                         app:backgroundTint="@color/emerald_light"
                         android:textColor="@color/emerald_primary" />
-                        app:iconSize="16dp"
-                        app:cornerRadius="20dp"
-                        app:backgroundTint="@color/emerald_light"
-                        android:textColor="@color/emerald_primary"
-                        app:iconTint="@color/emerald_primary"
-                        android:paddingHorizontal="12dp" />
                 </LinearLayout>
             </RelativeLayout>
 
+            <TextView
+                android:id="@+id/tvRouteDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Description du parcours"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <!-- Stats Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal"
+                android:weightSum="4">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="COST" android:textColor="@color/text_muted" android:textSize="10sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvCostDetail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="20€" android:textColor="@color/emerald_primary" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="TIME" android:textColor="@color/text_muted" android:textSize="10sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvDurationDetail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5h" android:textColor="@color/text_primary" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="EFFORT" android:textColor="@color/text_muted" android:textSize="10sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvEffortDetail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Easy" android:textColor="@color/text_primary" android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="WEATHER" android:textColor="@color/text_muted" android:textSize="10sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvWeatherDetail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SUN" android:textColor="@color/text_primary" android:textStyle="bold" />
+                </LinearLayout>
+
+            </LinearLayout>
+
             <!-- Warning Widget -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardWeatherWarning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/warning_bg">
+                app:cardBackgroundColor="@color/warning_bg"
+                android:visibility="gone">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -215,8 +258,12 @@
                         <ImageView android:layout_width="24dp" android:layout_height="24dp" android:layout_gravity="center" android:src="@android:drawable/ic_menu_view" app:tint="@color/white" />
                     </com.google.android.material.card.MaterialCardView>
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_warning_title" android:textColor="@color/warning_text" android:textStyle="bold" android:textSize="14sp" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_warning_desc" android:textColor="@color/warning_text" android:textSize="12sp" android:alpha="0.8" />
+                        <TextView 
+                            android:id="@+id/tvWarningTitle"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_warning_title" android:textColor="@color/warning_text" android:textStyle="bold" android:textSize="14sp" />
+                        <TextView 
+                            android:id="@+id/tvWarningDesc"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/weather_warning_desc" android:textColor="@color/warning_text" android:textSize="12sp" android:alpha="0.8" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

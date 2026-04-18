@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.travelpath.R;
+import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.databinding.FragmentSavedBinding;
 import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
 

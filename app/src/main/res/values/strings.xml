@@ -60,6 +60,7 @@
     
     <string name="stats_header">Total Coverage today</string>
     <string name="stats_value">8.4km Journey</string>
+    <string name="suggested_routes">Suggested Routes</string>
 
     <!-- SelectedRouteActivity Strings -->
     <string name="route_coverage_badge">4.2 km Total Route</string>
@@ -83,6 +84,7 @@
     <string name="cost">COÛT</string>
     <string name="duration">DURÉE</string>
     <string name="effort">EFFORT</string>
+    <string name="select_route">Select this route</string>
     <string name="btn_select_route">Sélectionner ce parcours</string>
     <string name="weather_placeholder">22°C Ensoleillé</string>
 
