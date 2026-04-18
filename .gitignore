@@ -112,6 +112,7 @@ Thumbs.db
 .junie/
 .agents/
 *.md
+!README.md
 /maquette
 
 ################################
