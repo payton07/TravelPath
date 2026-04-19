@@ -126,14 +126,16 @@ public class ExploreFragment extends Fragment {
                 viewModel.setDestination(cityInput, "manual_input_" + cityInput);
             }
 
-            SearchCriteria criteria = new SearchCriteria()
-                    .destination(cityInput, viewModel.getDestinationPlaceId().getValue())
+            SearchCriteria criteria = new SearchCriteria.Builder()
+                    .destinationCity(cityInput)
+                    .destinationPlaceId(viewModel.getDestinationPlaceId().getValue())
                     .mandatoryPois(viewModel.getMandatoryPois().getValue())
                     .budget(viewModel.getBudgetMin().getValue(), viewModel.getBudgetMax().getValue())
                     .duration(viewModel.getDurationMin().getValue(), viewModel.getDurationMax().getValue())
                     .interests(viewModel.getSelectedInterests().getValue())
-                    .effort(viewModel.getEffortLevel().getValue())
-                    .weather(viewModel.getWeatherPreferences().getValue());
+                    .effortLevel(viewModel.getEffortLevel().getValue())
+                    .weatherPreferences(viewModel.getWeatherPreferences().getValue())
+                    .build();
 
             if (criteria.getInterests().isEmpty()) {
                 Toast.makeText(getContext(), "Please select at least one interest", Toast.LENGTH_SHORT).show();

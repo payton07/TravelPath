@@ -12,10 +12,10 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.travelpath.R;
-import com.example.travelpath.data.FirebaseManager;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.data.models.PointOfInterest;
 import com.example.travelpath.data.repository.TravelRepository;
@@ -66,7 +66,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        repository = new TravelRepository(requireContext());
+        repository = ((com.example.travelpath.TravelApplication) requireActivity().getApplication()).getRepository();
 
         binding.btnBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
 
@@ -158,7 +158,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
                 stepBinding.tvOpeningHours.setVisibility(View.VISIBLE);
                 stepBinding.tvOpeningHours.setText(poi.getOpeningHours().isOpenNow() ? "Ouvert" : "Fermé");
                 stepBinding.tvOpeningHours.setTextColor(poi.getOpeningHours().isOpenNow() ? 
-                    getResources().getColor(R.color.emerald_primary) : getResources().getColor(android.R.color.holo_red_dark));
+                    ContextCompat.getColor(requireContext(), R.color.emerald_primary) : ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark));
             }
 
             if (poi.getPhotoUrls() != null && !poi.getPhotoUrls().isEmpty()) {
@@ -185,7 +185,7 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
             googleMap.addPolyline(new PolylineOptions()
                     .addAll(points)
                     .width(10)
-                    .color(getResources().getColor(R.color.emerald_primary)));
+                    .color(ContextCompat.getColor(requireContext(), R.color.emerald_primary)));
         }
 
         Gson gson = new Gson();
@@ -206,40 +206,20 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     private void shareItinerary() {
         Toast.makeText(getContext(), "Génération du lien de partage...", Toast.LENGTH_SHORT).show();
         
-        // Construction manuelle de la map pour éviter les problèmes de sérialisation
-        Map<String, Object> itineraryMap = new HashMap<>();
-        itineraryMap.put("name", itinerary.getName());
-        itineraryMap.put("description", itinerary.getDescription());
-        itineraryMap.put("cost", itinerary.getCost());
-        itineraryMap.put("duration", itinerary.getDuration());
-        itineraryMap.put("steps", itinerary.getSteps());
-        itineraryMap.put("imageUrl", itinerary.getImageUrl());
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("itinerary", itineraryMap);
-
-        FirebaseManager.getInstance().getFunctions()
-                .getHttpsCallable("shareItinerary")
-                .call(data)
-                .addOnSuccessListener(result -> {
-                    Map<String, Object> res = (Map<String, Object>) result.getData();
-                    if (res != null && "success".equals(res.get("status"))) {
-                        String shareUrl = (String) res.get("url");
-                        Intent sendIntent = new Intent();
-                        sendIntent.setAction(Intent.ACTION_SEND);
-                        sendIntent.putExtra(Intent.EXTRA_TEXT, "Découvrez mon parcours TravelPath : " + shareUrl);
-                        sendIntent.setType("text/plain");
-                        startActivity(Intent.createChooser(sendIntent, "Partager via"));
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Échec du partage : " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+        disposables.add(repository.shareItinerary(itinerary)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(shareUrl -> {
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, "Découvrez mon parcours TravelPath : " + shareUrl);
+                    sendIntent.setType("text/plain");
+                    startActivity(Intent.createChooser(sendIntent, "Partager via"));
+                }, throwable -> Toast.makeText(getContext(), "Échec du partage : " + throwable.getMessage(), Toast.LENGTH_LONG).show()));
     }
 
     private void generatePdf() {
         Toast.makeText(getContext(), "Génération du PDF...", Toast.LENGTH_SHORT).show();
-        disposables.add(FirebaseManager.getInstance().generatePDF(itinerary)
+        disposables.add(repository.generatePdf(itinerary)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(url -> {
                     DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));

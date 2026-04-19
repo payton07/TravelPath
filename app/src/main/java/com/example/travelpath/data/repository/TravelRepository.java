@@ -1,79 +1,146 @@
 package com.example.travelpath.data.repository;
 
-import android.content.Context;
-import com.example.travelpath.data.FirebaseManager;
 import com.example.travelpath.data.dao.ItineraryDao;
-import com.example.travelpath.data.database.AppDatabase;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.data.models.SearchCriteria;
+import com.example.travelpath.data.remote.FirebaseDataSource;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.util.List;
 
-public class TravelRepository {
+/**
+ * Source de vérité unique pour les itinéraires.
+ *
+ * Stratégie cache hybride (Cache-First) :
+ * <pre>
+ *   1. Room (cache local)  →  valide ?  →  retourner
+ *   2. Firebase            →  retourner + écrire Room
+ * </pre>
+ *
+ * La validité du cache est déterminée par {@link Itinerary#CACHE_TTL_MS}
+ * et la requête DAO {@link ItineraryDao#getValidCacheByCity}.
+ *
+ * Tous les appels s'exécutent sur {@link Schedulers#io()} —
+ * les ViewModels observent sur AndroidSchedulers.mainThread().
+ */
+public final class TravelRepository {
 
-    private final ItineraryDao itineraryDao;
+    private final ItineraryDao      dao;
+    private final FirebaseDataSource remote;
 
-    public TravelRepository(Context context) {
-        AppDatabase db = AppDatabase.getInstance(context);
-        itineraryDao = db.itineraryDao();
+    public TravelRepository(ItineraryDao dao, FirebaseDataSource remote) {
+        this.dao    = dao;
+        this.remote = remote;
+    }
+
+    // =========================================================================
+    // Génération d'itinéraires
+    // =========================================================================
+
+    /**
+     * Retourne des itinéraires depuis le cache Room si valides,
+     * sinon appelle le serveur et met à jour le cache.
+     */
+    public Single<List<Itinerary>> generateJourneys(SearchCriteria criteria) {
+        long expiryTime = System.currentTimeMillis() - Itinerary.CACHE_TTL_MS;
+
+        return dao.getValidCacheByCity(criteria.getDestinationCity(), expiryTime)
+                .subscribeOn(Schedulers.io())
+                .flatMap(cached -> {
+                    if (!cached.isEmpty()) {
+                        return Single.just(cached);
+                    }
+                    return fetchAndCache(criteria);
+                });
     }
 
     /**
-     * Logique de génération hybride (Cache local -> Cloud -> Sauvegarde cache).
+     * Force un appel réseau (regénération) — ignore le cache local.
+     * Utilisé après un délike ou un ajustement de critères.
      */
-    public Single<List<Itinerary>> generateJourneys(SearchCriteria criteria) {
-        // 1. Vérifier le cache local pour cette ville
-        return itineraryDao.getItinerariesByCity(criteria.getDestinationCity())
+    public Single<List<Itinerary>> regenerateJourneys(SearchCriteria criteria) {
+        return fetchAndCache(criteria);
+    }
+
+    private Single<List<Itinerary>> fetchAndCache(SearchCriteria criteria) {
+        return remote.generateJourneys(criteria)
                 .subscribeOn(Schedulers.io())
-                .flatMap(localResults -> {
-                    if (!localResults.isEmpty()) {
-                        // On a des résultats en cache !
-                        return Single.just(localResults);
-                    } else {
-                        // 2. Si vide, appeler le serveur
-                        return FirebaseManager.getInstance().generateJourneys(criteria)
-                                .observeOn(Schedulers.io()) // RETOUR EN ARRIÈRE-PLAN ICI
-                                .flatMap(cloudResults -> {
-                                    // 3. Sauvegarder dans Room pour la prochaine fois
-                                    return saveToCache(cloudResults).andThen(Single.just(cloudResults));
-                                });
-                    }
-                })
-                .subscribeOn(Schedulers.io());
+                .flatMap(results ->
+                    insertAll(results).andThen(Single.just(results))
+                );
     }
 
-    private Completable saveToCache(List<Itinerary> itineraries) {
-        return Completable.fromAction(() -> {
-            for (Itinerary it : itineraries) {
-                itineraryDao.insert(it).blockingAwait();
-            }
-        });
-    }
+    // =========================================================================
+    // Opérations CRUD locales
+    // =========================================================================
 
-    public Completable insert(Itinerary itinerary) {
-        return itineraryDao.insert(itinerary).subscribeOn(Schedulers.io());
+    public Completable save(Itinerary itinerary) {
+        itinerary.setSaved(true);
+        return dao.update(itinerary).subscribeOn(Schedulers.io());
     }
 
     public Completable update(Itinerary itinerary) {
-        return itineraryDao.update(itinerary).subscribeOn(Schedulers.io());
+        return dao.update(itinerary).subscribeOn(Schedulers.io());
     }
 
     public Completable delete(Itinerary itinerary) {
-        return itineraryDao.delete(itinerary).subscribeOn(Schedulers.io());
+        return dao.delete(itinerary).subscribeOn(Schedulers.io());
     }
 
     public Flowable<List<Itinerary>> getAllItineraries() {
-        return itineraryDao.getAllItineraries().subscribeOn(Schedulers.io());
+        return dao.getAllItineraries().subscribeOn(Schedulers.io());
     }
 
     public Flowable<List<Itinerary>> getSavedItineraries() {
-        return itineraryDao.getSavedItineraries().subscribeOn(Schedulers.io());
+        return dao.getSavedItineraries().subscribeOn(Schedulers.io());
     }
 
-    public Single<Itinerary> getItineraryById(int id) {
-        return itineraryDao.getItineraryById(id).subscribeOn(Schedulers.io());
+    public Single<Itinerary> getById(int id) {
+        return dao.getById(id).subscribeOn(Schedulers.io());
+    }
+
+    // =========================================================================
+    // Opérations réseau déléguées
+    // =========================================================================
+
+    public Single<String> generatePdf(Itinerary itinerary) {
+        return remote.generatePdf(itinerary).subscribeOn(Schedulers.io());
+    }
+
+    public Single<Void> rateItinerary(String itineraryId, boolean liked) {
+        return remote.rateItinerary(itineraryId, liked).subscribeOn(Schedulers.io());
+    }
+
+    public Single<String> saveItineraryCloud(Itinerary itinerary) {
+        return remote.saveItineraryCloud(itinerary).subscribeOn(Schedulers.io());
+    }
+
+    public Single<String> shareItinerary(Itinerary itinerary) {
+        return remote.shareItinerary(itinerary).subscribeOn(Schedulers.io());
+    }
+
+    // =========================================================================
+    // Maintenance du cache
+    // =========================================================================
+
+    /**
+     * Supprime les entrées expirées du cache local.
+     * À appeler au démarrage de l'app ou en arrière-plan périodiquement.
+     */
+    public Completable purgeExpiredCache() {
+        long expiryTime = System.currentTimeMillis() - Itinerary.CACHE_TTL_MS;
+        return dao.purgeExpiredCache(expiryTime).subscribeOn(Schedulers.io());
+    }
+
+    // ── Helper ────────────────────────────────────────────────────────────────
+
+    private Completable insertAll(List<Itinerary> itineraries) {
+        return Completable.fromAction(() -> {
+            for (Itinerary it : itineraries) {
+                dao.insert(it).blockingAwait();
+            }
+        }).subscribeOn(Schedulers.io());
     }
 }

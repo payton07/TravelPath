@@ -22,7 +22,7 @@ public class SavedRoutesViewModel extends AndroidViewModel {
 
     public SavedRoutesViewModel(@NonNull Application application) {
         super(application);
-        repository = TravelApplication.getRepository();
+        repository = ((TravelApplication) application).getRepository();
         loadSavedItineraries();
     }
 

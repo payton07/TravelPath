@@ -51,7 +51,7 @@ public class SavedFragment extends Fragment {
             @Override
             public void onLikeClick(Itinerary itinerary) {
                 itinerary.setSaved(!itinerary.isSaved());
-                com.example.travelpath.TravelApplication.getRepository().update(itinerary).subscribe();
+                ((com.example.travelpath.TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary).subscribe();
             }
         });
         binding.rvSavedRoutes.setLayoutManager(new LinearLayoutManager(getContext()));

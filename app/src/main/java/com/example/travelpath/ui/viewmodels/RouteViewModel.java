@@ -24,7 +24,7 @@ public class RouteViewModel extends AndroidViewModel {
 
     public RouteViewModel(@NonNull Application application) {
         super(application);
-        this.repository = TravelApplication.getRepository();
+        this.repository = ((TravelApplication) application).getRepository();
     }
 
     public LiveData<List<Itinerary>> getRoutes() { return routes; }

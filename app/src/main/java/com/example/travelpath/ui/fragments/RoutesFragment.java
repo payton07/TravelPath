@@ -125,7 +125,7 @@ public class RoutesFragment extends Fragment {
         updateLikeIcon(cardBinding, itinerary.isSaved());
         cardBinding.btnLike.setOnClickListener(v -> {
             itinerary.setSaved(!itinerary.isSaved());
-            TravelApplication.getRepository().update(itinerary).subscribe();
+            ((TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary).subscribe();
             updateLikeIcon(cardBinding, itinerary.isSaved());
             
             Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.heart_pop);
