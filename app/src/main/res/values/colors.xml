@@ -15,7 +15,9 @@
     
     <color name="text_primary">#F8FAFC</color> <!-- Slate 50 -->
     <color name="text_secondary">#CBD5E1</color> <!-- Slate 300 -->
-    <color name="text_muted">#64748B</color> <!-- Slate 500 -->
+    <color name="text_muted">#94A3B8</color> <!-- Slate 400 -->
+
+    <color name="route_blue">#4285F4</color> <!-- Blue for Google Maps Route -->
 
     <!-- Status specific -->
     <color name="chip_inactive_bg">#F2F4F6</color>

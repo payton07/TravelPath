@@ -28,6 +28,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.maps.model.RoundCap;
+import com.google.android.gms.maps.model.JointType;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.maps.android.PolyUtil;
@@ -184,8 +186,12 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
             List<LatLng> points = PolyUtil.decode(itinerary.getEncodedPolyline());
             googleMap.addPolyline(new PolylineOptions()
                     .addAll(points)
-                    .width(10)
-                    .color(ContextCompat.getColor(requireContext(), R.color.emerald_primary)));
+                    .width(14) // Légèrement plus épais pour mieux voir
+                    .color(ContextCompat.getColor(requireContext(), R.color.route_blue)) // Le bleu classique
+                    .startCap(new RoundCap())
+                    .endCap(new RoundCap())
+                    .jointType(JointType.ROUND)
+                    .geodesic(true));
         }
 
         Gson gson = new Gson();
