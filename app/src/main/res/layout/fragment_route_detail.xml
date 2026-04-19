@@ -93,6 +93,16 @@
             android:paddingHorizontal="24dp"
             android:paddingTop="16dp">
 
+            <!-- Header Image -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivRouteHeader"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="16dp"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.ExtraLarge" />
+
             <!-- Map Section -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -108,14 +118,6 @@
                         android:id="@+id/mapView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />
-                        
-                    <!-- Header Image (Over map or separate, using it as an overlay for now if preferred) -->
-                    <ImageView
-                        android:id="@+id/ivRouteHeader"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:visibility="gone" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"

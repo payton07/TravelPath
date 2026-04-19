@@ -24,7 +24,7 @@ export const Env = {
 export const PlacesConfig = {
     BASE_URL:              'https://maps.googleapis.com/maps/api/place/textsearch/json',
     DIRECTIONS_URL:        'https://maps.googleapis.com/maps/api/directions/json',
-    MAX_RESULTS_PER_INTEREST: 8,
+    MAX_RESULTS_PER_INTEREST: 15,
 
     /** Coût moyen estimé (€) par price_level Google (0–4). */
     COST_BY_PRICE_LEVEL: {

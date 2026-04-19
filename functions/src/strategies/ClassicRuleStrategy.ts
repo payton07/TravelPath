@@ -53,20 +53,48 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
         this.log.info(`Génération pour "${criteria.destinationCity}"`);
 
+        // 1. Récupération des POIs standards
         const rawPool = await this.placesService.searchPOIs(
             criteria.destinationCity,
             criteria.interests,
         );
 
-        if (rawPool.length === 0) {
+        // 2. Récupération SPECIFIQUE des lieux obligatoires pour garantir leur présence
+        let mandatoryPool: PointOfInterest[] = [];
+        if (criteria.mandatoryPois && criteria.mandatoryPois.length > 0) {
+            const settled = await Promise.allSettled(
+                criteria.mandatoryPois.map(async m => {
+                    // On demande à Google spécifiquement ce lieu précis
+                    const res = await this.placesService.searchPOIs(criteria.destinationCity, [m]);
+                    // On ne garde que le meilleur résultat pour chaque lieu obligatoire
+                    return res.length > 0 ? res[0] : null;
+                })
+            );
+            
+            mandatoryPool = settled
+                .map(r => r.status === 'fulfilled' ? r.value : null)
+                .filter((p): p is PointOfInterest => p !== null);
+                
+            // Dédoublonnage au cas où plusieurs requêtes renverraient le même lieu
+            mandatoryPool = mandatoryPool.filter((poi, index, self) =>
+                index === self.findIndex((p) => p.id === poi.id)
+            );
+        }
+
+        // Fusion des pools sans doublons
+        const combinedPool = [...mandatoryPool, ...rawPool].filter((poi, index, self) =>
+            index === self.findIndex((p) => p.id === poi.id)
+        );
+
+        if (combinedPool.length === 0) {
             this.log.warn('Pool vide — aucun itinéraire généré.');
             return [];
         }
 
-        // TÂCHE 2 : Filtre météo global
-        const weatherSafePool = this.filterByWeather(rawPool, criteria.weatherPreferences);
+        // Filtre météo global
+        const weatherSafePool = this.filterByWeather(combinedPool, criteria.weatherPreferences);
 
-        return this.buildAllVariants(weatherSafePool, criteria);
+        return this.buildAllVariants(weatherSafePool, criteria, mandatoryPool);
     }
 
     private filterByWeather(pool: PointOfInterest[], prefs: string[]): PointOfInterest[] {
@@ -85,18 +113,13 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         return filtered;
     }
 
-    // =========================================================================
-    // Étape 3 — Génération des variantes (avec Polyline TÂCHE 8)
-    // =========================================================================
-
-    private async buildAllVariants(pool: PointOfInterest[], criteria: SearchCriteria): Promise<Itinerary[]> {
+    private async buildAllVariants(pool: PointOfInterest[], criteria: SearchCriteria, mandatoryPool: PointOfInterest[]): Promise<Itinerary[]> {
         const variantPromises = Object.values(RouteMode).map(async mode => {
             const filtered   = this.filterByMode(pool, mode);
             const prioritized = this.sortByMode(filtered, mode);
-            const itinerary  = this.buildItinerary(prioritized, criteria, mode);
+            const itinerary  = this.buildItinerary(prioritized, criteria, mode, mandatoryPool);
             
             if (itinerary && itinerary.fullSteps && itinerary.fullSteps.length >= 2) {
-                // TÂCHE 8 : Récupérer le tracé réel
                 itinerary.encodedPolyline = await this.routingService.getRoutePolyline(itinerary.fullSteps);
             }
             
@@ -134,9 +157,11 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         pool:     PointOfInterest[],
         criteria: SearchCriteria,
         mode:     RouteMode,
+        mandatoryPool: PointOfInterest[]
     ): Itinerary | null {
 
-        const draft = this.initDraftWithMandatory(pool, criteria);
+        // On démarre directement avec les lieux obligatoires vérifiés par Google !
+        const draft = this.initDraftWithMandatory(mandatoryPool);
 
         for (const slot of TIME_SLOTS) {
             if (draft.selectedPOIs.some(p => p.preferredTimeSlot === slot)) continue;
@@ -153,17 +178,12 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         return this.toItinerary(draft, criteria, mode);
     }
 
-    private initDraftWithMandatory(pool: PointOfInterest[], criteria: SearchCriteria): ItineraryDraft {
-        const mandatory = pool.filter(p => 
-            criteria.mandatoryPois.includes(p.id) || 
-            criteria.mandatoryPois.includes(p.name)
-        );
-
+    private initDraftWithMandatory(mandatoryPool: PointOfInterest[]): ItineraryDraft {
         let cost = 0;
         let duration = 0;
         let last: PointOfInterest | null = null;
 
-        mandatory.forEach(p => {
+        mandatoryPool.forEach(p => {
             cost += p.baseCost;
             duration += p.averageDurationHours;
             if (last) duration += this.travelTimeTo(p, last);
@@ -171,11 +191,12 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         });
 
         return {
-            selectedPOIs:   mandatory,
+            // On clone le tableau pour éviter de muter la pool d'origine
+            selectedPOIs:   [...mandatoryPool],
             totalCost:      cost,
             totalDuration:  duration,
             lastPOI:        last,
-            usedCategories: new Set(mandatory.map(p => p.category)),
+            usedCategories: new Set(mandatoryPool.map(p => p.category)),
         };
     }
 
@@ -210,9 +231,7 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         let bestScore: number = -Infinity;
 
         for (const poi of pool) {
-            // Bug 3 : Ignorer les lieux exclus (regénération)
             if (criteria.excludeIds?.includes(poi.id)) continue;
-            
             if (this.isSelected(poi, draft)) continue;
 
             const travelTime = this.travelTimeTo(poi, draft.lastPOI);
@@ -258,6 +277,8 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         if (draft.usedCategories.has(poi.category)) {
             score *= JourneyConfig.DIVERSITY_SCORE_PENALTY;
         }
+
+        score += Math.random() * 0.5;
 
         return score;
     }
