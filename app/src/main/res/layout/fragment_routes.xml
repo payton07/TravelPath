@@ -15,16 +15,15 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="24dp">
             
-            <ImageButton
+            <ImageView
                 android:id="@+id/btnBack"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:layout_centerVertical="true"
-                android:background="@drawable/bg_travel_mode"
                 android:src="@android:drawable/ic_menu_revert"
-                app:tint="@color/emerald_primary" />
+                app:tint="@color/text_primary" />
             
             <TextView
                 android:layout_width="wrap_content"
@@ -32,85 +31,57 @@
                 android:layout_centerInParent="true"
                 android:text="@string/suggested_routes"
                 android:textColor="@color/text_primary"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
         </RelativeLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <LinearLayout
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvEmptyRoutes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:padding="24dp"
+            android:text="Génération de vos parcours..."
+            android:textColor="@color/text_muted"
+            android:textSize="16sp"
+            android:visibility="visible" />
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone" />
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPagerRoutes"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:clipChildren="false"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="32dp"
+            android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/tvEmptyRoutes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_marginTop="32dp"
-                android:text="Génération de vos parcours..."
-                android:textColor="@color/text_muted"
-                android:visibility="visible" />
+        <!-- Indicateur de page (Dots) -->
+        <LinearLayout
+            android:id="@+id/pageIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone" />
 
-            <!-- Card ECONOMY -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardRouteEconomy"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/card_bg"
-                app:strokeColor="@color/border_color"
-                app:strokeWidth="1dp">
-                <include layout="@layout/item_route_card" android:id="@+id/layoutEconomy" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card BALANCED -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardRouteBalanced"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/card_bg"
-                app:strokeColor="@color/border_color"
-                app:strokeWidth="1dp">
-                <include layout="@layout/item_route_card" android:id="@+id/layoutBalanced" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Card COMFORT -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardRouteComfort"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:cardBackgroundColor="@color/card_bg"
-                app:strokeColor="@color/border_color"
-                app:strokeWidth="1dp">
-                <include layout="@layout/item_route_card" android:id="@+id/layoutComfort" />
-            </com.google.android.material.card.MaterialCardView>
-
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </RelativeLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -126,14 +126,19 @@ public class ExploreFragment extends Fragment {
                 viewModel.setDestination(cityInput, "manual_input_" + cityInput);
             }
 
+            int budgetMin = viewModel.getBudgetMin().getValue() != null ? viewModel.getBudgetMin().getValue() : 0;
+            int budgetMax = viewModel.getBudgetMax().getValue() != null ? viewModel.getBudgetMax().getValue() : 200;
+            int durationMin = viewModel.getDurationMin().getValue() != null ? viewModel.getDurationMin().getValue() : 4;
+            int durationMax = viewModel.getDurationMax().getValue() != null ? viewModel.getDurationMax().getValue() : 8;
+
             SearchCriteria criteria = new SearchCriteria.Builder()
                     .destinationCity(cityInput)
                     .destinationPlaceId(viewModel.getDestinationPlaceId().getValue())
                     .mandatoryPois(viewModel.getMandatoryPois().getValue())
-                    .budget(viewModel.getBudgetMin().getValue(), viewModel.getBudgetMax().getValue())
-                    .duration(viewModel.getDurationMin().getValue(), viewModel.getDurationMax().getValue())
+                    .budget(budgetMin, budgetMax)
+                    .duration(durationMin, durationMax)
                     .interests(viewModel.getSelectedInterests().getValue())
-                    .effortLevel(viewModel.getEffortLevel().getValue())
+                    .effortLevel(viewModel.getEffortLevel().getValue() != null ? viewModel.getEffortLevel().getValue() : "Moderate")
                     .weatherPreferences(viewModel.getWeatherPreferences().getValue())
                     .build();
 

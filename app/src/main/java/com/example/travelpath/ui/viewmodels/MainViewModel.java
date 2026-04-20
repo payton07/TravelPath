@@ -22,8 +22,8 @@ public class MainViewModel extends AndroidViewModel {
     private final MutableLiveData<String> destinationPlaceId = new MutableLiveData<>();
     private final MutableLiveData<List<String>> mandatoryPois = new MutableLiveData<>(new ArrayList<>());
     
-    private final MutableLiveData<Integer> budgetMin = new MutableLiveData<>();
-    private final MutableLiveData<Integer> budgetMax = new MutableLiveData<>();
+    private final MutableLiveData<Integer> budgetMin = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> budgetMax = new MutableLiveData<>(200);
     private final MutableLiveData<Integer> durationMin = new MutableLiveData<>(4);
     private final MutableLiveData<Integer> durationMax = new MutableLiveData<>(8);
     private final MutableLiveData<String> effortLevel = new MutableLiveData<>("Moderate");

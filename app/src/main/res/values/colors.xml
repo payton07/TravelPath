@@ -1,28 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF191C1E</color>
+    <!-- Base Colors -->
+    <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Emerald Voyage - Precise Palette (Slate & Emerald) -->
-    <color name="emerald_primary">#10B981</color> <!-- Emerald 500 -->
-    <color name="emerald_accent">#34D399</color> <!-- Emerald 400 -->
-    <color name="emerald_light">#064E3B</color> <!-- Emerald 900 for dark surfaces -->
-    
-    <color name="bg_main">#020617</color> <!-- Slate 950 -->
-    <color name="bg_primary">#020617</color> <!-- Alias pour Slate 950 -->
-    <color name="card_bg">#0F172A</color> <!-- Slate 900 -->
-    <color name="border_color">#1E293B</color> <!-- Slate 800 -->
-    
-    <color name="text_primary">#F8FAFC</color> <!-- Slate 50 -->
-    <color name="text_secondary">#CBD5E1</color> <!-- Slate 300 -->
-    <color name="text_muted">#94A3B8</color> <!-- Slate 400 -->
+    <!-- Brand Palette (Coral/Rose - Airbnb Style) -->
+    <color name="brand_primary">#FF385C</color> 
+    <color name="brand_accent">#E31C5F</color>
+    <color name="brand_light">#FFF0F2</color> 
 
-    <color name="route_blue">#4285F4</color> <!-- Blue for Google Maps Route -->
+    <!-- Retaining legacy names mapped to new colors to avoid breaking existing layouts during transition -->
+    <color name="emerald_primary">@color/brand_primary</color>
+    <color name="emerald_accent">@color/brand_accent</color>
+    <color name="emerald_light">@color/brand_light</color>
 
-    <!-- Status specific -->
-    <color name="chip_inactive_bg">#F2F4F6</color>
-    <color name="chip_inactive_text">#505F76</color>
+    <!-- Backgrounds & Surfaces (Airy & Clean) -->
+    <color name="bg_main">#FFFFFF</color> 
+    <color name="bg_primary">#FFFFFF</color> 
+    <color name="card_bg">#FFFFFF</color> 
+    <color name="border_color">#EBEBEB</color> 
     
-    <color name="warning_bg">#FDE2E2</color> <!-- Rouge très clair pour alertes -->
-    <color name="warning_text">#991B1B</color> <!-- Rouge foncé pour texte alerte -->
+    <!-- Typography -->
+    <color name="text_primary">#222222</color> 
+    <color name="text_secondary">#717171</color> 
+    <color name="text_muted">#B0B0B0</color> 
+
+    <!-- Status & UI specific -->
+    <color name="route_blue">#4285F4</color>
+    <color name="chip_inactive_bg">#F7F7F9</color>
+    <color name="chip_inactive_text">#717171</color>
+    
+    <color name="warning_bg">#FFF8F6</color> 
+    <color name="warning_text">#C13515</color> 
 </resources>

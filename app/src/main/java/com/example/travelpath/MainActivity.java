@@ -44,12 +44,20 @@ public final class MainActivity extends AppCompatActivity {
 
     private void setupNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
+            // Vider l'historique (ex: fermer la vue détail) quand on change d'onglet
+            getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            
             int id = item.getItemId();
             if      (id == R.id.nav_explore) showFragment(TAG_EXPLORE);
             else if (id == R.id.nav_saved)   showFragment(TAG_SAVED);
             else if (id == R.id.nav_profile) showFragment(TAG_PROFILE);
             else return false;
             return true;
+        });
+
+        // Comportement quand on clique sur l'onglet déjà actif (ex: retour à l'accueil de l'onglet)
+        binding.bottomNavigation.setOnItemReselectedListener(item -> {
+            getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         });
     }
 

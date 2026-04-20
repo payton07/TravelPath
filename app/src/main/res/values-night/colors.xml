@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Backgrounds & Surfaces (OLED Black & Dark Cards) -->
+    <!-- True black for edge-to-edge feel -->
+    <color name="bg_main">#000000</color> 
+    <!-- Slightly lighter for cards to contrast with background -->
+    <color name="card_bg">#121212</color> 
+    <!-- Very subtle border -->
+    <color name="border_color">#2D2D2D</color> 
+    
+    <!-- Typography -->
+    <color name="text_primary">#F7F7F7</color> 
+    <color name="text_secondary">#A0A0A0</color> 
+    <color name="text_muted">#666666</color> 
+
+    <!-- Status & UI specific -->
+    <color name="chip_inactive_bg">#1E1E1E</color>
+    <color name="chip_inactive_text">#A0A0A0</color>
+
+    <color name="warning_bg">#3E120A</color> 
+    <color name="warning_text">#FFA28B</color> 
+
+    <!-- Brand light version in night mode can be slightly more muted so it doesn't glare -->
+    <color name="brand_light">#2A0D15</color> 
+    <color name="emerald_light">@color/brand_light</color>
+</resources>

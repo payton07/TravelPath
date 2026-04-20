@@ -4,20 +4,17 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import com.bumptech.glide.Glide;
+import androidx.viewpager2.widget.ViewPager2;
 import com.example.travelpath.R;
 import com.example.travelpath.TravelApplication;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.data.models.SearchCriteria;
 import com.example.travelpath.databinding.FragmentRoutesBinding;
-import com.example.travelpath.databinding.ItemRouteCardBinding;
 import com.example.travelpath.ui.viewmodels.RouteViewModel;
 import java.util.List;
 
@@ -26,6 +23,7 @@ public class RoutesFragment extends Fragment {
     private static final String ARG_CRITERIA = "search_criteria";
     private FragmentRoutesBinding binding;
     private RouteViewModel viewModel;
+    private RouteAdapter adapter;
 
     public static RoutesFragment newInstance(SearchCriteria criteria) {
         RoutesFragment fragment = new RoutesFragment();
@@ -49,12 +47,7 @@ public class RoutesFragment extends Fragment {
 
         binding.btnBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
 
-        // Reset UI
-        binding.cardRouteEconomy.setVisibility(View.GONE);
-        binding.cardRouteBalanced.setVisibility(View.GONE);
-        binding.cardRouteComfort.setVisibility(View.GONE);
-        binding.tvEmptyRoutes.setVisibility(View.GONE);
-
+        setupViewPager();
         observeViewModel();
 
         if (getArguments() != null) {
@@ -65,18 +58,68 @@ public class RoutesFragment extends Fragment {
         }
     }
 
+    private void setupViewPager() {
+        adapter = new RouteAdapter(new RouteAdapter.OnRouteClickListener() {
+            @Override
+            public void onRouteClick(Itinerary itinerary) {
+                openDetail(itinerary);
+            }
+
+            @Override
+            public void onLikeClick(Itinerary itinerary) {
+                itinerary.setSaved(!itinerary.isSaved());
+                ((TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary).subscribe();
+            }
+        });
+
+        binding.viewPagerRoutes.setAdapter(adapter);
+        
+        // Ajout d'un effet de transformation au glissement (Zoom Out)
+        binding.viewPagerRoutes.setPageTransformer((page, position) -> {
+            float MIN_SCALE = 0.85f;
+            float MIN_ALPHA = 0.5f;
+            int pageWidth = page.getWidth();
+            int pageHeight = page.getHeight();
+
+            if (position < -1) {
+                page.setAlpha(0f);
+            } else if (position <= 1) {
+                float scaleFactor = Math.max(MIN_SCALE, 1 - Math.abs(position));
+                float vertMargin = pageHeight * (1 - scaleFactor) / 2;
+                float horzMargin = pageWidth * (1 - scaleFactor) / 2;
+                if (position < 0) {
+                    page.setTranslationX(horzMargin - vertMargin / 2);
+                } else {
+                    page.setTranslationX(-horzMargin + vertMargin / 2);
+                }
+                page.setScaleX(scaleFactor);
+                page.setScaleY(scaleFactor);
+                page.setAlpha(MIN_ALPHA + (scaleFactor - MIN_SCALE) / (1 - MIN_SCALE) * (1 - MIN_ALPHA));
+            } else {
+                page.setAlpha(0f);
+            }
+        });
+    }
+
     private void observeViewModel() {
         viewModel.getIsGenerating().observe(getViewLifecycleOwner(), isGenerating -> {
             binding.progressBar.setVisibility(isGenerating ? View.VISIBLE : View.GONE);
+            if (isGenerating) {
+                binding.tvEmptyRoutes.setVisibility(View.VISIBLE);
+                binding.tvEmptyRoutes.setText("Génération de vos parcours...");
+                binding.viewPagerRoutes.setVisibility(View.GONE);
+            }
         });
 
         viewModel.getRoutes().observe(getViewLifecycleOwner(), itineraries -> {
             if (itineraries != null && !itineraries.isEmpty()) {
                 binding.tvEmptyRoutes.setVisibility(View.GONE);
-                updateUI(itineraries);
+                binding.viewPagerRoutes.setVisibility(View.VISIBLE);
+                adapter.setItineraries(itineraries);
             } else if (Boolean.FALSE.equals(viewModel.getIsGenerating().getValue())) {
                 binding.tvEmptyRoutes.setVisibility(View.VISIBLE);
                 binding.tvEmptyRoutes.setText("Aucun parcours trouvé pour ces critères.");
+                binding.viewPagerRoutes.setVisibility(View.GONE);
             }
         });
 
@@ -84,64 +127,10 @@ public class RoutesFragment extends Fragment {
             if (error != null) {
                 binding.tvEmptyRoutes.setText(error);
                 binding.tvEmptyRoutes.setVisibility(View.VISIBLE);
+                binding.viewPagerRoutes.setVisibility(View.GONE);
                 Toast.makeText(getContext(), error, Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    private void updateUI(List<Itinerary> itineraries) {
-        for (Itinerary itinerary : itineraries) {
-            String type = itinerary.getRouteType();
-            if (type == null) continue;
-
-            switch (type.toUpperCase()) {
-                case "ECONOMY":
-                    setupCard(ItemRouteCardBinding.bind(binding.layoutEconomy.getRoot()), itinerary, binding.cardRouteEconomy);
-                    break;
-                case "BALANCED":
-                    setupCard(ItemRouteCardBinding.bind(binding.layoutBalanced.getRoot()), itinerary, binding.cardRouteBalanced);
-                    break;
-                case "COMFORT":
-                    setupCard(ItemRouteCardBinding.bind(binding.layoutComfort.getRoot()), itinerary, binding.cardRouteComfort);
-                    break;
-            }
-        }
-    }
-
-    private void setupCard(ItemRouteCardBinding cardBinding, Itinerary itinerary, View parentCard) {
-        parentCard.setVisibility(View.VISIBLE);
-        cardBinding.tvRouteName.setText(itinerary.getName());
-        cardBinding.tvCost.setText(itinerary.getCost() + "€");
-        cardBinding.tvDuration.setText(itinerary.getDuration());
-        cardBinding.tvEffort.setText(itinerary.getEffort());
-        cardBinding.tvWeather.setText(itinerary.getWeather());
-
-        // Thumbnail
-        if (itinerary.getImageUrl() != null && !itinerary.getImageUrl().isEmpty()) {
-            Glide.with(this).load(itinerary.getImageUrl()).placeholder(R.drawable.bg_travel_mode).into(cardBinding.ivRouteThumbnail);
-        }
-
-        // Like Button
-        updateLikeIcon(cardBinding, itinerary.isSaved());
-        cardBinding.btnLike.setOnClickListener(v -> {
-            itinerary.setSaved(!itinerary.isSaved());
-            ((TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary).subscribe();
-            updateLikeIcon(cardBinding, itinerary.isSaved());
-            
-            Animation anim = AnimationUtils.loadAnimation(getContext(), R.anim.heart_pop);
-            cardBinding.btnLike.startAnimation(anim);
-        });
-
-        cardBinding.btnSelectRoute.setOnClickListener(v -> openDetail(itinerary));
-        parentCard.setOnClickListener(v -> openDetail(itinerary));
-    }
-
-    private void updateLikeIcon(ItemRouteCardBinding binding, boolean isLiked) {
-        if (isLiked) {
-            binding.btnLike.setIconResource(android.R.drawable.btn_star_big_on);
-        } else {
-            binding.btnLike.setIconResource(android.R.drawable.btn_star_big_off);
-        }
     }
 
     private void openDetail(Itinerary itinerary) {

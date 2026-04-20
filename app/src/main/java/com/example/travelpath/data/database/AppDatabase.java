@@ -22,7 +22,7 @@ import com.example.travelpath.data.entities.Itinerary;
  */
 @Database(
     entities  = { Itinerary.class },
-    version   = 3,
+    version   = 4,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -62,7 +62,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             "travelpath_db"
                         )
                         .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                        .fallbackToDestructiveMigrationOnDowngrade() // filet de sécurité uniquement
+                        .fallbackToDestructiveMigration() // Reset DB in development if schema changes
                         .build();
                 }
             }

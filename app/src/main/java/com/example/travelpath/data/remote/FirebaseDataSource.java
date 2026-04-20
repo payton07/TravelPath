@@ -55,7 +55,7 @@ public final class FirebaseDataSource {
                         }
                     })
                     .addOnFailureListener(e ->
-                        emitter.onError(new Exception("Erreur réseau generateJourneys", e))
+                        emitter.onError(new Exception("Erreur réseau generateJourneys : " + e.getMessage(), e))
                     );
         });
     }
