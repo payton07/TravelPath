@@ -86,6 +86,7 @@ functions/.env.*.local
 *.pem
 *.key
 credentials.json
+google-services.json
 
 ################################
 # Logs
