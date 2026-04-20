@@ -59,7 +59,7 @@ public class RoutesFragment extends Fragment {
     }
 
     private void setupViewPager() {
-        adapter = new RouteAdapter(new RouteAdapter.OnRouteClickListener() {
+        adapter = new RouteAdapter(true, new RouteAdapter.OnRouteClickListener() {
             @Override
             public void onRouteClick(Itinerary itinerary) {
                 openDetail(itinerary);
@@ -68,36 +68,30 @@ public class RoutesFragment extends Fragment {
             @Override
             public void onLikeClick(Itinerary itinerary) {
                 itinerary.setSaved(!itinerary.isSaved());
-                ((TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary).subscribe();
+                ((TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary)
+                        .subscribe(() -> {}, throwable -> {
+                            android.util.Log.e("RoutesFragment", "Erreur lors de la sauvegarde", throwable);
+                        });
             }
         });
 
         binding.viewPagerRoutes.setAdapter(adapter);
         
-        // Ajout d'un effet de transformation au glissement (Zoom Out)
-        binding.viewPagerRoutes.setPageTransformer((page, position) -> {
-            float MIN_SCALE = 0.85f;
-            float MIN_ALPHA = 0.5f;
-            int pageWidth = page.getWidth();
-            int pageHeight = page.getHeight();
+        // Settings pour laisser apercevoir les cartes suivantes/précédentes
+        binding.viewPagerRoutes.setOffscreenPageLimit(3);
+        binding.viewPagerRoutes.setClipToPadding(false);
+        binding.viewPagerRoutes.setClipChildren(false);
 
-            if (position < -1) {
-                page.setAlpha(0f);
-            } else if (position <= 1) {
-                float scaleFactor = Math.max(MIN_SCALE, 1 - Math.abs(position));
-                float vertMargin = pageHeight * (1 - scaleFactor) / 2;
-                float horzMargin = pageWidth * (1 - scaleFactor) / 2;
-                if (position < 0) {
-                    page.setTranslationX(horzMargin - vertMargin / 2);
-                } else {
-                    page.setTranslationX(-horzMargin + vertMargin / 2);
-                }
-                page.setScaleX(scaleFactor);
-                page.setScaleY(scaleFactor);
-                page.setAlpha(MIN_ALPHA + (scaleFactor - MIN_SCALE) / (1 - MIN_SCALE) * (1 - MIN_ALPHA));
-            } else {
-                page.setAlpha(0f);
-            }
+        // Ajout d'un effet de transformation au glissement (Zoom Out subtil)
+        binding.viewPagerRoutes.setPageTransformer((page, position) -> {
+            float MIN_SCALE = 0.9f;
+            float MIN_ALPHA = 0.6f;
+            
+            float scaleFactor = Math.max(MIN_SCALE, 1 - Math.abs(position));
+            page.setScaleX(scaleFactor);
+            page.setScaleY(scaleFactor);
+            
+            page.setAlpha(MIN_ALPHA + (scaleFactor - MIN_SCALE) / (1 - MIN_SCALE) * (1 - MIN_ALPHA));
         });
     }
 

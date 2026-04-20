@@ -35,6 +35,7 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         setupNavigation();
+        setupBackPress();
 
         if (savedInstanceState == null) {
             showFragment(TAG_EXPLORE);
@@ -42,10 +43,34 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setupBackPress() {
+        getOnBackPressedDispatcher().addCallback(this, new androidx.activity.OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // S'il y a un fragment empilé (ex: RouteDetailFragment), laisser le FragmentManager s'en charger
+                if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                    getSupportFragmentManager().popBackStack();
+                    return;
+                }
+
+                // Si on n'est pas sur Explore, on revient à Explore
+                Fragment current = getSupportFragmentManager().findFragmentByTag(TAG_EXPLORE);
+                if (current == null || !current.isVisible()) {
+                    binding.bottomNavigation.setSelectedItemId(R.id.nav_explore);
+                } else {
+                    // Si on est déjà sur Explore (à la racine), quitter l'app
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    setEnabled(true);
+                }
+            }
+        });
+    }
+
     private void setupNavigation() {
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
-            // Vider l'historique (ex: fermer la vue détail) quand on change d'onglet
-            getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            // Vider l'historique de manière synchrone avant de changer d'onglet
+            getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             
             int id = item.getItemId();
             if      (id == R.id.nav_explore) showFragment(TAG_EXPLORE);
@@ -55,9 +80,9 @@ public final class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        // Comportement quand on clique sur l'onglet déjà actif (ex: retour à l'accueil de l'onglet)
+        // Comportement quand on clique sur l'onglet déjà actif
         binding.bottomNavigation.setOnItemReselectedListener(item -> {
-            getSupportFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+            getSupportFragmentManager().popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         });
     }
 
@@ -92,17 +117,6 @@ public final class MainActivity extends AppCompatActivity {
             case TAG_SAVED:   return new SavedFragment();
             case TAG_PROFILE: return new ProfileFragment();
             default:          return new ExploreFragment();
-        }
-    }
-
-    @Override
-    public void onBackPressed() {
-        // Si on n'est pas sur Explore, revenir à Explore
-        Fragment current = getSupportFragmentManager().findFragmentByTag(TAG_EXPLORE);
-        if (current == null || !current.isVisible()) {
-            binding.bottomNavigation.setSelectedItemId(R.id.nav_explore);
-        } else {
-            super.onBackPressed();
         }
     }
 }

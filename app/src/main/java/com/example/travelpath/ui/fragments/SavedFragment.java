@@ -37,7 +37,7 @@ public class SavedFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new RouteAdapter(new RouteAdapter.OnRouteClickListener() {
+        adapter = new RouteAdapter(false, new RouteAdapter.OnRouteClickListener() {
             @Override
             public void onRouteClick(Itinerary itinerary) {
                 RouteDetailFragment detailFragment = RouteDetailFragment.newInstance(itinerary);
@@ -51,7 +51,10 @@ public class SavedFragment extends Fragment {
             @Override
             public void onLikeClick(Itinerary itinerary) {
                 itinerary.setSaved(!itinerary.isSaved());
-                ((com.example.travelpath.TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary).subscribe();
+                ((com.example.travelpath.TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary)
+                        .subscribe(() -> {}, throwable -> {
+                            android.util.Log.e("SavedFragment", "Erreur lors de la sauvegarde", throwable);
+                        });
             }
         });
         binding.rvSavedRoutes.setLayoutManager(new LinearLayoutManager(getContext()));

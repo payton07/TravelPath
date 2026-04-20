@@ -1,6 +1,7 @@
 package com.example.travelpath.ui.fragments;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -17,13 +18,15 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.RouteViewHol
 
     private List<Itinerary> itineraries = new ArrayList<>();
     private final OnRouteClickListener listener;
+    private final boolean isCarousel;
 
     public interface OnRouteClickListener {
         void onRouteClick(Itinerary itinerary);
         void onLikeClick(Itinerary itinerary);
     }
 
-    public RouteAdapter(OnRouteClickListener listener) {
+    public RouteAdapter(boolean isCarousel, OnRouteClickListener listener) {
+        this.isCarousel = isCarousel;
         this.listener = listener;
     }
 
@@ -37,6 +40,24 @@ public class RouteAdapter extends RecyclerView.Adapter<RouteAdapter.RouteViewHol
     public RouteViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         ItemRouteCardBinding binding = ItemRouteCardBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
+                
+        if (isCarousel) {
+            // Mode "Carrousel" (ExploreFragment) : On force la carte à s'étendre
+            binding.getRoot().getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+            
+            // Le premier enfant est le LinearLayout, on le passe en Match_Parent
+            View linearLayout = binding.getRoot().getChildAt(0);
+            if (linearLayout != null) {
+                linearLayout.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+            }
+            
+            // On utilise l'ID explicite flImageContainer pour éviter les erreurs de type
+            android.widget.LinearLayout.LayoutParams params = (android.widget.LinearLayout.LayoutParams) binding.flImageContainer.getLayoutParams();
+            params.height = 0;
+            params.weight = 1;
+            binding.flImageContainer.setLayoutParams(params);
+        }
+
         return new RouteViewHolder(binding);
     }
 
