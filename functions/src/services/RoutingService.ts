@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { PointOfInterest } from '../models';
 import { Env, PlacesConfig } from '../config/AppConfig';
+import { OsrmService } from './OsrmService';
 import { Logger } from '../utils/Logger';
 
 /**
@@ -8,9 +9,9 @@ import { Logger } from '../utils/Logger';
  */
 export class RoutingService {
     private static readonly EARTH_RADIUS_KM = 6371;
-    private static readonly WALKING_SPEED_KMH = 4.5;
     private readonly http: AxiosInstance;
     private readonly log: Logger;
+    private readonly osrm: OsrmService;
 
     constructor(
         log: Logger = new Logger('RoutingService'),
@@ -18,6 +19,7 @@ export class RoutingService {
     ) {
         this.log = log;
         this.http = httpClient;
+        this.osrm = new OsrmService();
     }
 
     /**
@@ -36,15 +38,22 @@ export class RoutingService {
 
     /**
      * Estime le temps de trajet à pied pour une distance donnée.
-     * @returns Durée en heures.
+     * Tente d'utiliser OSRM pour plus de précision.
      */
-    estimateTravelTimeHours(distanceKm: number): number {
-        return distanceKm / RoutingService.WALKING_SPEED_KMH;
+    async getWalkingMetrics(lat1: number, lon1: number, lat2: number, lon2: number): Promise<{ distanceKm: number, durationHours: number }> {
+        return this.osrm.getRoute(lat1, lon1, lat2, lon2);
     }
 
     /**
-     * TÂCHE 8 : Récupère la polyline réelle via Google Directions API.
-     * @param pois Liste ordonnée des étapes.
+     * Estime le temps de trajet à pied pour une distance donnée (simplifié).
+     * @returns Durée en heures.
+     */
+    estimateTravelTimeHours(distanceKm: number): number {
+        return distanceKm / 4.5;
+    }
+
+    /**
+     * Récupère la polyline réelle via Google Directions API.
      */
     async getRoutePolyline(pois: PointOfInterest[]): Promise<string | undefined> {
         if (pois.length < 2 || !Env.MAPS_API_KEY) return undefined;

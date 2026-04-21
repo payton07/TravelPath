@@ -28,13 +28,19 @@ import { Itinerary }                  from './models';
 // ─── Initialisation Firebase ──────────────────────────────────────────────────
 
 admin.initializeApp();
+admin.firestore().settings({ ignoreUndefinedProperties: true });
 
-// ─── Singletons ───────────────────────────────────────────────────────────────
+// ─── Lazy Getters ─────────────────────────────────────────────────────────────
 
-const journeyService    = new JourneyService();
-const pdfService        = new PdfService();
-const firestoreService  = new FirestoreService();
-const criteriaValidator = new SearchCriteriaValidator();
+let journeyService:    JourneyService;
+let pdfService:        PdfService;
+let firestoreService:  FirestoreService;
+let criteriaValidator: SearchCriteriaValidator;
+
+const getJourneyService = () => journeyService || (journeyService = new JourneyService());
+const getPdfService     = () => pdfService     || (pdfService     = new PdfService());
+const getFirestore      = () => firestoreService || (firestoreService = new FirestoreService());
+const getValidator      = () => criteriaValidator || (criteriaValidator = new SearchCriteriaValidator());
 
 // ─── Région ───────────────────────────────────────────────────────────────────
 
@@ -47,19 +53,24 @@ const fn = functions.region(Env.FIREBASE_REGION);
 export const generateJourneys = fn.https.onCall(async (data, _context) => {
     functions.logger.info('generateJourneys — payload reçu :', data);
 
-    const { valid, errors } = criteriaValidator.validate(data);
-    if (!valid) {
-        throw new functions.https.HttpsError('invalid-argument', `Données invalides : ${errors.join(' | ')}`);
-    }
-
-    const criteria = criteriaValidator.normalize(data);
-
     try {
-        const itineraries = await journeyService.generate(criteria);
+        const validator = getValidator();
+        const { valid, errors } = validator.validate(data);
+        if (!valid) {
+            throw new functions.https.HttpsError('invalid-argument', `Données invalides : ${errors.join(' | ')}`);
+        }
+
+        const criteria = validator.normalize(data);
+        const itineraries = await getJourneyService().generate(criteria);
         return { status: 'success', data: itineraries };
-    } catch (err) {
-        functions.logger.error('Erreur génération itinéraires :', err);
-        throw new functions.https.HttpsError('internal', 'Erreur lors de la génération des parcours.');
+    } catch (err: any) {
+        functions.logger.error('CRASH generateJourneys :', {
+            message: err.message,
+            stack: err.stack
+        });
+        // Si c'est déjà une HttpsError, on la relance telle quelle
+        if (err instanceof functions.https.HttpsError) throw err;
+        throw new functions.https.HttpsError('internal', `Erreur serveur : ${err.message}`);
     }
 });
 
@@ -76,30 +87,30 @@ export const generatePDF = fn.https.onCall(async (data, _context) => {
 
     try {
         const itinerary = data as Itinerary;
-        const result    = await pdfService.generate(itinerary);
+        const result    = await getPdfService().generate(itinerary);
         return { status: 'success', url: result.url };
-    } catch (err) {
+    } catch (err: any) {
         functions.logger.error('Erreur génération PDF :', err);
-        throw new functions.https.HttpsError('internal', 'Impossible de générer le fichier PDF.');
+        throw new functions.https.HttpsError('internal', `Erreur PDF : ${err.message}`);
     }
 });
 
 // =============================================================================
-// saveUserItinerary (NOUVEAU - Tâche 3)
+// saveUserItinerary
 // =============================================================================
 
 export const saveUserItinerary = fn.https.onCall(async (data, context) => {
     const uid = context.auth?.uid;
     if (!uid) {
-        throw new functions.https.HttpsError('unauthenticated', 'Vous devez être connecté pour sauvegarder un itinéraire.');
+        throw new functions.https.HttpsError('unauthenticated', 'Vous devez être connecté.');
     }
 
     try {
         const itinerary = data as Itinerary;
-        const docId = await firestoreService.saveUserItinerary(uid, itinerary);
+        const docId = await getFirestore().saveUserItinerary(uid, itinerary);
         return { status: 'success', id: docId };
-    } catch (err) {
-        throw new functions.https.HttpsError('internal', 'Erreur lors de la sauvegarde.');
+    } catch (err: any) {
+        throw new functions.https.HttpsError('internal', `Erreur sauvegarde : ${err.message}`);
     }
 });
 
@@ -123,8 +134,9 @@ export const rateItinerary = fn.https.onCall(async (data, context) => {
             timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
         return { status: 'success' };
-    } catch (err) {
-        throw new functions.https.HttpsError('internal', 'Erreur lors de la notation.');
+    } catch (err: any) {
+        functions.logger.error('Erreur rateItinerary :', err);
+        throw new functions.https.HttpsError('internal', `Erreur notation : ${err.message}`);
     }
 });
 
@@ -151,18 +163,15 @@ export const shareItinerary = fn.https.onCall(async (data, _context) => {
             duration: itinerary.duration || "",
             steps: itinerary.steps || "",
             imageUrl: itinerary.imageUrl || "",
-            sharedAt: Date.now(), // Utilisation d'un timestamp simple pour éviter les soucis FieldValue
+            sharedAt: Date.now(),
             expiresAt: Date.now() + (30 * 24 * 60 * 60 * 1000)
         };
 
-        functions.logger.info(`Tentative d'écriture Firestore: shared_itineraries/${shareId}`);
         await db.collection('shared_itineraries').doc(shareId).set(docData);
-        functions.logger.info('Écriture Firestore réussie');
-
         const shareUrl = `https://travelpath-e8f03.web.app/share/${shareId}`;
         return { status: 'success', shareId, url: shareUrl };
     } catch (err: any) {
-        functions.logger.error('Erreur partage itinéraire détail:', { error: err.message, stack: err.stack });
-        throw new functions.https.HttpsError('internal', `Erreur technique : ${err.message}`);
+        functions.logger.error('Erreur partage itinéraire :', err);
+        throw new functions.https.HttpsError('internal', `Erreur partage : ${err.message}`);
     }
 });

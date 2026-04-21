@@ -39,6 +39,10 @@ export class SearchCriteriaValidator {
             errors.push('durationMinHours ne peut pas être supérieur à durationMaxHours.');
         }
 
+        if (c.mandatoryPois && !Array.isArray(c.mandatoryPois)) {
+            errors.push('mandatoryPois doit être un tableau.');
+        }
+
         if (!Array.isArray(c.interests) || c.interests.length === 0) {
             errors.push('interests doit être un tableau non vide.');
         }

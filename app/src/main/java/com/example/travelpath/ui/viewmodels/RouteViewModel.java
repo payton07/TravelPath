@@ -35,7 +35,7 @@ public final class RouteViewModel extends AndroidViewModel {
 
     /** État unique de l'UI — Loading | Success | Empty | Error. */
     private final MutableLiveData<UiState<List<Itinerary>>> uiState =
-            new MutableLiveData<>(UiState.loading());
+            new MutableLiveData<>();
 
     /** Critères courants — conservés pour permettre la regénération. */
     private SearchCriteria currentCriteria;
@@ -60,7 +60,9 @@ public final class RouteViewModel extends AndroidViewModel {
      * Ignoré si une génération est déjà en cours (protection double-tap).
      */
     public void generateRoutes(@NonNull SearchCriteria criteria) {
-        if (uiState.getValue() instanceof UiState.Loading) {
+        // Ne bloquer que si on a déjà un état Success ou si on est déjà en train de charger
+        // mais ici on veut autoriser l'appel initial.
+        if (uiState.getValue() instanceof UiState.Loading && currentCriteria != null) {
             Timber.d("Génération déjà en cours — appel ignoré.");
             return;
         }

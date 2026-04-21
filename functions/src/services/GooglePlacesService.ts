@@ -131,7 +131,7 @@ export class GooglePlacesService {
             ?.slice(0, 3)
             .map(p => this.buildPhotoUrl(p.photo_reference)) ?? [];
 
-        return {
+        const poi: PointOfInterest = {
             id:                   result.place_id,
             name:                 result.name,
             category,
@@ -145,11 +145,16 @@ export class GooglePlacesService {
             effortScore:          PlacesConfig.DEFAULTS.EFFORT_SCORE,
             comfortLevel:         priceLevel                                    ?? PlacesConfig.DEFAULTS.COMFORT_LEVEL,
             photoUrls,
-            openingHours: result.opening_hours ? {
+        };
+
+        if (result.opening_hours) {
+            poi.openingHours = {
                 isOpenNow: result.opening_hours.open_now ?? true,
                 weekdayText: result.opening_hours.weekday_text ?? []
-            } : undefined
-        };
+            };
+        }
+
+        return poi;
     }
 
     private buildPhotoUrl(ref: string): string {
