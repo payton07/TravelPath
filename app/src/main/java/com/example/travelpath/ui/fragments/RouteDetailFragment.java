@@ -99,6 +99,16 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         setupMapView(savedInstanceState);
         setupActions();
         observeViewModel();
+        checkConnectivity();
+    }
+
+    private void checkConnectivity() {
+        if (!com.example.travelpath.utils.NetworkUtils.isOnline(requireContext())) {
+            Toast.makeText(getContext(), R.string.offline_mode_active, Toast.LENGTH_LONG).show();
+            binding.cardWeatherWarning.setVisibility(View.VISIBLE);
+            binding.tvWarningTitle.setText(R.string.offline_title);
+            binding.tvWarningDesc.setText(R.string.offline_desc);
+        }
     }
 
     @Override

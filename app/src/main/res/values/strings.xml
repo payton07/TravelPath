@@ -118,4 +118,9 @@
     <string name="pdf_desc">Téléchargement de votre itinéraire</string>
     <string name="download_started">Téléchargement démarré</string>
 
+    <!-- Offline Strings -->
+    <string name="offline_mode_active">Mode Hors-Ligne actif</string>
+    <string name="offline_title">Consultation Hors-Ligne</string>
+    <string name="offline_desc">Certaines photos et la carte interactive peuvent être limitées sans connexion, mais vos étapes sont sauvegardées.</string>
+
 </resources>

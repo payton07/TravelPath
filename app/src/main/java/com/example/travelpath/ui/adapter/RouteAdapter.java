@@ -59,6 +59,21 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         differ.submitList(itineraries);
     }
 
+    /** 
+     * Pré-charge les images dans le cache disque de Glide. 
+     * @param context Contexte requis pour Glide
+     * @param itineraries Liste à pré-charger
+     */
+    private void preloadImages(@NonNull android.content.Context context, @NonNull List<Itinerary> itineraries) {
+        for (Itinerary it : itineraries) {
+            if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
+                Glide.with(context)
+                     .load(it.getImageUrl())
+                     .preload();
+            }
+        }
+    }
+
     // =========================================================================
     // RecyclerView.Adapter
     // =========================================================================
@@ -71,6 +86,9 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int type) {
+        // Déclencher le pré-chargement global une seule fois au premier affichage
+        preloadImages(parent.getContext(), differ.getCurrentList());
+        
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         if (type == VIEW_TYPE_CAROUSEL) {
             return new CarouselViewHolder(
