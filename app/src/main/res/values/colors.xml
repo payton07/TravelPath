@@ -9,7 +9,7 @@
     <color name="brand_accent">#E31C5F</color>
     <color name="brand_light">#FFF0F2</color> 
 
-    <!-- Retaining legacy names mapped to new colors to avoid breaking existing layouts during transition -->
+    <!-- Redirection pour compatibilité avec les layouts modifiés -->
     <color name="emerald_primary">@color/brand_primary</color>
     <color name="emerald_accent">@color/brand_accent</color>
     <color name="emerald_light">@color/brand_light</color>

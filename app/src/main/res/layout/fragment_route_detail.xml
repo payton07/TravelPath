@@ -80,13 +80,13 @@
                                 android:layout_width="16dp"
                                 android:layout_height="16dp"
                                 android:src="@android:drawable/ic_menu_save"
-                                app:tint="@color/brand_primary" />
+                                app:tint="@color/emerald_primary" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="6dp"
                                 android:text="@string/pdf"
-                                android:textColor="@color/brand_primary"
+                                android:textColor="@color/emerald_primary"
                                 android:textStyle="bold"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -141,8 +141,8 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         app:icon="@android:drawable/btn_star_big_off"
-                        app:iconTint="@color/brand_primary"
-                        app:backgroundTint="@color/brand_light" />
+                        app:iconTint="@color/emerald_primary"
+                        app:backgroundTint="@color/emerald_light" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnShareRoute"
@@ -151,8 +151,8 @@
                         android:layout_height="48dp"
                         android:layout_marginStart="8dp"
                         app:icon="@android:drawable/ic_menu_share"
-                        app:iconTint="@color/brand_primary"
-                        app:backgroundTint="@color/brand_light" />
+                        app:iconTint="@color/emerald_primary"
+                        app:backgroundTint="@color/emerald_light" />
                 </LinearLayout>
 
                 <TextView
@@ -192,7 +192,7 @@
 
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="COST" android:textColor="@color/text_muted" android:textSize="11sp" android:textStyle="bold" />
-                    <TextView android:id="@+id/tvCostDetail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="20€" android:textColor="@color/brand_primary" android:textSize="16sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvCostDetail" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="20€" android:textColor="@color/emerald_primary" android:textSize="16sp" android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">

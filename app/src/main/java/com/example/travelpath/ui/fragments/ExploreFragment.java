@@ -60,6 +60,40 @@ public final class ExploreFragment extends Fragment {
         setupWeatherSelection();
         setupGenerateButton();
         observeViewModel();
+        animateBentoGrid();
+    }
+
+    /** 
+     * Anime les cartes de la Bento Grid avec un effet de cascade.
+     */
+    private void animateBentoGrid() {
+        android.view.animation.Animation anim = android.view.animation.AnimationUtils.loadAnimation(requireContext(), R.anim.bento_appear);
+        
+        // On définit des délais croissants pour l'effet de cascade
+        long delay = 100;
+        
+        View[] views = {
+            binding.tvTitle, 
+            binding.cardDestination, 
+            binding.tvMandatoryHeader, 
+            binding.layoutAddMandatory,
+            binding.cardBudget, 
+            binding.cardDuration,
+            binding.toggleEffort,
+            binding.layoutWeather,
+            binding.btnRegenerate
+        };
+
+        for (View v : views) {
+            v.setVisibility(View.INVISIBLE);
+            v.postDelayed(() -> {
+                if (binding != null) {
+                    v.setVisibility(View.VISIBLE);
+                    v.startAnimation(anim);
+                }
+            }, delay);
+            delay += 80; // Incrément du délai pour chaque élément
+        }
     }
 
     @Override
