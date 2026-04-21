@@ -9,20 +9,33 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import com.example.travelpath.R;
+import com.example.travelpath.MainActivity;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.databinding.FragmentSavedBinding;
+import com.example.travelpath.ui.adapter.RouteAdapter;
 import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
 
-public class SavedFragment extends Fragment {
+/**
+ * Liste des itinéraires sauvegardés par l'utilisateur.
+ *
+ * Corrections :
+ *   - Repository retiré — toggleSave() passe par SavedRoutesViewModel.
+ *   - Navigation déléguée à MainActivity.navigateTo().
+ *   - Adaptateur passe en mode COMPACT avec le nouveau RouteAdapter.
+ */
+public final class SavedFragment extends Fragment {
 
-    private FragmentSavedBinding binding;
-    private SavedRoutesViewModel viewModel;
-    private RouteAdapter adapter;
+    private FragmentSavedBinding  binding;
+    private SavedRoutesViewModel  viewModel;
+    private RouteAdapter          adapter;
+
+    // ── Cycle de vie ──────────────────────────────────────────────────────────
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         binding = FragmentSavedBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -36,47 +49,50 @@ public class SavedFragment extends Fragment {
         observeViewModel();
     }
 
+    @Override
+    public void onDestroyView() {
+        // Détacher l'adaptateur avant de nullifier binding
+        binding.rvSavedRoutes.setAdapter(null);
+        super.onDestroyView();
+        binding = null;
+    }
+
+    // =========================================================================
+    // Setup
+    // =========================================================================
+
     private void setupRecyclerView() {
-        adapter = new RouteAdapter(false, new RouteAdapter.OnRouteClickListener() {
+        adapter = new RouteAdapter(RouteAdapter.VIEW_TYPE_COMPACT, new RouteAdapter.OnRouteActionListener() {
             @Override
             public void onRouteClick(Itinerary itinerary) {
-                RouteDetailFragment detailFragment = RouteDetailFragment.newInstance(itinerary);
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragment_container, detailFragment)
-                        .addToBackStack(null)
-                        .commit();
+                ((MainActivity) requireActivity())
+                    .navigateTo(RouteDetailFragment.newInstance(itinerary), "detail");
             }
 
             @Override
             public void onLikeClick(Itinerary itinerary) {
-                itinerary.setSaved(!itinerary.isSaved());
-                ((com.example.travelpath.TravelApplication) requireActivity().getApplication()).getRepository().update(itinerary)
-                        .subscribe(() -> {}, throwable -> {
-                            android.util.Log.e("SavedFragment", "Erreur lors de la sauvegarde", throwable);
-                        });
+                // Déléguer au ViewModel — pas de repository dans le fragment
+                viewModel.toggleSave(itinerary);
             }
         });
-        binding.rvSavedRoutes.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        binding.rvSavedRoutes.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvSavedRoutes.setAdapter(adapter);
     }
 
+    // =========================================================================
+    // Observation
+    // =========================================================================
+
     private void observeViewModel() {
         viewModel.getSavedItineraries().observe(getViewLifecycleOwner(), itineraries -> {
-            if (itineraries == null || itineraries.isEmpty()) {
-                binding.tvEmptyMessage.setVisibility(View.VISIBLE);
-                binding.rvSavedRoutes.setVisibility(View.GONE);
-            } else {
-                binding.tvEmptyMessage.setVisibility(View.GONE);
-                binding.rvSavedRoutes.setVisibility(View.VISIBLE);
-                adapter.setItineraries(itineraries);
+            boolean empty = itineraries == null || itineraries.isEmpty();
+            binding.tvEmptyMessage.setVisibility(empty ? View.VISIBLE : View.GONE);
+            binding.rvSavedRoutes.setVisibility(empty ? View.GONE    : View.VISIBLE);
+
+            if (!empty) {
+                adapter.submitList(itineraries);
             }
         });
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 }

@@ -94,6 +94,9 @@ dependencies {
     // Gson
     implementation(libs.gson)
 
+    // Logging
+    implementation(libs.timber)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

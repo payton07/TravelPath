@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    slide_out_left.xml
+    Utilisé comme "exit" lors d'une navigation en avant (navigateTo).
+    Le fragment courant sort vers le bord gauche de l'écran.
+    Le déplacement partiel (-30%) crée un effet de profondeur :
+    le fragment sortant ralentit visuellement pendant que le nouveau arrive.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <translate
+        android:fromXDelta="0%"
+        android:toXDelta="-30%"
+        android:duration="300"
+        android:interpolator="@android:interpolator/fast_out_slow_in" />
+    <alpha
+        android:fromAlpha="1.0"
+        android:toAlpha="0.7"
+        android:duration="300"
+        android:interpolator="@android:interpolator/fast_out_slow_in" />
+</set>

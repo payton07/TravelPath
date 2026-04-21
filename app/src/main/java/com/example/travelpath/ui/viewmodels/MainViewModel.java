@@ -2,140 +2,312 @@ package com.example.travelpath.ui.viewmodels;
 
 import android.app.Application;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import com.example.travelpath.data.models.SearchCriteria;
 import com.example.travelpath.data.preferences.UserPreferencesManager;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import timber.log.Timber;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainViewModel extends AndroidViewModel {
+/**
+ * ViewModel partagé entre ExploreFragment et ProfileFragment (scope Activity).
+ *
+ * Responsabilités :
+ *   1. Détenir et exposer l'état du formulaire de recherche (destination, budget,
+ *      durée, effort, intérêts, météo, lieux obligatoires).
+ *   2. Persister les préférences utilisateur via {@link UserPreferencesManager}.
+ *   3. Construire un {@link SearchCriteria} validé via {@link #buildCriteria()}.
+ *   4. Gérer le nom d'utilisateur (lecture + écriture).
+ *
+ * <h2>Corrections apportées</h2>
+ * <ul>
+ *   <li>{@link #buildCriteria()} ajouté — la construction du critère était dans
+ *       ExploreFragment, ce qui est une violation MVVM.</li>
+ *   <li>{@link #setUserName(String)} ajouté — ProfileFragment appelait directement
+ *       UserPreferencesManager avec un Disposable non géré.</li>
+ *   <li>Persistance complète : durée, effort et météo sont maintenant sauvegardés
+ *       ET rechargés au démarrage (l'original ne persistait que budget + nom).</li>
+ *   <li>Les Flowable DataStore sont souscrits une seule fois dans loadPreferences()
+ *       et restent actifs tant que le ViewModel existe — les mises à jour sont
+ *       répercutées automatiquement sur les LiveData.</li>
+ * </ul>
+ */
+public final class MainViewModel extends AndroidViewModel {
 
-    private final UserPreferencesManager preferencesManager;
-    private final CompositeDisposable disposables = new CompositeDisposable();
+    private static final String TAG = "MainViewModel";
 
-    private final MutableLiveData<String> userName = new MutableLiveData<>();
-    private final MutableLiveData<String> destinationCity = new MutableLiveData<>("Paris");
-    private final MutableLiveData<String> destinationPlaceId = new MutableLiveData<>();
-    private final MutableLiveData<List<String>> mandatoryPois = new MutableLiveData<>(new ArrayList<>());
-    
-    private final MutableLiveData<Integer> budgetMin = new MutableLiveData<>(0);
-    private final MutableLiveData<Integer> budgetMax = new MutableLiveData<>(200);
-    private final MutableLiveData<Integer> durationMin = new MutableLiveData<>(4);
-    private final MutableLiveData<Integer> durationMax = new MutableLiveData<>(8);
-    private final MutableLiveData<String> effortLevel = new MutableLiveData<>("Moderate");
+    private final UserPreferencesManager prefs;
+    private final CompositeDisposable    disposables = new CompositeDisposable();
+    private final Gson                   gson        = new Gson();
+
+    // ── État du formulaire ────────────────────────────────────────────────────
+
+    private final MutableLiveData<String>       userName         = new MutableLiveData<>();
+    private final MutableLiveData<String>       destinationCity  = new MutableLiveData<>("Paris");
+    private final MutableLiveData<String>       destinationPlaceId = new MutableLiveData<>(null);
+    private final MutableLiveData<List<String>> mandatoryPois    = new MutableLiveData<>(new ArrayList<>());
+
+    private final MutableLiveData<Integer>      budgetMin        = new MutableLiveData<>(20);
+    private final MutableLiveData<Integer>      budgetMax        = new MutableLiveData<>(150);
+    private final MutableLiveData<Integer>      durationMin      = new MutableLiveData<>(3);
+    private final MutableLiveData<Integer>      durationMax      = new MutableLiveData<>(8);
+    private final MutableLiveData<String>       effortLevel      = new MutableLiveData<>(SearchCriteria.EFFORT_MODERATE);
     private final MutableLiveData<List<String>> selectedInterests = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<String>> weatherPreferences = new MutableLiveData<>(defaultWeather());
 
-    private final MutableLiveData<List<String>> weatherPreferences = new MutableLiveData<>(new ArrayList<>(List.of("SUN")));
+    // ── Constructeur ──────────────────────────────────────────────────────────
 
     public MainViewModel(@NonNull Application application) {
         super(application);
-        preferencesManager = UserPreferencesManager.getInstance(application);
+        prefs = UserPreferencesManager.getInstance(application);
         loadPreferences();
     }
 
-    public LiveData<String> getUserName() { return userName; }
-    public LiveData<String> getDestinationCity() { return destinationCity; }
-    public LiveData<String> getDestinationPlaceId() { return destinationPlaceId; }
-    public LiveData<List<String>> getMandatoryPois() { return mandatoryPois; }
-    public LiveData<Integer> getBudgetMin() { return budgetMin; }
-    public LiveData<Integer> getBudgetMax() { return budgetMax; }
-    public LiveData<Integer> getDurationMin() { return durationMin; }
-    public LiveData<Integer> getDurationMax() { return durationMax; }
-    public LiveData<String> getEffortLevel() { return effortLevel; }
-    public LiveData<List<String>> getSelectedInterests() { return selectedInterests; }
-    public LiveData<List<String>> getWeatherPreferences() { return weatherPreferences; }
+    // =========================================================================
+    // Getters LiveData
+    // =========================================================================
 
-    public void setDestination(String city, String placeId) {
+    public LiveData<String>       getUserName()          { return userName; }
+    public LiveData<String>       getDestinationCity()   { return destinationCity; }
+    public LiveData<String>       getDestinationPlaceId(){ return destinationPlaceId; }
+    public LiveData<List<String>> getMandatoryPois()     { return mandatoryPois; }
+    public LiveData<Integer>      getBudgetMin()         { return budgetMin; }
+    public LiveData<Integer>      getBudgetMax()         { return budgetMax; }
+    public LiveData<Integer>      getDurationMin()       { return durationMin; }
+    public LiveData<Integer>      getDurationMax()       { return durationMax; }
+    public LiveData<String>       getEffortLevel()       { return effortLevel; }
+    public LiveData<List<String>> getSelectedInterests() { return selectedInterests; }
+    public LiveData<List<String>> getWeatherPreferences(){ return weatherPreferences; }
+
+    // =========================================================================
+    // Mutations — formulaire
+    // =========================================================================
+
+    public void setDestination(@NonNull String city, @Nullable String placeId) {
         destinationCity.setValue(city);
         destinationPlaceId.setValue(placeId);
     }
 
-    public void addMandatoryPoi(String poiName) {
-        List<String> current = mandatoryPois.getValue();
-        if (current != null && !poiName.isEmpty() && !current.contains(poiName)) {
-            current.add(poiName);
-            mandatoryPois.setValue(new ArrayList<>(current));
+    public void addMandatoryPoi(@NonNull String poiName) {
+        List<String> current = safeList(mandatoryPois);
+        if (!poiName.isEmpty() && !current.contains(poiName)) {
+            List<String> updated = new ArrayList<>(current);
+            updated.add(poiName);
+            mandatoryPois.setValue(updated);
         }
     }
 
-    public void removeMandatoryPoi(String poiName) {
-        List<String> current = mandatoryPois.getValue();
-        if (current != null) {
-            current.remove(poiName);
-            mandatoryPois.setValue(new ArrayList<>(current));
-        }
+    public void removeMandatoryPoi(@NonNull String poiName) {
+        List<String> updated = new ArrayList<>(safeList(mandatoryPois));
+        updated.remove(poiName);
+        mandatoryPois.setValue(updated);
     }
 
+    /** Met à jour le budget en mémoire ET le persiste dans DataStore. */
     public void setBudgetRange(int min, int max) {
         budgetMin.setValue(min);
         budgetMax.setValue(max);
-        disposables.add(preferencesManager.setBudgetRange(min, max)
+        disposables.add(prefs.setBudgetRange(min, max)
                 .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe());
+                .subscribe(
+                    p  -> Timber.d("Budget persisté : %d–%d", min, max),
+                    err -> Timber.w("Erreur persistance budget : %s", err.getMessage())
+                ));
     }
 
+    /** Met à jour la durée en mémoire ET la persiste dans DataStore. */
     public void setDurationRange(int min, int max) {
         durationMin.setValue(min);
         durationMax.setValue(max);
+        disposables.add(prefs.setDurationRange(min, max)
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                    p  -> Timber.d("Durée persistée : %d–%dh", min, max),
+                    err -> Timber.w("Erreur persistance durée : %s", err.getMessage())
+                ));
     }
 
-    public void setEffortLevel(String effort) {
+    /** Met à jour le niveau d'effort en mémoire ET le persiste. */
+    public void setEffortLevel(@NonNull String effort) {
         effortLevel.setValue(effort);
+        disposables.add(prefs.setEffortLevel(effort)
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                    p  -> Timber.d("Effort persisté : %s", effort),
+                    err -> Timber.w("Erreur persistance effort : %s", err.getMessage())
+                ));
     }
 
-    public void toggleInterest(String interest) {
-        List<String> current = selectedInterests.getValue();
-        if (current != null) {
-            List<String> updated = new ArrayList<>(current);
-            if (updated.contains(interest)) {
-                updated.remove(interest);
-            } else {
-                updated.add(interest);
-            }
-            selectedInterests.setValue(updated);
+    public void toggleInterest(@NonNull String interest) {
+        List<String> updated = new ArrayList<>(safeList(selectedInterests));
+        if (updated.contains(interest)) updated.remove(interest);
+        else                            updated.add(interest);
+        selectedInterests.setValue(updated);
+    }
+
+    /**
+     * Bascule une condition météo.
+     * Au moins une condition doit rester sélectionnée — on ne retire pas le dernier élément.
+     */
+    public void toggleWeatherPreference(@NonNull String weather) {
+        List<String> current = safeList(weatherPreferences);
+        List<String> updated = new ArrayList<>(current);
+        if (updated.contains(weather)) {
+            if (updated.size() > 1) updated.remove(weather);
+            // sinon : on ne fait rien — au moins une condition obligatoire
+        } else {
+            updated.add(weather);
         }
+        weatherPreferences.setValue(updated);
     }
 
-    public void toggleWeatherPreference(String weather) {
-        List<String> current = weatherPreferences.getValue();
-        if (current != null) {
-            List<String> updated = new ArrayList<>(current);
-            if (updated.contains(weather)) {
-                if (updated.size() > 1) {
-                    updated.remove(weather);
-                }
-            } else {
-                updated.add(weather);
-            }
-            weatherPreferences.setValue(updated);
-        }
+    // =========================================================================
+    // Nom utilisateur
+    // =========================================================================
+
+    /**
+     * Sauvegarde le nom dans DataStore et met à jour le LiveData immédiatement
+     * pour que l'UI soit réactive sans attendre la confirmation de persistance.
+     */
+    public void setUserName(@NonNull String name) {
+        if (name.isEmpty()) return;
+        userName.setValue(name);                              // mise à jour immédiate
+        disposables.add(prefs.setUserName(name)
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                    p  -> Timber.d("Nom persisté : %s", name),
+                    err -> Timber.w("Erreur persistance nom : %s", err.getMessage())
+                ));
     }
 
+    // =========================================================================
+    // Construction des critères
+    // =========================================================================
+
+    /**
+     * Construit un {@link SearchCriteria} à partir de l'état courant du ViewModel.
+     *
+     * Retourne {@code null} si la validation échoue (aucun intérêt sélectionné).
+     * D'autres validations peuvent être ajoutées ici sans modifier le fragment.
+     */
+    @Nullable
+    public SearchCriteria buildCriteria() {
+        List<String> interests = safeList(selectedInterests);
+        if (interests.isEmpty()) return null;
+
+        return new SearchCriteria.Builder()
+                .destinationCity(orDefault(destinationCity.getValue(), "Paris"))
+                .destinationPlaceId(destinationPlaceId.getValue())
+                .mandatoryPois(safeList(mandatoryPois))
+                .budget(
+                    orDefault(budgetMin.getValue(),   20),
+                    orDefault(budgetMax.getValue(),  150))
+                .duration(
+                    orDefault(durationMin.getValue(), 3),
+                    orDefault(durationMax.getValue(), 8))
+                .interests(interests)
+                .effortLevel(orDefault(effortLevel.getValue(), SearchCriteria.EFFORT_MODERATE))
+                .weatherPreferences(safeList(weatherPreferences))
+                .build();
+    }
+
+    // =========================================================================
+    // Chargement des préférences persistées
+    // =========================================================================
+
+    /**
+     * Souscrit aux Flowable DataStore une seule fois.
+     * Les souscriptions restent actives tant que le ViewModel existe (onCleared).
+     * Toute modification externe dans DataStore (rare) est répercutée automatiquement.
+     */
     private void loadPreferences() {
-        disposables.add(preferencesManager.getUserName()
+        disposables.add(prefs.getUserName()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(userName::setValue));
+                .subscribe(userName::setValue,
+                    err -> Timber.w("Erreur chargement nom : %s", err.getMessage())));
 
-        disposables.add(preferencesManager.getBudgetMin()
+        disposables.add(prefs.getBudgetMin()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(budgetMin::setValue));
+                .subscribe(budgetMin::setValue,
+                    err -> Timber.w("Erreur chargement budgetMin : %s", err.getMessage())));
 
-        disposables.add(preferencesManager.getBudgetMax()
+        disposables.add(prefs.getBudgetMax()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(budgetMax::setValue));
+                .subscribe(budgetMax::setValue,
+                    err -> Timber.w("Erreur chargement budgetMax : %s", err.getMessage())));
+
+        // Durée
+        disposables.add(prefs.getDurationMin()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(v -> durationMin.setValue(Math.round(v)),
+                    err -> Timber.w("Erreur chargement durationMin : %s", err.getMessage())));
+
+        disposables.add(prefs.getDurationMax()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(v -> durationMax.setValue(Math.round(v)),
+                    err -> Timber.w("Erreur chargement durationMax : %s", err.getMessage())));
+
+        // Effort
+        disposables.add(prefs.getEffortLevel()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(effortLevel::setValue,
+                    err -> Timber.w("Erreur chargement effort : %s", err.getMessage())));
+
+        // Météo (stockée en JSON dans DataStore)
+        disposables.add(prefs.getWeatherPreferencesJson()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(json -> {
+                    List<String> parsed = gson.fromJson(json,
+                        new TypeToken<List<String>>(){}.getType());
+                    weatherPreferences.setValue(
+                        (parsed != null && !parsed.isEmpty()) ? parsed : defaultWeather());
+                }, err -> Timber.w("Erreur chargement météo : %s", err.getMessage())));
     }
+
+    // =========================================================================
+    // Cycle de vie
+    // =========================================================================
 
     @Override
     protected void onCleared() {
-        super.onCleared();
         disposables.clear();
+        super.onCleared();
+    }
+
+    // =========================================================================
+    // Helpers
+    // =========================================================================
+
+    @NonNull
+    private <T> List<T> safeList(@NonNull MutableLiveData<List<T>> liveData) {
+        List<T> v = liveData.getValue();
+        return v != null ? v : new ArrayList<>();
+    }
+
+    @NonNull
+    private <T> T orDefault(@Nullable T value, @NonNull T defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @NonNull
+    private static List<String> defaultWeather() {
+        List<String> d = new ArrayList<>();
+        d.add("SUN");
+        return d;
     }
 }

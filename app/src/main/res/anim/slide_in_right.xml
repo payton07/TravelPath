@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    slide_in_right.xml
+    Utilisé comme "enter" lors d'une navigation en avant (navigateTo).
+    Le nouveau fragment entre depuis le bord droit de l'écran.
+    Durée : 300ms — assez rapide pour ne pas sembler lourd,
+    assez long pour que le mouvement soit perceptible.
+    Interpolateur : fast_out_slow_in (Material Motion standard)
+    — accélère rapidement puis décélère en arrivant à sa position finale.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <translate
+        android:fromXDelta="100%"
+        android:toXDelta="0%"
+        android:duration="300"
+        android:interpolator="@android:interpolator/fast_out_slow_in" />
+    <alpha
+        android:fromAlpha="0.0"
+        android:toAlpha="1.0"
+        android:duration="300"
+        android:interpolator="@android:interpolator/fast_out_slow_in" />
+</set>

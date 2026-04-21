@@ -11,22 +11,37 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import com.example.travelpath.MainActivity;
 import com.example.travelpath.R;
 import com.example.travelpath.data.models.SearchCriteria;
 import com.example.travelpath.databinding.FragmentExploreBinding;
 import com.example.travelpath.ui.viewmodels.MainViewModel;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.chip.Chip;
-import java.util.ArrayList;
+import timber.log.Timber;
 import java.util.List;
 
-public class ExploreFragment extends Fragment {
+/**
+ * Fragment Explore — saisie des préférences utilisateur.
+ *
+ * Ce fragment ne contient que de la logique d'affichage :
+ *   - Il reçoit des événements UI (clics, sliders, chips) et les délègue au ViewModel.
+ *   - Il observe le ViewModel et met à jour les vues en conséquence.
+ *   - La navigation est déléguée à {@link MainActivity#navigateTo}.
+ *   - La construction de {@link SearchCriteria} est entièrement dans le ViewModel.
+ */
+public final class ExploreFragment extends Fragment {
 
     private FragmentExploreBinding binding;
     private MainViewModel viewModel;
 
+    // ── Cycle de vie ──────────────────────────────────────────────────────────
+
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         binding = FragmentExploreBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -34,6 +49,7 @@ public class ExploreFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Scoped à l'activité : le ViewModel survit aux rotations et est partagé avec ProfileFragment
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
 
         setupDestinationAutocomplete();
@@ -42,19 +58,27 @@ public class ExploreFragment extends Fragment {
         setupInterests();
         setupEffortToggle();
         setupWeatherSelection();
-        setupActions();
+        setupGenerateButton();
         observeViewModel();
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;  // évite les fuites mémoire avec ViewBinding
+    }
+
+    // =========================================================================
+    // Setup des contrôles UI
+    // =========================================================================
+
     private void setupDestinationAutocomplete() {
-        // Pour la démo, on utilise une liste simple. 
-        // À connecter au PlacesClient pour une autocomplétion réelle.
+        // Liste statique pour la démo — à remplacer par PlacesClient.findAutocompletePredictions()
         String[] cities = {"Paris, France", "London, UK", "Rome, Italy", "New York, USA", "Tokyo, Japan"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), 
-                android.R.layout.simple_dropdown_item_1line, cities);
-        binding.autoCompleteDest.setAdapter(adapter);
-        
-        binding.autoCompleteDest.setOnItemClickListener((parent, view, position, id) -> {
+        binding.autoCompleteDest.setAdapter(new ArrayAdapter<>(
+                requireContext(), android.R.layout.simple_dropdown_item_1line, cities));
+
+        binding.autoCompleteDest.setOnItemClickListener((parent, v, position, id) -> {
             String selection = (String) parent.getItemAtPosition(position);
             viewModel.setDestination(selection, "mock_place_id_" + selection);
         });
@@ -72,17 +96,19 @@ public class ExploreFragment extends Fragment {
 
     private void setupSliders() {
         binding.sliderBudgetRange.addOnChangeListener((slider, value, fromUser) -> {
-            List<Float> values = binding.sliderBudgetRange.getValues();
+            List<Float> values = slider.getValues();
             if (values.size() >= 2) {
-                binding.tvBudgetRange.setText(String.format("€%.0f - €%.0f", values.get(0), values.get(1)));
+                binding.tvBudgetRange.setText(
+                    String.format("€%.0f - €%.0f", values.get(0), values.get(1)));
                 viewModel.setBudgetRange(values.get(0).intValue(), values.get(1).intValue());
             }
         });
 
         binding.sliderDurationRange.addOnChangeListener((slider, value, fromUser) -> {
-            List<Float> values = binding.sliderDurationRange.getValues();
+            List<Float> values = slider.getValues();
             if (values.size() >= 2) {
-                binding.tvDurationRange.setText(String.format("%.0fh - %.0fh", values.get(0), values.get(1)));
+                binding.tvDurationRange.setText(
+                    String.format("%.0fh - %.0fh", values.get(0), values.get(1)));
                 viewModel.setDurationRange(values.get(0).intValue(), values.get(1).intValue());
             }
         });
@@ -91,86 +117,83 @@ public class ExploreFragment extends Fragment {
     private void setupInterests() {
         for (int i = 0; i < binding.chipGroupInterests.getChildCount(); i++) {
             Chip chip = (Chip) binding.chipGroupInterests.getChildAt(i);
-            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                viewModel.toggleInterest(chip.getText().toString());
-            });
+            chip.setOnCheckedChangeListener((btn, isChecked) ->
+                viewModel.toggleInterest(chip.getText().toString()));
         }
     }
 
     private void setupEffortToggle() {
         binding.toggleEffort.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (isChecked) {
-                if (checkedId == R.id.btnEasy) viewModel.setEffortLevel(SearchCriteria.EFFORT_EASY);
-                else if (checkedId == R.id.btnModerate) viewModel.setEffortLevel(SearchCriteria.EFFORT_MODERATE);
-                else if (checkedId == R.id.btnHigh) viewModel.setEffortLevel(SearchCriteria.EFFORT_HIGH);
-            }
+            if (!isChecked) return;
+            if      (checkedId == R.id.btnEasy)     viewModel.setEffortLevel(SearchCriteria.EFFORT_EASY);
+            else if (checkedId == R.id.btnModerate) viewModel.setEffortLevel(SearchCriteria.EFFORT_MODERATE);
+            else if (checkedId == R.id.btnHigh)     viewModel.setEffortLevel(SearchCriteria.EFFORT_HIGH);
         });
     }
 
     private void setupWeatherSelection() {
         binding.cardSnow.setOnClickListener(v -> viewModel.toggleWeatherPreference("SNOW"));
         binding.cardRain.setOnClickListener(v -> viewModel.toggleWeatherPreference("RAIN"));
-        binding.cardSun.setOnClickListener(v -> viewModel.toggleWeatherPreference("SUN"));
+        binding.cardSun.setOnClickListener(v  -> viewModel.toggleWeatherPreference("SUN"));
     }
 
-    private void setupActions() {
+    /**
+     * Bouton "Générer" : valide les entrées, délègue la construction des critères
+     * au ViewModel, puis navigue vers RoutesFragment via MainActivity.
+     */
+    private void setupGenerateButton() {
         binding.btnRegenerate.setOnClickListener(v -> {
             String cityInput = binding.autoCompleteDest.getText().toString().trim();
             if (cityInput.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter a destination", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), R.string.error_enter_destination, Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Mettre à jour le ViewModel pour la cohérence
-            if (!cityInput.equals(viewModel.getDestinationCity().getValue())) {
-                viewModel.setDestination(cityInput, "manual_input_" + cityInput);
+            // Synchroniser la ville si l'utilisateur l'a tapée manuellement
+            String currentCity = viewModel.getDestinationCity().getValue();
+            if (!cityInput.equals(currentCity)) {
+                viewModel.setDestination(cityInput, null);
             }
 
-            int budgetMin = viewModel.getBudgetMin().getValue() != null ? viewModel.getBudgetMin().getValue() : 0;
-            int budgetMax = viewModel.getBudgetMax().getValue() != null ? viewModel.getBudgetMax().getValue() : 200;
-            int durationMin = viewModel.getDurationMin().getValue() != null ? viewModel.getDurationMin().getValue() : 4;
-            int durationMax = viewModel.getDurationMax().getValue() != null ? viewModel.getDurationMax().getValue() : 8;
-
-            SearchCriteria criteria = new SearchCriteria.Builder()
-                    .destinationCity(cityInput)
-                    .destinationPlaceId(viewModel.getDestinationPlaceId().getValue())
-                    .mandatoryPois(viewModel.getMandatoryPois().getValue())
-                    .budget(budgetMin, budgetMax)
-                    .duration(durationMin, durationMax)
-                    .interests(viewModel.getSelectedInterests().getValue())
-                    .effortLevel(viewModel.getEffortLevel().getValue() != null ? viewModel.getEffortLevel().getValue() : "Moderate")
-                    .weatherPreferences(viewModel.getWeatherPreferences().getValue())
-                    .build();
-
-            if (criteria.getInterests().isEmpty()) {
-                Toast.makeText(getContext(), "Please select at least one interest", Toast.LENGTH_SHORT).show();
+            // Déléguer la validation et la construction des critères au ViewModel
+            SearchCriteria criteria = viewModel.buildCriteria();
+            if (criteria == null) {
+                Toast.makeText(getContext(),
+                    R.string.error_select_interest, Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Toast.makeText(getContext(), getString(R.string.generating_toast), Toast.LENGTH_SHORT).show();
-            
-            requireActivity().getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.fragment_container, RoutesFragment.newInstance(criteria))
-                    .addToBackStack(null)
-                    .commit();
+            Timber.d("Navigation vers RoutesFragment — ville : %s", cityInput);
+            ((MainActivity) requireActivity()).navigateTo(
+                RoutesFragment.newInstance(criteria), "routes");
         });
     }
 
+    // =========================================================================
+    // Observations
+    // =========================================================================
+
     private void observeViewModel() {
-        viewModel.getWeatherPreferences().observe(getViewLifecycleOwner(), this::updateWeatherUI);
-        
-        viewModel.getMandatoryPois().observe(getViewLifecycleOwner(), this::updateMandatoryChips);
+        viewModel.getWeatherPreferences().observe(getViewLifecycleOwner(),
+            this::updateWeatherUI);
+
+        viewModel.getMandatoryPois().observe(getViewLifecycleOwner(),
+            this::updateMandatoryChips);
 
         viewModel.getDestinationCity().observe(getViewLifecycleOwner(), city -> {
-            if (!city.equals(binding.autoCompleteDest.getText().toString())) {
+            if (city != null && !city.equals(binding.autoCompleteDest.getText().toString())) {
                 binding.autoCompleteDest.setText(city, false);
             }
         });
     }
 
+    // =========================================================================
+    // Helpers d'affichage
+    // =========================================================================
+
     private void updateMandatoryChips(List<String> pois) {
         binding.chipGroupMandatory.removeAllViews();
+        if (pois == null) return;
         for (String poi : pois) {
             Chip chip = new Chip(requireContext());
             chip.setText(poi);
@@ -180,33 +203,33 @@ public class ExploreFragment extends Fragment {
         }
     }
 
-    private void updateWeatherUI(List<String> selectedWeathers) {
-        resetWeatherCard(binding.cardSnow, binding.icSnow, binding.tvSnow);
-        resetWeatherCard(binding.cardRain, binding.icRain, binding.tvRain);
-        resetWeatherCard(binding.cardSun, binding.icSun, binding.tvSun);
+    private void updateWeatherUI(List<String> selected) {
+        if (selected == null) return;
+        applyWeatherCard(binding.cardSnow, "SNOW",  selected);
+        applyWeatherCard(binding.cardRain, "RAIN",  selected);
+        applyWeatherCard(binding.cardSun,  "SUN",   selected);
+    }
 
-        for (String weather : selectedWeathers) {
-            if ("SNOW".equals(weather)) highlightWeatherCard(binding.cardSnow, binding.icSnow, binding.tvSnow);
-            else if ("RAIN".equals(weather)) highlightWeatherCard(binding.cardRain, binding.icRain, binding.tvRain);
-            else if ("SUN".equals(weather)) highlightWeatherCard(binding.cardSun, binding.icSun, binding.tvSun);
+    private void applyWeatherCard(MaterialCardView card, String key, List<String> selected) {
+        boolean active = selected.contains(key);
+        int bgColor   = active ? R.color.emerald_primary : R.color.card_bg;
+        int iconColor = active ? android.R.color.white   : R.color.text_secondary;
+        int textColor = active ? android.R.color.white   : R.color.text_muted;
+
+        card.setCardBackgroundColor(ContextCompat.getColor(requireContext(), bgColor));
+
+        // Les icônes et textes sont toujours le 1er et 2ème enfant du card
+        if (card.getChildCount() >= 1) {
+            View child = card.getChildAt(0);
+            if (child instanceof android.widget.LinearLayout ll && ll.getChildCount() >= 2) {
+                if (ll.getChildAt(0) instanceof android.widget.ImageView iv) {
+                    iv.setImageTintList(android.content.res.ColorStateList.valueOf(
+                        ContextCompat.getColor(requireContext(), iconColor)));
+                }
+                if (ll.getChildAt(1) instanceof android.widget.TextView tv) {
+                    tv.setTextColor(ContextCompat.getColor(requireContext(), textColor));
+                }
+            }
         }
-    }
-
-    private void resetWeatherCard(com.google.android.material.card.MaterialCardView card, android.widget.ImageView icon, android.widget.TextView text) {
-        card.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.card_bg));
-        icon.setImageTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.text_secondary)));
-        text.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_muted));
-    }
-
-    private void highlightWeatherCard(com.google.android.material.card.MaterialCardView card, android.widget.ImageView icon, android.widget.TextView text) {
-        card.setCardBackgroundColor(ContextCompat.getColor(requireContext(), R.color.emerald_primary));
-        icon.setImageTintList(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(requireContext(), android.R.color.white)));
-        text.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.white));
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        binding = null;
     }
 }

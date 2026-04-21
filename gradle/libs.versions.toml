@@ -15,6 +15,7 @@ rxjava = "3.1.8"
 rxandroid = "3.0.2"
 firebase-bom = "32.8.0"
 glide = "4.16.0"
+timber = "5.0.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -58,6 +59,7 @@ google-maps-utils = { group = "com.google.maps.android", name = "android-maps-ut
 glide = { group = "com.github.bumptech.glide", name = "glide", version = "4.16.0" }
 glide-compiler = { group = "com.github.bumptech.glide", name = "compiler", version = "4.16.0" }
 gson = { group = "com.google.code.gson", name = "gson", version = "2.10.1" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

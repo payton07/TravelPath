@@ -1,56 +1,94 @@
 package com.example.travelpath;
 
 import android.app.Application;
-import android.util.Log;
 import com.example.travelpath.data.preferences.UserPreferencesManager;
 import com.example.travelpath.data.repository.TravelRepository;
 import com.example.travelpath.di.AppModule;
 import com.google.android.libraries.places.api.Places;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import timber.log.Timber;
 
 /**
  * Point d'entrée de l'application TravelPath.
  *
  * Responsabilités :
- *   1. Initialiser les SDK tiers (Google Places, Firebase implicite)
+ *   1. Initialiser les SDK tiers (Google Places, Timber)
  *   2. Construire le graphe de dépendances via {@link AppModule}
- *   3. Exposer les dépendances aux ViewModels via des getters statiques
+ *   3. Exposer les dépendances partagées aux ViewModels
  *
- * Les ViewModels accèdent au repository via :
+ * Accès au repository depuis un ViewModel :
  * <pre>
  *   TravelRepository repo = ((TravelApplication) getApplication()).getRepository();
  * </pre>
- * ou via une ViewModelFactory injectée.
  */
 public final class TravelApplication extends Application {
 
-    private static final String TAG = "TravelApplication";
+    private AppModule  module;
 
-    private AppModule module;
+    /**
+     * Référence conservée pour ne pas laisser un Disposable orphelin
+     * si l'OS interrompt l'opération de purge en cours de route.
+     * (onTerminate() n'est pas garanti en production — la mort du processus
+     * libère les ressources OS de toute façon.)
+     */
+    @SuppressWarnings("unused")
+    private Disposable purgeCacheDisposable;
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // ── Google Places SDK ─────────────────────────────────────────────────
-        if (!Places.isInitialized()) {
-            Places.initialize(getApplicationContext(), BuildConfig.MAPS_API_KEY);
-            Log.d(TAG, "Google Places SDK initialisé.");
-        }
-
-        // ── Graphe de dépendances ─────────────────────────────────────────────
-        module = new AppModule(this);
-        Log.d(TAG, "AppModule initialisé — TravelPath démarré.");
-
-        // ── Nettoyage du cache expiré au démarrage ────────────────────────────
-        getRepository()
-            .purgeExpiredCache()
-            .subscribe(
-                () -> Log.d(TAG, "Cache Room nettoyé."),
-                err -> Log.w(TAG, "Erreur nettoyage cache : " + err.getMessage())
-            );
+        initTimber();
+        initPlaces();
+        initDependencies();
+        scheduleCachePurge();
     }
 
-    // ── Accès aux dépendances ─────────────────────────────────────────────────
+    // =========================================================================
+    // Initialisations
+    // =========================================================================
+
+    /**
+     * Timber remplace Log.d / Log.w :
+     *   - en DEBUG : logs visibles dans Logcat avec tag automatique
+     *   - en RELEASE : no-op — aucun log n'est émis, pas besoin de ProGuard pour les supprimer
+     */
+    private void initTimber() {
+        if (BuildConfig.DEBUG) {
+            Timber.plant(new Timber.DebugTree());
+        }
+    }
+
+    private void initPlaces() {
+        if (!Places.isInitialized()) {
+            Places.initialize(getApplicationContext(), BuildConfig.MAPS_API_KEY);
+            Timber.d("Google Places SDK initialisé.");
+        }
+    }
+
+    private void initDependencies() {
+        module = new AppModule(this);
+        Timber.d("AppModule initialisé.");
+    }
+
+    /**
+     * Purge du cache Room au démarrage, exécutée sur le thread IO.
+     * Non bloquante — l'app démarre normalement pendant l'opération.
+     */
+    private void scheduleCachePurge() {
+        purgeCacheDisposable = getRepository()
+                .purgeExpiredCache()
+                .subscribeOn(Schedulers.io())
+                .subscribe(
+                    ()  -> Timber.d("Cache Room nettoyé."),
+                    err -> Timber.w("Erreur purge cache : %s", err.getMessage())
+                );
+    }
+
+    // =========================================================================
+    // Accès aux dépendances
+    // =========================================================================
 
     public TravelRepository getRepository() {
         return module.getRepository();

@@ -14,53 +14,65 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.example.travelpath.R;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.data.models.PointOfInterest;
-import com.example.travelpath.data.repository.TravelRepository;
 import com.example.travelpath.databinding.FragmentRouteDetailBinding;
 import com.example.travelpath.databinding.ItemTimelineStepBinding;
+import com.example.travelpath.ui.viewmodels.RouteDetailViewModel;
+import com.example.travelpath.ui.viewmodels.UiState;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.RoundCap;
-import com.google.android.gms.maps.model.JointType;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.google.maps.android.PolyUtil;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
+import timber.log.Timber;
 import java.util.List;
-import java.util.Map;
 
-public class RouteDetailFragment extends Fragment implements OnMapReadyCallback {
+/**
+ * Détails riches d'un itinéraire.
+ *
+ * <h2>Corrections appliquées</h2>
+ * <ul>
+ *   <li>Repository retiré — toutes les opérations passent par {@link RouteDetailViewModel}.</li>
+ *   <li>CompositeDisposable supprimé — les Completable/Single sont dans le ViewModel.</li>
+ *   <li>MapView cycle de vie complet : onStart/onStop ajoutés, binding nul à destrView.</li>
+ *   <li>Gson instanciée une seule fois dans le ViewModel, pas ici.</li>
+ *   <li>Navigation Back déléguée au dispatcher.</li>
+ * </ul>
+ */
+public final class RouteDetailFragment extends Fragment implements OnMapReadyCallback {
 
     private static final String ARG_ITINERARY = "itinerary";
-    private FragmentRouteDetailBinding binding;
-    private final CompositeDisposable disposables = new CompositeDisposable();
-    private Itinerary itinerary;
-    private GoogleMap googleMap;
-    private TravelRepository repository;
 
-    public static RouteDetailFragment newInstance(Itinerary itinerary) {
-        RouteDetailFragment fragment = new RouteDetailFragment();
+    private FragmentRouteDetailBinding binding;
+    private RouteDetailViewModel       viewModel;
+    private GoogleMap                  googleMap;
+
+    // ── Factory ───────────────────────────────────────────────────────────────
+
+    public static RouteDetailFragment newInstance(@NonNull Itinerary itinerary) {
+        RouteDetailFragment f = new RouteDetailFragment();
         Bundle args = new Bundle();
         args.putSerializable(ARG_ITINERARY, itinerary);
-        fragment.setArguments(args);
-        return fragment;
+        f.setArguments(args);
+        return f;
     }
+
+    // ── Cycle de vie Fragment ─────────────────────────────────────────────────
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         binding = FragmentRouteDetailBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -68,180 +80,271 @@ public class RouteDetailFragment extends Fragment implements OnMapReadyCallback 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        repository = ((com.example.travelpath.TravelApplication) requireActivity().getApplication()).getRepository();
 
-        binding.btnBack.setOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
+        ViewModelProvider.Factory factory = RouteDetailViewModel.Factory.create(requireActivity());
+        viewModel = new ViewModelProvider(this, factory).get(RouteDetailViewModel.class);
 
-        if (getArguments() != null) {
-            itinerary = (Itinerary) getArguments().getSerializable(ARG_ITINERARY);
-            if (itinerary != null) {
-                updateUI(itinerary);
-                setupActions();
-                
-                binding.mapView.onCreate(savedInstanceState);
-                binding.mapView.getMapAsync(this);
-            }
+        Itinerary itinerary = extractItinerary();
+        if (itinerary == null) {
+            Timber.w("RouteDetailFragment : itinéraire null, fermeture.");
+            requireActivity().getOnBackPressedDispatcher().onBackPressed();
+            return;
         }
+
+        viewModel.setItinerary(itinerary);
+
+        binding.btnBack.setOnClickListener(v ->
+            requireActivity().getOnBackPressedDispatcher().onBackPressed());
+
+        setupMapView(savedInstanceState);
+        setupActions();
+        observeViewModel();
+    }
+
+    @Override
+    public void onDestroyView() {
+        // MapView doit être détruit AVANT de nullifier binding
+        if (binding != null) {
+            binding.mapView.onDestroy();
+        }
+        super.onDestroyView();
+        binding = null;
+    }
+
+    // ── Cycle de vie MapView ──────────────────────────────────────────────────
+
+    @Override public void onStart()      { super.onStart();      safeMap(m -> m.onStart()); }
+    @Override public void onResume()     { super.onResume();      safeMap(m -> m.onResume()); }
+    @Override public void onPause()      { safeMap(m -> m.onPause());   super.onPause(); }
+    @Override public void onStop()       { safeMap(m -> m.onStop());    super.onStop(); }
+    @Override public void onLowMemory() { super.onLowMemory();  safeMap(m -> m.onLowMemory()); }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        safeMap(m -> m.onSaveInstanceState(outState));
+    }
+
+    /** Exécute une action sur MapView seulement si binding est encore valide. */
+    private void safeMap(MapViewAction action) {
+        if (binding != null) action.run(binding.mapView);
+    }
+    private interface MapViewAction { void run(com.google.android.gms.maps.MapView mapView); }
+
+    // =========================================================================
+    // Initialisation
+    // =========================================================================
+
+    private void setupMapView(@Nullable Bundle savedInstanceState) {
+        binding.mapView.onCreate(savedInstanceState);
+        binding.mapView.getMapAsync(this);
     }
 
     private void setupActions() {
-        updateSaveButtonState();
-        binding.btnSaveRoute.setOnClickListener(v -> toggleSave());
-        binding.btnShareRoute.setOnClickListener(v -> shareItinerary());
-        binding.btnExportPdf.setOnClickListener(v -> generatePdf());
+        binding.btnSaveRoute.setOnClickListener(v  -> viewModel.toggleSave());
+        binding.btnShareRoute.setOnClickListener(v -> viewModel.shareItinerary());
+        binding.btnExportPdf.setOnClickListener(v  -> viewModel.generatePdf());
     }
 
-    private void toggleSave() {
-        itinerary.setSaved(!itinerary.isSaved());
-        disposables.add(repository.update(itinerary)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
-                    updateSaveButtonState();
-                    String msg = itinerary.isSaved() ? "Parcours sauvegardé !" : "Parcours retiré";
-                    Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-                }, throwable -> Toast.makeText(getContext(), "Erreur sauvegarde", Toast.LENGTH_SHORT).show()));
+    // =========================================================================
+    // Observations
+    // =========================================================================
+
+    private void observeViewModel() {
+        viewModel.getItinerary().observe(getViewLifecycleOwner(), this::renderItinerary);
+
+        viewModel.getSaveState().observe(getViewLifecycleOwner(), saved -> {
+            refreshSaveButton(saved);
+            String msg = saved ? getString(R.string.route_saved) : getString(R.string.route_removed);
+            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        });
+
+        viewModel.getShareState().observe(getViewLifecycleOwner(), state -> {
+            if (state instanceof UiState.Success) {
+                launchShareIntent(((UiState.Success<String>) state).getData());
+            } else if (state instanceof UiState.Error) {
+                Toast.makeText(getContext(),
+                    ((UiState.Error) state).getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+
+        viewModel.getPdfState().observe(getViewLifecycleOwner(), state -> {
+            if (state instanceof UiState.Loading) {
+                Toast.makeText(getContext(), R.string.generating_pdf, Toast.LENGTH_SHORT).show();
+            } else if (state instanceof UiState.Success) {
+                enqueueDownload(((UiState.Success<String>) state).getData());
+            } else if (state instanceof UiState.Error) {
+                Toast.makeText(getContext(),
+                    ((UiState.Error) state).getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void updateSaveButtonState() {
-        if (itinerary.isSaved()) {
-            binding.btnSaveRoute.setText("Saved");
-            binding.btnSaveRoute.setIconResource(android.R.drawable.btn_star_big_on);
-        } else {
-            binding.btnSaveRoute.setText(getString(R.string.save));
-            binding.btnSaveRoute.setIconResource(android.R.drawable.ic_menu_save);
-        }
-    }
+    // =========================================================================
+    // Rendu de l'itinéraire
+    // =========================================================================
 
-    private void updateUI(Itinerary itinerary) {
-        binding.tvRouteTitle.setText(itinerary.getName());
-        binding.tvRouteDescription.setText(itinerary.getDescription());
-        binding.tvCostDetail.setText(itinerary.getCost() + "€");
-        binding.tvDurationDetail.setText(itinerary.getDuration());
-        binding.tvEffortDetail.setText(itinerary.getEffort());
-        binding.tvWeatherDetail.setText(itinerary.getWeather());
+    private void renderItinerary(@NonNull Itinerary it) {
+        binding.tvRouteTitle.setText(it.getName());
+        binding.tvRouteDescription.setText(it.getDescription());
+        binding.tvCostDetail.setText(String.format("%s€", it.getCost()));
+        binding.tvDurationDetail.setText(it.getDuration());
+        binding.tvEffortDetail.setText(it.getEffort());
+        binding.tvWeatherDetail.setText(it.getWeather());
 
-        if (itinerary.getImageUrl() != null && !itinerary.getImageUrl().isEmpty()) {
-            Glide.with(this).load(itinerary.getImageUrl()).into(binding.ivRouteHeader);
+        if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
             binding.ivRouteHeader.setVisibility(View.VISIBLE);
+            Glide.with(this).load(it.getImageUrl()).into(binding.ivRouteHeader);
         }
 
-        updateWeatherWarning(itinerary.getWeather());
-        buildTimeline(itinerary);
+        refreshSaveButton(it.isSaved());
+        renderWeatherWarning(it.getWeather());
+
+        List<PointOfInterest> pois = viewModel.parseFullSteps(it.getFullStepsJson());
+        buildTimeline(pois);
+
+        if (googleMap != null) displayRoute(it, pois);
     }
 
-    private void updateWeatherWarning(String weather) {
-        if (weather != null && (weather.contains("RAIN") || weather.contains("SNOW"))) {
-            binding.cardWeatherWarning.setVisibility(View.VISIBLE);
-            binding.tvWarningTitle.setText("Alerte météo : " + weather);
-            binding.tvWarningDesc.setText("Des précipitations sont prévues. Prévoyez des activités en intérieur.");
-        } else {
-            binding.cardWeatherWarning.setVisibility(View.GONE);
+    private void renderWeatherWarning(@Nullable String weather) {
+        boolean hasAlert = weather != null
+                && (weather.contains("RAIN") || weather.contains("SNOW"));
+        binding.cardWeatherWarning.setVisibility(hasAlert ? View.VISIBLE : View.GONE);
+        if (hasAlert) {
+            binding.tvWarningTitle.setText(getString(R.string.weather_alert_title, weather));
+            binding.tvWarningDesc.setText(R.string.weather_alert_desc);
         }
     }
 
-    private void buildTimeline(Itinerary itinerary) {
+    private void buildTimeline(@Nullable List<PointOfInterest> pois) {
         binding.timelineContainer.removeAllViews();
-        
-        Gson gson = new Gson();
-        Type listType = new TypeToken<ArrayList<PointOfInterest>>(){}.getType();
-        List<PointOfInterest> poiList = gson.fromJson(itinerary.getFullStepsJson(), listType);
+        if (pois == null || pois.isEmpty()) return;
 
-        if (poiList == null) return;
+        for (int i = 0; i < pois.size(); i++) {
+            PointOfInterest poi = pois.get(i);
+            ItemTimelineStepBinding step = ItemTimelineStepBinding.inflate(
+                getLayoutInflater(), binding.timelineContainer, false);
 
-        for (int i = 0; i < poiList.size(); i++) {
-            PointOfInterest poi = poiList.get(i);
-            ItemTimelineStepBinding stepBinding = ItemTimelineStepBinding.inflate(getLayoutInflater(), binding.timelineContainer, false);
-            
-            stepBinding.tvStepNumber.setText(String.valueOf(i + 1));
-            stepBinding.tvStepName.setText(poi.getName());
-            stepBinding.tvStepTime.setText(poi.getPreferredTimeSlot().toUpperCase());
+            step.tvStepNumber.setText(String.valueOf(i + 1));
+            step.tvStepName.setText(poi.getName());
+            step.tvStepTime.setText(poi.getPreferredTimeSlot() != null
+                ? poi.getPreferredTimeSlot().toUpperCase() : "");
 
-            if (poi.getOpeningHours() != null) {
-                stepBinding.tvOpeningHours.setVisibility(View.VISIBLE);
-                stepBinding.tvOpeningHours.setText(poi.getOpeningHours().isOpenNow() ? "Ouvert" : "Fermé");
-                stepBinding.tvOpeningHours.setTextColor(poi.getOpeningHours().isOpenNow() ? 
-                    ContextCompat.getColor(requireContext(), R.color.emerald_primary) : ContextCompat.getColor(requireContext(), android.R.color.holo_red_dark));
-            }
+            bindOpeningHours(step, poi);
+            bindStepPhoto(step, poi);
 
-            if (poi.getPhotoUrls() != null && !poi.getPhotoUrls().isEmpty()) {
-                stepBinding.ivStepPhoto.setVisibility(View.VISIBLE);
-                Glide.with(this).load(poi.getPhotoUrls().get(0)).into(stepBinding.ivStepPhoto);
-            }
-
-            binding.timelineContainer.addView(stepBinding.getRoot());
+            binding.timelineContainer.addView(step.getRoot());
         }
     }
+
+    private void bindOpeningHours(ItemTimelineStepBinding step, PointOfInterest poi) {
+        if (poi.getOpeningHours() == null) {
+            step.tvOpeningHours.setVisibility(View.GONE);
+            return;
+        }
+        step.tvOpeningHours.setVisibility(View.VISIBLE);
+        boolean open = poi.getOpeningHours().isOpenNow();
+        step.tvOpeningHours.setText(open ? R.string.open : R.string.closed);
+        step.tvOpeningHours.setTextColor(ContextCompat.getColor(requireContext(),
+            open ? R.color.emerald_primary : android.R.color.holo_red_dark));
+    }
+
+    private void bindStepPhoto(ItemTimelineStepBinding step, PointOfInterest poi) {
+        String photoUrl = poi.getPrimaryPhotoUrl();
+        if (photoUrl != null) {
+            step.ivStepPhoto.setVisibility(View.VISIBLE);
+            Glide.with(this).load(photoUrl).into(step.ivStepPhoto);
+        } else {
+            step.ivStepPhoto.setVisibility(View.GONE);
+        }
+    }
+
+    private void refreshSaveButton(boolean saved) {
+        binding.btnSaveRoute.setText(saved ? R.string.saved : R.string.save);
+        binding.btnSaveRoute.setIconResource(saved
+            ? android.R.drawable.btn_star_big_on
+            : android.R.drawable.ic_menu_save);
+    }
+
+    // =========================================================================
+    // Google Maps
+    // =========================================================================
 
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         this.googleMap = map;
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        displayRouteOnMap();
+
+        // Si l'itinéraire est déjà chargé au moment où la carte est prête
+        Itinerary it = viewModel.getItinerary().getValue();
+        if (it != null) {
+            displayRoute(it, viewModel.parseFullSteps(it.getFullStepsJson()));
+        }
     }
 
-    private void displayRouteOnMap() {
-        if (googleMap == null || itinerary == null) return;
+    private void displayRoute(@NonNull Itinerary it, @Nullable List<PointOfInterest> pois) {
+        if (googleMap == null) return;
 
-        if (itinerary.getEncodedPolyline() != null && !itinerary.getEncodedPolyline().isEmpty()) {
-            List<LatLng> points = PolyUtil.decode(itinerary.getEncodedPolyline());
+        // Tracé polyline
+        if (it.getEncodedPolyline() != null && !it.getEncodedPolyline().isEmpty()) {
             googleMap.addPolyline(new PolylineOptions()
-                    .addAll(points)
-                    .width(14) // Légèrement plus épais pour mieux voir
-                    .color(ContextCompat.getColor(requireContext(), R.color.route_blue)) // Le bleu classique
+                    .addAll(PolyUtil.decode(it.getEncodedPolyline()))
+                    .width(14f)
+                    .color(ContextCompat.getColor(requireContext(), R.color.route_blue))
                     .startCap(new RoundCap())
                     .endCap(new RoundCap())
                     .jointType(JointType.ROUND)
                     .geodesic(true));
         }
 
-        Gson gson = new Gson();
-        Type listType = new TypeToken<ArrayList<PointOfInterest>>(){}.getType();
-        List<PointOfInterest> poiList = gson.fromJson(itinerary.getFullStepsJson(), listType);
+        // Marqueurs et cadrage
+        if (pois == null || pois.isEmpty()) return;
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        for (PointOfInterest poi : pois) {
+            LatLng pos = new LatLng(poi.getLatitude(), poi.getLongitude());
+            googleMap.addMarker(new MarkerOptions().position(pos).title(poi.getName()));
+            bounds.include(pos);
+        }
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 100));
+    }
 
-        if (poiList != null && !poiList.isEmpty()) {
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            for (PointOfInterest poi : poiList) {
-                LatLng pos = new LatLng(poi.getLatitude(), poi.getLongitude());
-                googleMap.addMarker(new MarkerOptions().position(pos).title(poi.getName()));
-                builder.include(pos);
-            }
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 100));
+    // =========================================================================
+    // Actions
+    // =========================================================================
+
+    private void launchShareIntent(@NonNull String shareUrl) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TEXT,
+            getString(R.string.share_message, shareUrl));
+        startActivity(Intent.createChooser(intent, getString(R.string.share_via)));
+    }
+
+    private void enqueueDownload(@NonNull String url) {
+        Itinerary it = viewModel.getItinerary().getValue();
+        if (it == null) return;
+
+        DownloadManager.Request req = new DownloadManager.Request(Uri.parse(url));
+        req.setTitle(getString(R.string.pdf_title, it.getName()));
+        req.setDescription(getString(R.string.pdf_desc));
+        req.setNotificationVisibility(
+            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        req.setDestinationInExternalPublicDir(
+            Environment.DIRECTORY_DOWNLOADS, it.getName() + ".pdf");
+
+        DownloadManager dm = (DownloadManager)
+            requireContext().getSystemService(Context.DOWNLOAD_SERVICE);
+        if (dm != null) {
+            dm.enqueue(req);
+            Toast.makeText(getContext(), R.string.download_started, Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void shareItinerary() {
-        Toast.makeText(getContext(), "Génération du lien de partage...", Toast.LENGTH_SHORT).show();
-        
-        disposables.add(repository.shareItinerary(itinerary)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(shareUrl -> {
-                    Intent sendIntent = new Intent();
-                    sendIntent.setAction(Intent.ACTION_SEND);
-                    sendIntent.putExtra(Intent.EXTRA_TEXT, "Découvrez mon parcours TravelPath : " + shareUrl);
-                    sendIntent.setType("text/plain");
-                    startActivity(Intent.createChooser(sendIntent, "Partager via"));
-                }, throwable -> Toast.makeText(getContext(), "Échec du partage : " + throwable.getMessage(), Toast.LENGTH_LONG).show()));
+    // ── Helper ────────────────────────────────────────────────────────────────
+
+    @Nullable
+    private Itinerary extractItinerary() {
+        if (getArguments() == null) return null;
+        return (Itinerary) getArguments().getSerializable(ARG_ITINERARY);
     }
-
-    private void generatePdf() {
-        Toast.makeText(getContext(), "Génération du PDF...", Toast.LENGTH_SHORT).show();
-        disposables.add(repository.generatePdf(itinerary)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(url -> {
-                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                    request.setTitle("TravelPath - " + itinerary.getName());
-                    request.setDescription("Téléchargement de votre itinéraire");
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, itinerary.getName() + ".pdf");
-
-                    DownloadManager manager = (DownloadManager) requireContext().getSystemService(Context.DOWNLOAD_SERVICE);
-                    if (manager != null) manager.enqueue(request);
-                    Toast.makeText(getContext(), "Téléchargement démarré", Toast.LENGTH_SHORT).show();
-                }, throwable -> Toast.makeText(getContext(), "Erreur PDF : " + throwable.getMessage(), Toast.LENGTH_SHORT).show()));
-    }
-
-    @Override public void onResume() { super.onResume(); binding.mapView.onResume(); }
-    @Override public void onPause() { binding.mapView.onPause(); super.onPause(); }
-    @Override public void onDestroy() { binding.mapView.onDestroy(); super.onDestroy(); disposables.clear(); }
-    @Override public void onLowMemory() { super.onLowMemory(); binding.mapView.onLowMemory(); }
 }

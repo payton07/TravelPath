@@ -4,8 +4,12 @@
     <!-- Common Strings -->
     <string name="back">Back</string>
     <string name="save">Save</string>
+    <string name="saved">Saved</string>
     <string name="edit">Edit</string>
     <string name="pdf">PDF</string>
+    <string name="cancel">Cancel</string>
+    <string name="open">Open</string>
+    <string name="closed">Closed</string>
 
     <!-- MainActivity (Dashboard) Strings -->
     <string name="main_title">Build your journey</string>
@@ -34,12 +38,17 @@
     
     <string name="btn_generate">Generate Journey</string>
     <string name="generating_toast">Generating your journey...</string>
+    <string name="generating_routes">Génération de vos parcours...</string>
+    <string name="no_routes_found">Aucun parcours trouvé pour ces critères.</string>
 
     <string name="header_destination">WHERE ARE YOU GOING?</string>
     <string name="header_mandatory">MANDATORY STOPS</string>
     <string name="hint_destination">Search for a city...</string>
     <string name="hint_mandatory">Add a place (e.g. Eiffel Tower)</string>
     <string name="btn_add">Add</string>
+    
+    <string name="error_enter_destination">Please enter a destination</string>
+    <string name="error_select_interest">Please select at least one interest</string>
 
     <!-- RouteActivity Strings -->
     <string name="route_title">Find your perfect\nrhythm.</string>
@@ -68,6 +77,14 @@
     <string name="selected_route_name">Parisian Art\nWalk</string>
     <string name="weather_warning_title">Indoor activity recommended</string>
     <string name="weather_warning_desc">Heavy rain expected from 12:00 PM</string>
+    <string name="weather_alert_title">Alerte météo : %1$s</string>
+    <string name="weather_alert_desc">Des précipitations sont prévues. Prévoyez des activités en intérieur.</string>
+    
+    <string name="route_saved">Parcours sauvegardé !</string>
+    <string name="route_removed">Parcours retiré</string>
+    <string name="share_message">Découvrez mon parcours TravelPath : %1$s</string>
+    <string name="share_via">Partager via</string>
+    
     <string name="activity_1_time">10:00 - 12:00</string>
     <string name="activity_1_name">The Louvre Museum</string>
     <string name="activity_1_rating">★ 4.8 (2.4k reviews)</string>
@@ -80,6 +97,10 @@
     <string name="saved_routes_title">Saved\nJourneys</string>
     <string name="saved_routes_empty">No journeys saved yet.\nStart exploring!</string>
     
+    <!-- Profile Strings -->
+    <string name="edit_profile_title">Edit Profile Name</string>
+    <string name="hint_enter_name">Enter your name</string>
+
     <!-- Item Card Strings -->
     <string name="cost">COÛT</string>
     <string name="duration">DURÉE</string>
@@ -89,10 +110,12 @@
     <string name="weather_placeholder">22°C Ensoleillé</string>
 
     <!-- PDF Export Strings -->
+    <string name="generating_pdf">Génération du PDF...</string>
     <string name="pdf_generating">Génération du PDF en cours...</string>
     <string name="pdf_success">PDF généré, téléchargement...</string>
     <string name="pdf_error">Erreur : %1$s</string>
-    <string name="pdf_download_title">Itinéraire TravelPath</string>
-    <string name="pdf_download_desc">Téléchargement du parcours : %1$s</string>
+    <string name="pdf_title">TravelPath - %1$s</string>
+    <string name="pdf_desc">Téléchargement de votre itinéraire</string>
+    <string name="download_started">Téléchargement démarré</string>
 
 </resources>

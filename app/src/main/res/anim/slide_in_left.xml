@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    slide_in_left.xml
+    Utilisé comme "popEnter" lors d'un retour arrière (Back / popBackStack).
+    Le fragment précédent entre depuis le bord gauche — mouvement inverse du push.
+    Le fromXDelta à -30% correspond au toXDelta de slide_out_left.xml :
+    le fragment reprend exactement là où il s'était arrêté.
+-->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <translate
+        android:fromXDelta="-30%"
+        android:toXDelta="0%"
+        android:duration="280"
+        android:interpolator="@android:interpolator/fast_out_slow_in" />
+    <alpha
+        android:fromAlpha="0.7"
+        android:toAlpha="1.0"
+        android:duration="280"
+        android:interpolator="@android:interpolator/fast_out_slow_in" />
+</set>
