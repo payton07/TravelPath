@@ -19,8 +19,7 @@ import timber.log.Timber;
  * <h2>Stratégie de navigation</h2>
  * Les 3 onglets principaux (Explore / Saved / Profile) utilisent la stratégie
  * <b>show/hide</b> : les fragments sont créés une seule fois et leur état de scroll
- * est préservé entre les changements d'onglet.
- *
+ * est préservé entre les changements d'onglet.*
  * Les fragments de détail (RoutesFragment, RouteDetailFragment) sont empilés via
  * {@code addToBackStack()} depuis les fragments onglet — ils forment le back-stack
  * géré par le {@link FragmentManager}.
@@ -134,11 +133,11 @@ public final class MainActivity extends AppCompatActivity {
 
     @NonNull
     private Fragment createTabFragment(@NonNull String tag) {
-        switch (tag) {
-            case TAG_SAVED:   return new SavedFragment();
-            case TAG_PROFILE: return new ProfileFragment();
-            default:          return new ExploreFragment();
-        }
+        return switch (tag) {
+            case TAG_SAVED -> new SavedFragment();
+            case TAG_PROFILE -> new ProfileFragment();
+            default -> new ExploreFragment();
+        };
     }
 
     /**
@@ -192,8 +191,7 @@ public final class MainActivity extends AppCompatActivity {
 
     /**
      * Permet aux fragments onglet (Explore, Saved) de pousser un fragment de
-     * détail dans le back-stack sans connaître le container ID.
-     *
+     * détail dans le back-stack sans connaître le container ID.*
      * Usage depuis ExploreFragment :
      * <pre>
      *   ((MainActivity) requireActivity()).navigateTo(new RoutesFragment(), "routes");
