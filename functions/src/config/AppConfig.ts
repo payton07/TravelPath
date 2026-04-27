@@ -30,10 +30,10 @@ export const PlacesConfig = {
     /** Coût moyen estimé (€) par price_level Google (0–4). */
     COST_BY_PRICE_LEVEL: {
         0: 0,
-        1: 10,
-        2: 25,
-        3: 50,
-        4: 80,
+        1: 15,
+        2: 40,
+        3: 85,
+        4: 150,
     } as Record<number, number>,
 
     DEFAULTS: {

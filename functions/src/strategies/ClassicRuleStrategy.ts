@@ -91,8 +91,13 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
             return [];
         }
 
-        // Filtre météo global
-        const weatherSafePool = this.filterByWeather(combinedPool, criteria.weatherPreferences);
+        // Filtre météo (on garde TOUJOURS les lieux obligatoires même si météo défavorable)
+        const weatherSafePool = [
+            ...mandatoryPool,
+            ...this.filterByWeather(rawPool, criteria.weatherPreferences)
+        ].filter((poi, index, self) =>
+            index === self.findIndex((p) => p.id === poi.id)
+        );
 
         return this.buildAllVariants(weatherSafePool, criteria, mandatoryPool);
     }
@@ -131,26 +136,42 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
     }
 
     private filterByMode(pool: PointOfInterest[], mode: RouteMode): PointOfInterest[] {
-        const subset = pool.filter(poi => this.matchesModeProfile(poi, mode));
-        return subset.length >= JourneyConfig.MIN_FILTERED_POOL_SIZE ? subset : [...pool];
+        const subset = pool.filter(poi => this.matchesProfileStrict(poi, mode));
+        // On ne revient à la pool complète que si on a vraiment rien du tout (< 2)
+        return subset.length >= 2 ? subset : [...pool];
     }
 
-    private matchesModeProfile(poi: PointOfInterest, mode: RouteMode): boolean {
+    private matchesProfileStrict(poi: PointOfInterest, mode: RouteMode): boolean {
         switch (mode) {
-            case RouteMode.ECONOMY:  return poi.comfortLevel <= 1;
-            case RouteMode.COMFORT:  return poi.comfortLevel >= 2;
-            case RouteMode.BALANCED: return true;
+            case RouteMode.ECONOMY:  
+                return poi.baseCost <= 15 || poi.comfortLevel <= 1;
+            case RouteMode.COMFORT:  
+                return poi.baseCost >= 20 || poi.comfortLevel >= 3;
+            case RouteMode.BALANCED: 
+                return true; // Le mode équilibré peut tout voir
         }
     }
 
     private sortByMode(pool: PointOfInterest[], mode: RouteMode): PointOfInterest[] {
-        return [...pool].sort((a, b) => {
+        const sorted = [...pool].sort((a, b) => {
             switch (mode) {
-                case RouteMode.ECONOMY:  return a.baseCost - b.baseCost;
-                case RouteMode.COMFORT:  return (b.comfortLevel - a.comfortLevel) || (b.rating - a.rating);
-                case RouteMode.BALANCED: return b.rating - a.rating;
+                case RouteMode.ECONOMY:  
+                    return (a.baseCost - b.baseCost) || (b.rating - a.rating);
+                case RouteMode.COMFORT:  
+                    return (b.comfortLevel - a.comfortLevel) || (b.rating - a.rating);
+                case RouteMode.BALANCED: 
+                    return b.rating - a.rating;
             }
         });
+
+        // Pour le mode BALANCED, on ajoute un peu de sel pour éviter la répétition
+        if (mode === RouteMode.BALANCED) {
+            return sorted.map(value => ({ value, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ value }) => value);
+        }
+
+        return sorted;
     }
 
     private buildItinerary(
@@ -160,12 +181,18 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
         mandatoryPool: PointOfInterest[]
     ): Itinerary | null {
 
-        // On démarre directement avec les lieux obligatoires vérifiés par Google !
+        // On démarre avec les lieux obligatoires
         const draft = this.initDraftWithMandatory(mandatoryPool);
 
-        for (const slot of TIME_SLOTS) {
-            if (draft.selectedPOIs.some(p => p.preferredTimeSlot === slot)) continue;
-            this.tryFillSlot(draft, pool, slot, mode, criteria);
+        // On tente de remplir les créneaux. 
+        // Si la durée est longue, on peut faire plusieurs tours pour ajouter plus de lieux.
+        const maxTries = criteria.durationMaxHours > 6 ? 2 : 1; 
+        
+        for (let i = 0; i < maxTries; i++) {
+            for (const slot of TIME_SLOTS) {
+                // On essaie d'ajouter un lieu dans ce créneau
+                this.tryFillSlot(draft, pool, slot, mode, criteria);
+            }
         }
 
         if (draft.selectedPOIs.length === 0) return null;
@@ -307,7 +334,10 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
     }
 
     private buildTitle(pois: PointOfInterest[], mode: RouteMode, criteria: SearchCriteria): string {
-        const anchor = pois[0]?.name ?? criteria.destinationCity;
+        let anchor = pois[0]?.name ?? criteria.destinationCity;
+        // Nettoyage des retours à la ligne qui causent des doubles backslashes \\n en JSON
+        anchor = anchor.replace(/\n/g, ' ').replace(/\r/g, '').trim();
+
         const labels: Record<RouteMode, string> = {
             [RouteMode.ECONOMY]:  `Budget Day: ${anchor} & More`,
             [RouteMode.BALANCED]: `A Perfect Day at ${anchor}`,

@@ -8,8 +8,8 @@
     <string name="edit">Edit</string>
     <string name="pdf">PDF</string>
     <string name="cancel">Cancel</string>
-    <string name="open">Open</string>
-    <string name="closed">Closed</string>
+    <string name="open">Ouvert</string>
+    <string name="closed">Fermé actuellement</string>
 
     <!-- MainActivity (Dashboard) Strings -->
     <string name="main_title">Build your journey</string>

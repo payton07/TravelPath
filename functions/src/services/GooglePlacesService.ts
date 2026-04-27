@@ -126,6 +126,9 @@ export class GooglePlacesService {
     private normalize(result: PlacesApiResult, category: string): PointOfInterest {
         const priceLevel = result.price_level ?? 1;
 
+        // Nettoyage du nom pour éviter les \\n dans le JSON final
+        const cleanName = result.name.replace(/\n/g, ' ').replace(/\r/g, '').trim();
+
         // TÂCHE 5 : Construction des URLs de photos
         const photoUrls = result.photos
             ?.slice(0, 3)
@@ -133,7 +136,7 @@ export class GooglePlacesService {
 
         const poi: PointOfInterest = {
             id:                   result.place_id,
-            name:                 result.name,
+            name:                 cleanName,
             category,
             latitude:             result.geometry.location.lat,
             longitude:            result.geometry.location.lng,

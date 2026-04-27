@@ -4,21 +4,21 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- Brand Palette (Coral/Rose - Airbnb Style) -->
-    <color name="brand_primary">#FF385C</color> 
-    <color name="brand_accent">#E31C5F</color>
-    <color name="brand_light">#FFF0F2</color> 
+    <!-- Brand Palette (Oceanic Indigo - Travel & Sky Style) -->
+    <color name="brand_primary">#4F46E5</color> 
+    <color name="brand_accent">#0EA5E9</color>
+    <color name="brand_light">#E0F2FE</color> 
 
-    <!-- Redirection pour compatibilité avec les layouts modifiés -->
+    <!-- Redirection pour compatibilité -->
     <color name="emerald_primary">@color/brand_primary</color>
     <color name="emerald_accent">@color/brand_accent</color>
     <color name="emerald_light">@color/brand_light</color>
 
-    <!-- Backgrounds & Surfaces (Airy & Clean) -->
-    <color name="bg_main">#FFFFFF</color> 
-    <color name="bg_primary">#FFFFFF</color> 
+    <!-- Backgrounds & Surfaces (Sky Depth) -->
+    <color name="bg_main">#F0F9FF</color> 
+    <color name="bg_primary">#F0F9FF</color> 
     <color name="card_bg">#FFFFFF</color> 
-    <color name="border_color">#EBEBEB</color> 
+    <color name="border_color">#E0F2FE</color> 
     
     <!-- Typography -->
     <color name="text_primary">#222222</color> 

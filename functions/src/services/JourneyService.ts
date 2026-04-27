@@ -42,7 +42,7 @@ export class JourneyService {
      * Génère des itinéraires en consultant d'abord le cache Firestore.
      */
     async generate(criteria: SearchCriteria): Promise<Itinerary[]> {
-        // 1. Enrichir les critères avec la météo réelle si non spécifiée ou par défaut 'ANY' (Bug 2)
+        // 1. Enrichir les critères avec la météo réelle
         if (!criteria.weatherPreferences 
             || criteria.weatherPreferences.length === 0 
             || (criteria.weatherPreferences.length === 1 && criteria.weatherPreferences[0] === 'ANY')) {
@@ -60,10 +60,19 @@ export class JourneyService {
             return cached;
         }
 
-        // 4. Si non trouvé, générer via la stratégie
-        const itineraries = await this.strategy.generate(criteria);
+        // 4. Si non trouvé, générer via la stratégie par défaut
+        let itineraries = await this.strategy.generate(criteria);
 
-        // 5. Sauvegarder dans le cache pour 24h
+        // 5. FALLBACK : Si la stratégie IA n'a rien donné, on tente la stratégie Classique
+        if (itineraries.length === 0 && this.strategy instanceof AiItineraryStrategy) {
+            this.log.warn('Stratégie IA infructueuse. Tentative de repli sur ClassicRuleStrategy...');
+            const placesService = new GooglePlacesService();
+            const routingService = new RoutingService();
+            const fallbackStrategy = new ClassicRuleStrategy(placesService, routingService);
+            itineraries = await fallbackStrategy.generate(criteria);
+        }
+
+        // 6. Sauvegarder dans le cache pour 24h
         if (itineraries.length > 0) {
             await this.firestore.setCachedItineraries(cacheKey, itineraries);
         }

@@ -217,10 +217,12 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
     }
 
     private void renderWeatherWarning(@Nullable String weather) {
-        boolean hasAlert = weather != null
-                && (weather.contains("RAIN") || weather.contains("SNOW"));
-        binding.cardWeatherWarning.setVisibility(hasAlert ? View.VISIBLE : View.GONE);
-        if (hasAlert) {
+        // Déclenche l'alerte seulement si le temps est EXCLUSIVEMENT mauvais (pluie/neige)
+        // et non pas si la liste contient simplement ces mots parmi d'autres (compatibilité).
+        boolean isBadWeather = weather != null && (weather.equals("RAIN") || weather.equals("SNOW"));
+        
+        binding.cardWeatherWarning.setVisibility(isBadWeather ? View.VISIBLE : View.GONE);
+        if (isBadWeather) {
             binding.tvWarningTitle.setText(getString(R.string.weather_alert_title, weather));
             binding.tvWarningDesc.setText(R.string.weather_alert_desc);
         }
