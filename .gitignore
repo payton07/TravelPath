@@ -16,6 +16,9 @@ local.properties
 .env
 .env.*
 *.docx
+*.pdf
+*.typ
+*.zip
 !README.md
 ################################
 # Android Gradle

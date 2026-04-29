@@ -8,6 +8,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.travelpath.data.models.SearchCriteria;
 import com.example.travelpath.data.preferences.UserPreferencesManager;
+import com.example.travelpath.domain.validation.CriteriaValidator;
+import com.example.travelpath.domain.validation.ValidationResult;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -45,6 +47,7 @@ public final class MainViewModel extends AndroidViewModel {
     private static final String TAG = "MainViewModel";
 
     private final UserPreferencesManager prefs;
+    private final CriteriaValidator      validator   = CriteriaValidator.create();
     private final CompositeDisposable    disposables = new CompositeDisposable();
     private final Gson                   gson        = new Gson();
 
@@ -193,17 +196,15 @@ public final class MainViewModel extends AndroidViewModel {
     // =========================================================================
 
     /**
-     * Construit un {@link SearchCriteria} à partir de l'état courant du ViewModel.
+     * Builds a {@link SearchCriteria} from current form state and validates it
+     * through the {@link CriteriaValidator} chain of responsibility.
      *
-     * Retourne {@code null} si la validation échoue (aucun intérêt sélectionné).
-     * D'autres validations peuvent être ajoutées ici sans modifier le fragment.
+     * Returns {@code null} on validation failure; callers check
+     * {@link #getLastValidationError()} for the user-facing message.
      */
     @Nullable
     public SearchCriteria buildCriteria() {
-        List<String> interests = safeList(selectedInterests);
-        if (interests.isEmpty()) return null;
-
-        return new SearchCriteria.Builder()
+        SearchCriteria candidate = new SearchCriteria.Builder()
                 .destinationCity(orDefault(destinationCity.getValue(), "Paris"))
                 .destinationPlaceId(destinationPlaceId.getValue())
                 .mandatoryPois(safeList(mandatoryPois))
@@ -213,11 +214,24 @@ public final class MainViewModel extends AndroidViewModel {
                 .duration(
                     orDefault(durationMin.getValue(), 3),
                     orDefault(durationMax.getValue(), 8))
-                .interests(interests)
+                .interests(safeList(selectedInterests))
                 .effortLevel(orDefault(effortLevel.getValue(), SearchCriteria.EFFORT_MODERATE))
                 .weatherPreferences(safeList(weatherPreferences))
                 .build();
+
+        ValidationResult validation = validator.validate(candidate);
+        if (!validation.isValid()) {
+            lastValidationError.setValue(validation.getErrorMessage());
+            return null;
+        }
+        lastValidationError.setValue(null);
+        return candidate;
     }
+
+    /** Non-null only when the last buildCriteria() call failed validation. */
+    private final MutableLiveData<String> lastValidationError = new MutableLiveData<>(null);
+
+    public LiveData<String> getLastValidationError() { return lastValidationError; }
 
     // =========================================================================
     // Chargement des préférences persistées

@@ -97,6 +97,10 @@ export class GooglePlacesService {
     // =========================================================================
 
     private async fetchForInterest(city: string, interest: string): Promise<PointOfInterest[]> {
+        return this.withRetry(() => this.doFetch(city, interest), interest, city);
+    }
+
+    private async doFetch(city: string, interest: string): Promise<PointOfInterest[]> {
         const response: AxiosResponse<PlacesApiResponse> = await this.http.get(
             PlacesConfig.BASE_URL,
             { params: { query: `${interest} in ${city}`, key: this.apiKey } },
@@ -106,17 +110,49 @@ export class GooglePlacesService {
 
         if (!results?.length) {
             this.log.warn(
-                `Aucun résultat pour "${interest}" à ${city}. `
+                `No results for "${interest}" in ${city}. `
                 + `Status: ${status}${error_message ? ` | ${error_message}` : ''}`,
             );
             return [];
         }
 
-        this.log.info(`${results.length} résultat(s) — "${interest}" à ${city}.`);
+        this.log.info(`${results.length} result(s) — "${interest}" in ${city}.`);
 
         return results
             .slice(0, PlacesConfig.MAX_RESULTS_PER_INTEREST)
             .map(r => this.normalize(r, interest));
+    }
+
+    /**
+     * Retries fn up to MAX_RETRIES times with exponential backoff + jitter.
+     * Specifically handles HTTP 429 (rate limit) and 5xx errors.
+     * Other errors are propagated immediately.
+     */
+    private async withRetry<T>(
+        fn:        () => Promise<T>,
+        interest:  string,
+        city:      string,
+        attempt =  1,
+        maxRetries = 3,
+    ): Promise<T> {
+        try {
+            return await fn();
+        } catch (err: any) {
+            const status = err?.response?.status;
+            const isRetryable = status === 429 || (status >= 500 && status < 600);
+
+            if (!isRetryable || attempt > maxRetries) {
+                this.log.error(`Places API failed for "${interest}" in ${city} (status ${status})`, err);
+                throw err;
+            }
+
+            // Exponential backoff: 1s, 2s, 4s + random jitter up to 500ms
+            const backoffMs = Math.pow(2, attempt - 1) * 1000 + Math.random() * 500;
+            this.log.warn(`Rate limited for "${interest}". Retry ${attempt}/${maxRetries} in ${Math.round(backoffMs)}ms.`);
+
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+            return this.withRetry(fn, interest, city, attempt + 1, maxRetries);
+        }
     }
 
     // =========================================================================

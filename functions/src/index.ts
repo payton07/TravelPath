@@ -37,7 +37,7 @@ let pdfService:        PdfService;
 let firestoreService:  FirestoreService;
 let criteriaValidator: SearchCriteriaValidator;
 
-const getJourneyService = () => journeyService || (journeyService = new JourneyService());
+const getJourneyService = () => journeyService || (journeyService = JourneyService.create());
 const getPdfService     = () => pdfService     || (pdfService     = new PdfService());
 const getFirestore      = () => firestoreService || (firestoreService = new FirestoreService());
 const getValidator      = () => criteriaValidator || (criteriaValidator = new SearchCriteriaValidator());

@@ -4,6 +4,9 @@ import android.app.Application;
 import com.example.travelpath.data.preferences.UserPreferencesManager;
 import com.example.travelpath.data.repository.TravelRepository;
 import com.example.travelpath.di.AppModule;
+import com.example.travelpath.domain.usecase.GenerateJourneysUseCase;
+import com.example.travelpath.domain.usecase.GetSavedItinerariesUseCase;
+import com.example.travelpath.domain.usecase.SaveItineraryUseCase;
 import com.google.android.libraries.places.api.Places;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -96,5 +99,17 @@ public final class TravelApplication extends Application {
 
     public UserPreferencesManager getPreferencesManager() {
         return module.getPreferencesManager();
+    }
+
+    public GenerateJourneysUseCase getGenerateJourneysUseCase() {
+        return module.getGenerateJourneysUseCase();
+    }
+
+    public SaveItineraryUseCase getSaveItineraryUseCase() {
+        return module.getSaveItineraryUseCase();
+    }
+
+    public GetSavedItinerariesUseCase getGetSavedItinerariesUseCase() {
+        return module.getGetSavedItinerariesUseCase();
     }
 }

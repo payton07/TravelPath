@@ -8,125 +8,114 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.travelpath.TravelApplication;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.data.models.SearchCriteria;
-import com.example.travelpath.data.repository.TravelRepository;
+import com.example.travelpath.domain.usecase.GenerateJourneysUseCase;
+import com.example.travelpath.domain.usecase.SaveItineraryUseCase;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import timber.log.Timber;
 import java.util.List;
 
 /**
- * ViewModel de RoutesFragment — génération et gestion des 3 itinéraires.
+ * ViewModel for RoutesFragment.
  *
- * <h2>Corrections apportées</h2>
- * <ul>
- *   <li>3 LiveData séparés ({@code isGenerating}, {@code routes}, {@code errorMessage})
- *       remplacés par un {@link UiState} unifié — état toujours cohérent.</li>
- *   <li>{@link #toggleSave(Itinerary)} ajouté — était dans le fragment dans l'original.</li>
- *   <li>{@link #regenerateRoutes(SearchCriteria)} ajouté pour forcer un nouvel
- *       appel réseau en ignorant le cache (après un délike, ou ajustement de critères).</li>
- *   <li>Guard contre les doubles appels : si une génération est déjà en cours,
- *       {@link #generateRoutes(SearchCriteria)} est ignoré.</li>
- * </ul>
+ * Delegates all business logic to injected Use Cases — it knows nothing
+ * about Room, Firebase, or retry policies (Single Responsibility).
+ *
+ * Improvements:
+ *  - Uses GenerateJourneysUseCase (includes retry + Clean Architecture boundary).
+ *  - Uses SaveItineraryUseCase (shared behavior with SavedRoutesViewModel — DRY).
+ *  - ViewPager2 page position preserved across configuration changes.
+ *  - Guard against duplicate in-flight generate calls.
  */
 public final class RouteViewModel extends AndroidViewModel {
 
-    private final TravelRepository repository;
-    private final CompositeDisposable disposables = new CompositeDisposable();
+    private final GenerateJourneysUseCase generateUseCase;
+    private final SaveItineraryUseCase    saveUseCase;
+    private final CompositeDisposable     disposables = new CompositeDisposable();
 
-    /** État unique de l'UI — Loading | Success | Empty | Error. */
     private final MutableLiveData<UiState<List<Itinerary>>> uiState =
             new MutableLiveData<>();
 
-    /** Critères courants — conservés pour permettre la regénération. */
+    /** Persists carousel position across rotation — restored by RoutesFragment. */
+    private final MutableLiveData<Integer> currentPage = new MutableLiveData<>(0);
+
     private SearchCriteria currentCriteria;
 
     public RouteViewModel(@NonNull Application application) {
         super(application);
-        repository = ((TravelApplication) application).getRepository();
+        TravelApplication app = (TravelApplication) application;
+        this.generateUseCase = app.getGenerateJourneysUseCase();
+        this.saveUseCase     = app.getSaveItineraryUseCase();
     }
 
     // =========================================================================
     // Getters
     // =========================================================================
 
-    public LiveData<UiState<List<Itinerary>>> getUiState() { return uiState; }
+    public LiveData<UiState<List<Itinerary>>> getUiState()    { return uiState; }
+    public LiveData<Integer>                  getCurrentPage() { return currentPage; }
 
     // =========================================================================
     // Actions
     // =========================================================================
 
     /**
-     * Lance la génération des itinéraires.
-     * Ignoré si une génération est déjà en cours (protection double-tap).
+     * Generates itineraries from cache or network.
+     * Ignored if a generation is already in-flight (double-tap guard).
      */
     public void generateRoutes(@NonNull SearchCriteria criteria) {
-        // Ne bloquer que si on a déjà un état Success ou si on est déjà en train de charger
-        // mais ici on veut autoriser l'appel initial.
         if (uiState.getValue() instanceof UiState.Loading && currentCriteria != null) {
-            Timber.d("Génération déjà en cours — appel ignoré.");
+            Timber.d("Generation in progress — ignoring duplicate call.");
             return;
         }
         currentCriteria = criteria;
-        fetchRoutes(criteria, false);
+        fetch(generateUseCase.execute(criteria));
     }
 
-    /**
-     * Force une regénération en ignorant le cache local (après un délike, etc.).
-     * Utilise les derniers critères connus si {@code criteria} est null.
-     */
+    /** Skips local cache and forces a fresh network call. */
     public void regenerateRoutes(@NonNull SearchCriteria criteria) {
         currentCriteria = criteria;
-        fetchRoutes(criteria, true);
+        fetch(generateUseCase.forceRefresh(criteria));
     }
 
-    /**
-     * Bascule l'état sauvegardé d'un itinéraire.
-     * Met à jour Room via le repository — pas dans le fragment.
-     */
+    /** Toggles saved state via SaveItineraryUseCase (shared logic — DRY). */
     public void toggleSave(@NonNull Itinerary itinerary) {
-        itinerary.setSaved(!itinerary.isSaved());
-        disposables.add(repository.save(itinerary)
+        disposables.add(saveUseCase.toggleSave(itinerary)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                    ()  -> Timber.d("Itinéraire %s : isSaved = %b",
+                    ()  -> Timber.d("Saved toggled: %s → isSaved=%b",
                                 itinerary.getName(), itinerary.isSaved()),
-                    err -> Timber.w("Erreur toggleSave : %s", err.getMessage())
+                    err -> Timber.w("toggleSave error: %s", err.getMessage())
                 ));
     }
 
+    /** Persists the carousel page so it survives rotation. */
+    public void setCurrentPage(int page) {
+        currentPage.setValue(page);
+    }
+
     // =========================================================================
-    // Fetch interne
+    // Internal
     // =========================================================================
 
-    private void fetchRoutes(@NonNull SearchCriteria criteria, boolean forceRefresh) {
+    private void fetch(io.reactivex.rxjava3.core.Single<List<Itinerary>> source) {
         uiState.setValue(UiState.loading());
-
         disposables.add(
-            (forceRefresh
-                ? repository.regenerateJourneys(criteria)
-                : repository.generateJourneys(criteria))
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                routes -> {
-                    if (routes.isEmpty()) {
-                        uiState.setValue(UiState.empty());
-                    } else {
-                        uiState.setValue(UiState.success(routes));
+            source
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    routes -> uiState.setValue(
+                        routes.isEmpty() ? UiState.empty() : UiState.success(routes)),
+                    err    -> {
+                        Timber.w("Generation error: %s", err.getMessage());
+                        uiState.setValue(UiState.error("Unable to generate itineraries. Please try again."));
                     }
-                },
-                err -> {
-                    Timber.w("Erreur génération : %s", err.getMessage());
-                    uiState.setValue(UiState.error(
-                        err.getMessage() != null
-                            ? err.getMessage()
-                            : "Erreur inconnue lors de la génération."));
-                }
-            )
+                )
         );
     }
 
     // =========================================================================
-    // Cycle de vie
+    // Lifecycle
     // =========================================================================
 
     @Override

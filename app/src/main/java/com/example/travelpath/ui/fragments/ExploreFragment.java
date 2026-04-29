@@ -189,11 +189,14 @@ public final class ExploreFragment extends Fragment {
                 viewModel.setDestination(cityInput, null);
             }
 
-            // Déléguer la validation et la construction des critères au ViewModel
+            // Validation is handled by CriteriaValidator inside the ViewModel
             SearchCriteria criteria = viewModel.buildCriteria();
             if (criteria == null) {
+                // Error message is set by the validator chain — observe it, don't hard-code it
+                String errMsg = viewModel.getLastValidationError().getValue();
                 Toast.makeText(getContext(),
-                    R.string.error_select_interest, Toast.LENGTH_SHORT).show();
+                    errMsg != null ? errMsg : getString(R.string.error_select_interest),
+                    Toast.LENGTH_SHORT).show();
                 return;
             }
 

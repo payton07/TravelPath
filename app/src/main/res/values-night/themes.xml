@@ -1,23 +1,47 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+<resources>
+    <!--
+        Dark mode overrides — flip window chrome and color roles.
+        The Material 3 DayNight parent handles component defaults;
+        we only override tokens that differ between light and dark.
+    -->
     <style name="Base.Theme.TravelPath" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Typography -->
         <item name="android:fontFamily">@font/plus_jakarta</item>
         <item name="fontFamily">@font/plus_jakarta</item>
 
-        <!-- Main colors -->
-        <item name="colorPrimary">@color/emerald_accent</item>
-        <item name="colorOnPrimary">@color/black</item>
-        <item name="colorSecondary">@color/emerald_primary</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="colorSurface">@color/black</item>
-        <item name="colorOnSurface">@color/white</item>
-        <item name="android:windowBackground">@color/black</item>
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/surface_3</item>
+        <item name="colorOnPrimaryContainer">@color/brand_primary_light</item>
 
-        <!-- Status bar and navigation bar colors -->
+        <item name="colorSecondary">@color/brand_accent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/brand_accent_light</item>
+        <item name="colorOnSecondaryContainer">@color/text_primary</item>
+
+        <item name="colorSurface">@color/surface_1</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceVariant">@color/surface_2</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+
+        <item name="colorError">@color/status_error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/status_error_bg</item>
+
+        <item name="colorOutline">@color/border_color</item>
+        <item name="colorOutlineVariant">@color/divider</item>
+
+        <item name="android:windowBackground">@color/bg_main</item>
         <item name="android:statusBarColor">@color/bg_main</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:navigationBarColor">@color/bg_main</item>
         <item name="android:windowLightNavigationBar">false</item>
+
+        <item name="shapeAppearanceSmallComponent">@style/ShapeSmall</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeMedium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeLarge</item>
+        <item name="materialCardViewStyle">@style/Widget.TravelPath.CardView</item>
+        <item name="bottomNavigationStyle">@style/Widget.TravelPath.BottomNavigation</item>
     </style>
+
+    <style name="Theme.TravelPath" parent="Base.Theme.TravelPath" />
 </resources>

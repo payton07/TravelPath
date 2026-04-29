@@ -1,35 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base Colors -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         BASE
+         ═══════════════════════════════════════════════════════════════ -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
 
-    <!-- Brand Palette (Oceanic Indigo - Travel & Sky Style) -->
-    <color name="brand_primary">#4F46E5</color> 
-    <color name="brand_accent">#0EA5E9</color>
-    <color name="brand_light">#E0F2FE</color> 
+    <!-- ═══════════════════════════════════════════════════════════════
+         BRAND — Indigo + Cyan
+         Warm indigo (500) feels more alive than the old flat 4F46E5.
+         Cyan replaces sky blue for better contrast on white backgrounds.
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="brand_primary">#6366F1</color>        <!-- Indigo 500 -->
+    <color name="brand_primary_dark">#4338CA</color>   <!-- Indigo 700 — CTAs, pressed states -->
+    <color name="brand_primary_light">#A5B4FC</color>  <!-- Indigo 300 — subtle tints -->
+    <color name="brand_accent">#06B6D4</color>         <!-- Cyan 500 -->
+    <color name="brand_accent_light">#CFFAFE</color>   <!-- Cyan 100 — chip backgrounds -->
 
-    <!-- Redirection pour compatibilité -->
+    <!-- Legacy aliases — keeps old XML references valid without touching layouts -->
     <color name="emerald_primary">@color/brand_primary</color>
     <color name="emerald_accent">@color/brand_accent</color>
-    <color name="emerald_light">@color/brand_light</color>
+    <color name="emerald_light">@color/brand_accent_light</color>
 
-    <!-- Backgrounds & Surfaces (Sky Depth) -->
-    <color name="bg_main">#F0F9FF</color> 
-    <color name="bg_primary">#F0F9FF</color> 
-    <color name="card_bg">#FFFFFF</color> 
-    <color name="border_color">#E0F2FE</color> 
-    
-    <!-- Typography -->
-    <color name="text_primary">#222222</color> 
-    <color name="text_secondary">#717171</color> 
-    <color name="text_muted">#B0B0B0</color> 
+    <!-- ═══════════════════════════════════════════════════════════════
+         SURFACE SYSTEM — elevation-aware (Material 3 tonal elevation)
+         Each level is a slightly more tinted variant of the background.
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="surface_0">#FFFFFF</color>            <!-- pure white — base -->
+    <color name="surface_1">#F8FAFF</color>            <!-- cards level 1 -->
+    <color name="surface_2">#EEF2FF</color>            <!-- cards level 2 / selected states -->
+    <color name="surface_3">#E0E7FF</color>            <!-- active chip backgrounds -->
 
-    <!-- Status & UI specific -->
+    <color name="bg_main">@color/surface_1</color>
+    <color name="bg_primary">@color/surface_1</color>
+    <color name="card_bg">@color/surface_0</color>
+    <color name="border_color">#E0E7FF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         TYPOGRAPHY
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="text_primary">#1E1B4B</color>         <!-- Indigo 950 — deep, readable -->
+    <color name="text_secondary">#6B7280</color>       <!-- Gray 500 — secondary labels -->
+    <color name="text_muted">#9CA3AF</color>           <!-- Gray 400 — captions, placeholders -->
+    <color name="text_on_primary">#FFFFFF</color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         SEMANTIC STATUS COLORS
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="status_success">#10B981</color>       <!-- Emerald 500 -->
+    <color name="status_success_bg">#D1FAE5</color>    <!-- Emerald 100 -->
+    <color name="status_warning">#F59E0B</color>       <!-- Amber 500 -->
+    <color name="status_warning_bg">#FEF3C7</color>    <!-- Amber 100 -->
+    <color name="status_error">#EF4444</color>         <!-- Red 500 -->
+    <color name="status_error_bg">#FEE2E2</color>      <!-- Red 100 -->
+
+    <!-- Legacy warning aliases -->
+    <color name="warning_bg">@color/status_warning_bg</color>
+    <color name="warning_text">@color/status_error</color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         ROUTE MODE BADGES
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="mode_economy_bg">#D1FAE5</color>      <!-- Emerald 100 -->
+    <color name="mode_economy_text">#065F46</color>    <!-- Emerald 900 -->
+    <color name="mode_balanced_bg">#EEF2FF</color>     <!-- Indigo 100 -->
+    <color name="mode_balanced_text">#3730A3</color>   <!-- Indigo 800 -->
+    <color name="mode_comfort_bg">#FEF3C7</color>      <!-- Amber 100 -->
+    <color name="mode_comfort_text">#92400E</color>    <!-- Amber 900 -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         POI CATEGORY DOTS (timeline)
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="category_culture">#6366F1</color>     <!-- Indigo -->
+    <color name="category_nature">#10B981</color>      <!-- Emerald -->
+    <color name="category_food">#F97316</color>        <!-- Orange -->
+    <color name="category_shopping">#EC4899</color>    <!-- Pink -->
+    <color name="category_sport">#3B82F6</color>       <!-- Blue -->
+    <color name="category_wellness">#8B5CF6</color>    <!-- Violet -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         MISC UI
+         ═══════════════════════════════════════════════════════════════ -->
     <color name="route_blue">#4285F4</color>
-    <color name="chip_inactive_bg">#F7F7F9</color>
-    <color name="chip_inactive_text">#717171</color>
-    
-    <color name="warning_bg">#FFF8F6</color> 
-    <color name="warning_text">#C13515</color> 
+    <color name="chip_inactive_bg">#F3F4F6</color>
+    <color name="chip_inactive_text">#6B7280</color>
+    <color name="divider">#E5E7EB</color>
+    <color name="scrim">#80000000</color>              <!-- 50% black — dialog/map overlays -->
+
+    <!-- Gradient stops for card image overlays -->
+    <color name="gradient_start">#00000000</color>    <!-- fully transparent -->
+    <color name="gradient_end">#CC000000</color>      <!-- 80% black -->
+
 </resources>
