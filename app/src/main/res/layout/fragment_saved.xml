@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_main"
+    android:background="@color/bg_deep"
     android:clipToPadding="false"
     android:paddingBottom="100dp">
 
@@ -12,34 +12,50 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:paddingTop="60dp">
+        android:paddingHorizontal="24dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="16dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="COLLECTION"
+            android:textColor="@color/gold"
+            android:textSize="10sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="@string/saved_routes_title"
-            android:textColor="@color/text_primary"
-            android:textSize="36sp"
+            android:textColor="@color/text_cream"
+            android:textSize="32sp"
+            android:fontFamily="serif"
             android:textStyle="bold"
-            android:lineHeight="44sp" />
+            android:lineSpacingMultiplier="1.05" />
 
+        <!-- Saved list -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSavedRoutes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="28dp"
             tools:listitem="@layout/item_route_card" />
 
+        <!-- Empty state -->
         <TextView
             android:id="@+id/tvEmptyMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="100dp"
+            android:layout_marginTop="80dp"
             android:gravity="center"
             android:text="@string/saved_routes_empty"
             android:textColor="@color/text_muted"
-            android:textSize="16sp"
+            android:textSize="15sp"
+            android:lineSpacingExtra="4dp"
             android:visibility="gone" />
 
     </LinearLayout>

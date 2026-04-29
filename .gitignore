@@ -19,6 +19,8 @@ local.properties
 *.pdf
 *.typ
 *.zip
+*.html
+design_handoff_travelpath_pastel/
 !README.md
 ################################
 # Android Gradle

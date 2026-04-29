@@ -9,88 +9,105 @@
     <color name="transparent">#00000000</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         BRAND — Indigo + Cyan
-         Warm indigo (500) feels more alive than the old flat 4F46E5.
-         Cyan replaces sky blue for better contrast on white backgrounds.
+         BACKGROUND HIERARCHY  (dark warm editorial)
+         Extracted from: .root bg, .frame bg, card bg, featured card bg
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="brand_primary">#6366F1</color>        <!-- Indigo 500 -->
-    <color name="brand_primary_dark">#4338CA</color>   <!-- Indigo 700 — CTAs, pressed states -->
-    <color name="brand_primary_light">#A5B4FC</color>  <!-- Indigo 300 — subtle tints -->
-    <color name="brand_accent">#06B6D4</color>         <!-- Cyan 500 -->
-    <color name="brand_accent_light">#CFFAFE</color>   <!-- Cyan 100 — chip backgrounds -->
+    <color name="bg_deep">#111110</color>         <!-- main app background -->
+    <color name="bg_frame">#0D0D0B</color>        <!-- deepest — frame / bottom bar -->
+    <color name="bg_surface">#1A1A18</color>      <!-- cards, inputs, route options -->
+    <color name="bg_featured">#1E1C12</color>     <!-- active/featured — golden tint -->
+    <color name="bg_meta">#141412</color>         <!-- meta pill backgrounds -->
 
-    <!-- Legacy aliases — keeps old XML references valid without touching layouts -->
-    <color name="emerald_primary">@color/brand_primary</color>
-    <color name="emerald_accent">@color/brand_accent</color>
-    <color name="emerald_light">@color/brand_accent_light</color>
+    <!-- Legacy aliases so existing layouts don't break -->
+    <color name="bg_main">@color/bg_deep</color>
+    <color name="bg_primary">@color/bg_deep</color>
+    <color name="card_bg">@color/bg_surface</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         SURFACE SYSTEM — elevation-aware (Material 3 tonal elevation)
-         Each level is a slightly more tinted variant of the background.
+         BORDERS
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="surface_0">#FFFFFF</color>            <!-- pure white — base -->
-    <color name="surface_1">#F8FAFF</color>            <!-- cards level 1 -->
-    <color name="surface_2">#EEF2FF</color>            <!-- cards level 2 / selected states -->
-    <color name="surface_3">#E0E7FF</color>            <!-- active chip backgrounds -->
+    <color name="border_default">#2A2A22</color>  <!-- subtle warm dark border -->
+    <color name="border_gold">#3A3520</color>     <!-- active / featured border -->
 
-    <color name="bg_main">@color/surface_1</color>
-    <color name="bg_primary">@color/surface_1</color>
-    <color name="card_bg">@color/surface_0</color>
-    <color name="border_color">#E0E7FF</color>
+    <!-- Legacy alias -->
+    <color name="border_color">@color/border_default</color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         GOLD ACCENT  — the ONLY color in this palette
+         Extracted from: #C8B87A used on CTAs, active chips, stats, timeline
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="gold">#C8B87A</color>            <!-- primary accent -->
+    <color name="gold_dim">#8A7A52</color>        <!-- pressed / secondary gold -->
+    <color name="gold_text_on">#0D0D0B</color>    <!-- text on gold bg (buttons) -->
+
+    <!-- Legacy brand aliases -->
+    <color name="brand_primary">@color/gold</color>
+    <color name="brand_primary_dark">@color/gold_dim</color>
+    <color name="brand_primary_light">#3A3520</color>
+    <color name="brand_accent">@color/gold</color>
+    <color name="brand_accent_light">@color/bg_featured</color>
+    <color name="emerald_primary">@color/gold</color>
+    <color name="emerald_accent">@color/gold</color>
+    <color name="emerald_light">@color/bg_featured</color>
+
+    <!-- Surface system aliases (used in upgraded themes.xml) -->
+    <color name="surface_0">@color/bg_frame</color>
+    <color name="surface_1">@color/bg_deep</color>
+    <color name="surface_2">@color/bg_surface</color>
+    <color name="surface_3">@color/bg_featured</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          TYPOGRAPHY
+         Extracted from: .muted #6B6B5E, section-hd #4A4A42, dim #3A3A32
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="text_primary">#1E1B4B</color>         <!-- Indigo 950 — deep, readable -->
-    <color name="text_secondary">#6B7280</color>       <!-- Gray 500 — secondary labels -->
-    <color name="text_muted">#9CA3AF</color>           <!-- Gray 400 — captions, placeholders -->
-    <color name="text_on_primary">#FFFFFF</color>
+    <color name="text_cream">#F5F0E8</color>      <!-- primary text — warm white -->
+    <color name="text_muted">#6B6B5E</color>      <!-- secondary / subtext -->
+    <color name="text_dim">#4A4A42</color>        <!-- section headers -->
+    <color name="text_ghost">#3A3A32</color>      <!-- very muted, bottom nav inactive -->
+
+    <!-- Legacy aliases -->
+    <color name="text_primary">@color/text_cream</color>
+    <color name="text_secondary">@color/text_muted</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         SEMANTIC STATUS COLORS
+         SEMANTIC — kept minimal; gold replaces all color signal
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="status_success">#10B981</color>       <!-- Emerald 500 -->
-    <color name="status_success_bg">#D1FAE5</color>    <!-- Emerald 100 -->
-    <color name="status_warning">#F59E0B</color>       <!-- Amber 500 -->
-    <color name="status_warning_bg">#FEF3C7</color>    <!-- Amber 100 -->
-    <color name="status_error">#EF4444</color>         <!-- Red 500 -->
-    <color name="status_error_bg">#FEE2E2</color>      <!-- Red 100 -->
+    <color name="status_success">@color/gold</color>
+    <color name="status_success_bg">@color/bg_featured</color>
+    <color name="status_error">#C0544A</color>    <!-- muted red, used sparingly -->
+    <color name="status_error_bg">#1A0E0D</color>
+    <color name="status_warning">@color/gold</color>
+    <color name="status_warning_bg">@color/bg_featured</color>
 
-    <!-- Legacy warning aliases -->
+    <!-- Legacy -->
     <color name="warning_bg">@color/status_warning_bg</color>
     <color name="warning_text">@color/status_error</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         ROUTE MODE BADGES
+         MODE BADGES  — gold-tinted variants for Economy/Balanced/Comfort
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="mode_economy_bg">#D1FAE5</color>      <!-- Emerald 100 -->
-    <color name="mode_economy_text">#065F46</color>    <!-- Emerald 900 -->
-    <color name="mode_balanced_bg">#EEF2FF</color>     <!-- Indigo 100 -->
-    <color name="mode_balanced_text">#3730A3</color>   <!-- Indigo 800 -->
-    <color name="mode_comfort_bg">#FEF3C7</color>      <!-- Amber 100 -->
-    <color name="mode_comfort_text">#92400E</color>    <!-- Amber 900 -->
-
-    <!-- ═══════════════════════════════════════════════════════════════
-         POI CATEGORY DOTS (timeline)
-         ═══════════════════════════════════════════════════════════════ -->
-    <color name="category_culture">#6366F1</color>     <!-- Indigo -->
-    <color name="category_nature">#10B981</color>      <!-- Emerald -->
-    <color name="category_food">#F97316</color>        <!-- Orange -->
-    <color name="category_shopping">#EC4899</color>    <!-- Pink -->
-    <color name="category_sport">#3B82F6</color>       <!-- Blue -->
-    <color name="category_wellness">#8B5CF6</color>    <!-- Violet -->
+    <color name="mode_economy_bg">@color/bg_featured</color>
+    <color name="mode_economy_text">@color/gold</color>
+    <color name="mode_balanced_bg">@color/bg_featured</color>
+    <color name="mode_balanced_text">@color/gold</color>
+    <color name="mode_comfort_bg">@color/bg_featured</color>
+    <color name="mode_comfort_text">@color/gold</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
          MISC UI
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="route_blue">#4285F4</color>
-    <color name="chip_inactive_bg">#F3F4F6</color>
-    <color name="chip_inactive_text">#6B7280</color>
-    <color name="divider">#E5E7EB</color>
-    <color name="scrim">#80000000</color>              <!-- 50% black — dialog/map overlays -->
+    <color name="route_blue">@color/gold</color>
+    <color name="chip_inactive_bg">@color/bg_surface</color>
+    <color name="chip_inactive_text">@color/text_muted</color>
+    <color name="divider">@color/border_default</color>
+    <color name="scrim">#CC0D0D0B</color>         <!-- 80% dark scrim -->
 
-    <!-- Gradient stops for card image overlays -->
-    <color name="gradient_start">#00000000</color>    <!-- fully transparent -->
-    <color name="gradient_end">#CC000000</color>      <!-- 80% black -->
+    <!-- Category dots — all gold-family to stay in palette -->
+    <color name="category_culture">@color/gold</color>
+    <color name="category_nature">@color/gold_dim</color>
+    <color name="category_food">@color/gold</color>
+    <color name="category_shopping">@color/gold_dim</color>
+    <color name="category_sport">@color/gold</color>
+    <color name="category_wellness">@color/gold_dim</color>
 
 </resources>

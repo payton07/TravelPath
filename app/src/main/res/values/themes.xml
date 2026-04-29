@@ -1,64 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!--
-        Base theme — Material 3 DayNight with TravelPath design tokens.
-
-        Typography scale (Plus Jakarta Sans, from type_scale below):
-          displayLarge   32sp / ExtraBold (800)
-          headlineMedium 22sp / Bold       (700)
-          titleMedium    16sp / SemiBold   (600)
-          bodyLarge      15sp / Regular    (400)
-          bodySmall      12sp / Regular    (400)
-          labelSmall     10sp / Medium     (500)
-
-        Color roles follow Material 3 naming so component defaults work
-        without per-component overrides.
-    -->
     <style name="Base.Theme.TravelPath" parent="Theme.Material3.DayNight.NoActionBar">
 
-        <!-- Typography -->
+        <!-- Default font: Plus Jakarta Sans (local TTF — no GMS dependency) -->
         <item name="android:fontFamily">@font/plus_jakarta</item>
         <item name="fontFamily">@font/plus_jakarta</item>
 
         <!-- ── Color roles ──────────────────────────────────────────── -->
-        <item name="colorPrimary">@color/brand_primary</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="colorPrimaryContainer">@color/surface_3</item>
-        <item name="colorOnPrimaryContainer">@color/brand_primary_dark</item>
+        <item name="colorPrimary">@color/gold</item>
+        <item name="colorOnPrimary">@color/gold_text_on</item>
+        <item name="colorPrimaryContainer">@color/bg_featured</item>
+        <item name="colorOnPrimaryContainer">@color/gold</item>
 
-        <item name="colorSecondary">@color/brand_accent</item>
-        <item name="colorOnSecondary">@color/white</item>
-        <item name="colorSecondaryContainer">@color/brand_accent_light</item>
-        <item name="colorOnSecondaryContainer">@color/text_primary</item>
+        <item name="colorSecondary">@color/gold_dim</item>
+        <item name="colorOnSecondary">@color/gold_text_on</item>
+        <item name="colorSecondaryContainer">@color/bg_featured</item>
+        <item name="colorOnSecondaryContainer">@color/text_cream</item>
 
-        <item name="colorSurface">@color/surface_1</item>
-        <item name="colorOnSurface">@color/text_primary</item>
-        <item name="colorSurfaceVariant">@color/surface_2</item>
-        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorSurface">@color/bg_deep</item>
+        <item name="colorOnSurface">@color/text_cream</item>
+        <item name="colorSurfaceVariant">@color/bg_surface</item>
+        <item name="colorOnSurfaceVariant">@color/text_muted</item>
 
         <item name="colorError">@color/status_error</item>
         <item name="colorOnError">@color/white</item>
         <item name="colorErrorContainer">@color/status_error_bg</item>
 
-        <item name="colorOutline">@color/border_color</item>
-        <item name="colorOutlineVariant">@color/divider</item>
+        <item name="colorOutline">@color/border_default</item>
+        <item name="colorOutlineVariant">@color/border_gold</item>
 
-        <!-- ── Window ──────────────────────────────────────────────── -->
-        <item name="android:windowBackground">@color/bg_main</item>
-        <item name="android:statusBarColor">@color/bg_main</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">@color/bg_main</item>
-        <item name="android:windowLightNavigationBar">true</item>
+        <!-- ── Window — always dark ────────────────────────────────── -->
+        <item name="android:windowBackground">@color/bg_deep</item>
+        <item name="android:statusBarColor">@color/bg_frame</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
+        <item name="android:navigationBarColor">@color/bg_frame</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
 
         <!-- ── Shapes ──────────────────────────────────────────────── -->
         <item name="shapeAppearanceSmallComponent">@style/ShapeSmall</item>
         <item name="shapeAppearanceMediumComponent">@style/ShapeMedium</item>
         <item name="shapeAppearanceLargeComponent">@style/ShapeLarge</item>
 
-        <!-- ── Card defaults ───────────────────────────────────────── -->
+        <!-- ── Component defaults ─────────────────────────────────── -->
         <item name="materialCardViewStyle">@style/Widget.TravelPath.CardView</item>
-
-        <!-- ── Bottom navigation ───────────────────────────────────── -->
         <item name="bottomNavigationStyle">@style/Widget.TravelPath.BottomNavigation</item>
 
     </style>
@@ -89,15 +74,15 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <style name="Widget.TravelPath.CardView" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardBackgroundColor">@color/card_bg</item>
+        <item name="cardBackgroundColor">@color/bg_surface</item>
         <item name="cardCornerRadius">20dp</item>
-        <item name="cardElevation">2dp</item>
-        <item name="strokeColor">@color/border_color</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeColor">@color/border_default</item>
         <item name="strokeWidth">1dp</item>
     </style>
 
     <style name="Widget.TravelPath.BottomNavigation" parent="Widget.Material3.BottomNavigationView">
-        <item name="android:background">@color/card_bg</item>
+        <item name="android:background">@color/bg_frame</item>
         <item name="itemIconTint">@color/bottom_nav_color</item>
         <item name="itemTextColor">@color/bottom_nav_color</item>
         <item name="itemPaddingTop">8dp</item>
@@ -106,45 +91,65 @@
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         TEXT APPEARANCES — Material 3 type scale with Plus Jakarta Sans
+         TEXT APPEARANCES
+         Display/Headline  → Playfair Display  (editorial serif)
+         Title/Body/Label  → DM Mono           (precision mono)
          ═══════════════════════════════════════════════════════════════ -->
 
     <style name="TextAppearance.TravelPath.DisplayLarge" parent="TextAppearance.Material3.DisplayLarge">
-        <item name="android:fontFamily">@font/plus_jakarta</item>
-        <item name="android:textSize">32sp</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textSize">34sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">-0.02</item>
+        <item name="android:textColor">@color/text_cream</item>
+    </style>
+
+    <style name="TextAppearance.TravelPath.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_cream</item>
     </style>
 
     <style name="TextAppearance.TravelPath.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
-        <item name="android:fontFamily">@font/plus_jakarta</item>
+        <item name="android:fontFamily">serif</item>
         <item name="android:textSize">22sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:letterSpacing">-0.01</item>
+        <item name="android:textColor">@color/text_cream</item>
     </style>
 
     <style name="TextAppearance.TravelPath.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:fontFamily">@font/plus_jakarta</item>
-        <item name="android:textSize">16sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@color/text_cream</item>
     </style>
 
     <style name="TextAppearance.TravelPath.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
-        <item name="android:fontFamily">@font/plus_jakarta</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_cream</item>
     </style>
 
     <style name="TextAppearance.TravelPath.BodySmall" parent="TextAppearance.Material3.BodySmall">
-        <item name="android:fontFamily">@font/plus_jakarta</item>
+        <item name="android:fontFamily">monospace</item>
         <item name="android:textSize">12sp</item>
-        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textColor">@color/text_muted</item>
     </style>
 
     <style name="TextAppearance.TravelPath.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
-        <item name="android:fontFamily">@font/plus_jakarta</item>
+        <item name="android:fontFamily">monospace</item>
         <item name="android:textSize">10sp</item>
         <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.05</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textColor">@color/text_muted</item>
+    </style>
+
+    <!-- ── Gold stat value ──────────────────────────────────────────── -->
+    <style name="TextAppearance.TravelPath.StatValue" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/gold</item>
     </style>
 
     <!-- ═══════════════════════════════════════════════════════════════
@@ -152,50 +157,64 @@
          ═══════════════════════════════════════════════════════════════ -->
 
     <style name="Widget.TravelPath.Button.Primary" parent="Widget.Material3.Button">
-        <item name="android:backgroundTint">@color/brand_primary</item>
-        <item name="android:textColor">@color/white</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:textStyle">bold</item>
-        <item name="cornerRadius">14dp</item>
+        <item name="android:backgroundTint">@color/gold</item>
+        <item name="android:textColor">@color/gold_text_on</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="cornerRadius">28dp</item>
         <item name="android:paddingStart">24dp</item>
         <item name="android:paddingEnd">24dp</item>
-        <item name="android:minHeight">52dp</item>
-        <item name="rippleColor">@color/brand_primary_light</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="rippleColor">@color/gold_dim</item>
     </style>
 
     <style name="Widget.TravelPath.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="strokeColor">@color/brand_primary</item>
-        <item name="android:textColor">@color/brand_primary</item>
-        <item name="android:textSize">15sp</item>
-        <item name="cornerRadius">14dp</item>
+        <item name="strokeColor">@color/gold</item>
+        <item name="android:textColor">@color/gold</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="cornerRadius">28dp</item>
         <item name="android:paddingStart">24dp</item>
         <item name="android:paddingEnd">24dp</item>
-        <item name="android:minHeight">52dp</item>
+        <item name="android:minHeight">56dp</item>
     </style>
 
-    <!-- Mode badge chips -->
+    <!-- ═══════════════════════════════════════════════════════════════
+         MODE BADGE CHIPS
+         ═══════════════════════════════════════════════════════════════ -->
+
     <style name="Widget.TravelPath.Chip.Economy" parent="Widget.Material3.Chip.Assist">
         <item name="chipBackgroundColor">@color/mode_economy_bg</item>
         <item name="android:textColor">@color/mode_economy_text</item>
         <item name="chipStrokeWidth">0dp</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
     </style>
 
     <style name="Widget.TravelPath.Chip.Balanced" parent="Widget.Material3.Chip.Assist">
         <item name="chipBackgroundColor">@color/mode_balanced_bg</item>
         <item name="android:textColor">@color/mode_balanced_text</item>
         <item name="chipStrokeWidth">0dp</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
     </style>
 
     <style name="Widget.TravelPath.Chip.Comfort" parent="Widget.Material3.Chip.Assist">
         <item name="chipBackgroundColor">@color/mode_comfort_bg</item>
         <item name="android:textColor">@color/mode_comfort_text</item>
         <item name="chipStrokeWidth">0dp</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
     </style>
 
 </resources>

@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="24dp">
+    android:layout_marginBottom="20dp">
 
-    <!-- Cercle numéroté -->
+    <!-- Gold step circle -->
     <TextView
         android:id="@+id/tvStepNumber"
         android:layout_width="32dp"
@@ -13,57 +13,58 @@
         android:background="@drawable/bg_timeline_marker"
         android:gravity="center"
         android:text="1"
-        android:textColor="@color/white"
-        android:textStyle="bold" />
+        android:textColor="@color/gold_text_on"
+        android:textStyle="bold"
+        android:textSize="13sp" />
 
-    <!-- Ligne verticale de connexion -->
+    <!-- Connector line -->
     <View
-        android:layout_width="2dp"
+        android:layout_width="1dp"
         android:layout_height="100dp"
         android:layout_below="@id/tvStepNumber"
-        android:layout_centerHorizontal="false"
         android:layout_marginStart="15dp"
-        android:background="@color/border_color" />
+        android:background="@color/border_default" />
 
-    <!-- Carte de l'étape -->
+    <!-- Step card -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="56dp"
-        app:cardCornerRadius="24dp"
+        android:layout_marginStart="52dp"
+        app:cardCornerRadius="20dp"
         app:cardElevation="0dp"
-        app:cardBackgroundColor="@color/card_bg"
-        app:strokeColor="@color/border_color"
+        app:cardBackgroundColor="@color/bg_surface"
+        app:strokeColor="@color/border_default"
         app:strokeWidth="1dp">
-        
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Photo du lieu (Nouveau) -->
+            <!-- Optional place photo -->
             <ImageView
                 android:id="@+id/ivStepPhoto"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="100dp"
                 android:scaleType="centerCrop"
                 android:visibility="gone" />
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:orientation="vertical">
-                
+                android:orientation="vertical"
+                android:padding="16dp">
+
                 <TextView
                     android:id="@+id/tvStepName"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Nom du lieu"
-                    android:textColor="@color/text_primary"
-                    android:textStyle="bold"
-                    android:textSize="16sp" />
-                
+                    android:textColor="@color/text_cream"
+                    android:textSize="15sp"
+                    android:fontFamily="serif"
+                    android:textStyle="bold" />
+
                 <TextView
                     android:id="@+id/tvStepTime"
                     android:layout_width="wrap_content"
@@ -73,17 +74,15 @@
                     android:textColor="@color/text_muted"
                     android:textSize="12sp" />
 
-                <!-- Horaires d'ouverture (Nouveau) -->
                 <TextView
                     android:id="@+id/tvOpeningHours"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="Ouvert actuellement"
-                    android:textColor="@color/emerald_primary"
+                    android:text="@string/open"
+                    android:textColor="@color/gold"
                     android:textSize="11sp"
                     android:visibility="gone" />
-                    
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

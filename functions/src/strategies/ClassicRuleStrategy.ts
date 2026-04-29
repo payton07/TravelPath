@@ -137,17 +137,48 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
     // Variant construction
     // =========================================================================
 
+    /**
+     * Builds all 3 variants SEQUENTIALLY, not in parallel.
+     *
+     * Why sequential matters for diversity:
+     *   If all three modes run in parallel over the same pool, ECONOMY and
+     *   BALANCED both greedily pick the same top-rated cheap POIs (high rating +
+     *   low cost = top score in both). The result is two nearly identical routes.
+     *
+     * Solution — progressive pool exclusion:
+     *   1. ECONOMY runs first, picks the best cheap POIs.
+     *   2. BALANCED runs with those POIs removed from its optional pool — forced
+     *      to choose different places (mid-range, different categories).
+     *   3. COMFORT runs with both sets removed — picks the premium tier.
+     *   Mandatory POIs are always present in all three (never excluded).
+     */
     private async buildAllVariants(
         pool:          PointOfInterest[],
         criteria:      SearchCriteria,
         mandatoryPool: PointOfInterest[],
     ): Promise<Itinerary[]> {
-        const variants = await Promise.all(
-            Object.values(RouteMode).map(mode =>
-                this.buildVariant(pool, criteria, mode, mandatoryPool),
-            ),
-        );
-        return variants.filter((it): it is Itinerary => it !== null);
+        const mandatoryIds = new Set(mandatoryPool.map(p => p.id));
+        const usedIds      = new Set<string>();
+        const results:     Itinerary[] = [];
+
+        for (const mode of [RouteMode.ECONOMY, RouteMode.BALANCED, RouteMode.COMFORT]) {
+            // Mandatory POIs are always available; optional POIs are exclusive per mode.
+            const availablePool = pool.filter(p =>
+                mandatoryIds.has(p.id) || !usedIds.has(p.id),
+            );
+
+            const variant = await this.buildVariant(availablePool, criteria, mode, mandatoryPool);
+
+            if (variant?.fullSteps) {
+                results.push(variant);
+                // Reserve this mode's optional POIs so subsequent modes can't reuse them.
+                for (const poi of variant.fullSteps) {
+                    if (!mandatoryIds.has(poi.id)) usedIds.add(poi.id);
+                }
+            }
+        }
+
+        return results;
     }
 
     private async buildVariant(
@@ -366,16 +397,33 @@ export class ClassicRuleStrategy implements ItineraryStrategy {
     // Mode filtering
     // =========================================================================
 
+    /**
+     * Filters to the POIs that genuinely belong to a mode's tier.
+     * Non-overlapping ranges ensure each mode's greedy pass picks
+     * a structurally different set of places.
+     *
+     * Tiers (by baseCost / comfortLevel):
+     *   ECONOMY  → budget places  (cost ≤ €20  OR comfortLevel ≤ 1)
+     *   BALANCED → mid-range      (€5 ≤ cost ≤ €60  AND  1 ≤ comfortLevel ≤ 3)
+     *   COMFORT  → premium places (cost ≥ €30  OR comfortLevel ≥ 3)
+     *
+     * Fallback: if a tier produces fewer than 3 candidates, fall back to the
+     * full pool so the variant is never empty (better one duplicate than nothing).
+     */
     private filterByMode(pool: PointOfInterest[], mode: RouteMode): PointOfInterest[] {
         const subset = pool.filter(p => this.matchesMode(p, mode));
-        return subset.length >= 2 ? subset : pool;
+        return subset.length >= 3 ? subset : pool;
     }
 
     private matchesMode(poi: PointOfInterest, mode: RouteMode): boolean {
         switch (mode) {
-            case RouteMode.ECONOMY:  return poi.baseCost <= 15 || poi.comfortLevel <= 1;
-            case RouteMode.COMFORT:  return poi.baseCost >= 20 || poi.comfortLevel >= 3;
-            case RouteMode.BALANCED: return true;
+            case RouteMode.ECONOMY:
+                return poi.baseCost <= 20 || poi.comfortLevel <= 1;
+            case RouteMode.BALANCED:
+                return poi.baseCost >= 5 && poi.baseCost <= 60
+                    && poi.comfortLevel >= 1 && poi.comfortLevel <= 3;
+            case RouteMode.COMFORT:
+                return poi.baseCost >= 30 || poi.comfortLevel >= 3;
         }
     }
 
