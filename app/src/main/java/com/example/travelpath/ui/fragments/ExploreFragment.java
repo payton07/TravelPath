@@ -180,10 +180,10 @@ public final class ExploreFragment extends Fragment {
         LayoutInputDialogBinding d = LayoutInputDialogBinding.inflate(getLayoutInflater());
         sheet.setContentView(d.getRoot());
 
-        d.tvDialogTitle.setText("Choisir une ville");
-        d.tvDialogSubtitle.setText("Entrez la ville que vous souhaitez explorer.");
+        d.tvDialogTitle.setText(R.string.dialog_city_title);
+        d.tvDialogSubtitle.setText(R.string.dialog_city_subtitle);
         d.tvDialogSubtitle.setVisibility(android.view.View.VISIBLE);
-        d.etDialogInput.setHint("ex. Barcelone, Paris…");
+        d.etDialogInput.setHint(R.string.dialog_city_hint);
 
         d.btnDialogCancel.setOnClickListener(v -> sheet.dismiss());
         d.btnDialogConfirm.setOnClickListener(v -> {
@@ -438,10 +438,10 @@ public final class ExploreFragment extends Fragment {
         LayoutInputDialogBinding d = LayoutInputDialogBinding.inflate(getLayoutInflater());
         sheet.setContentView(d.getRoot());
 
-        d.tvDialogTitle.setText("Lieu incontournable");
-        d.tvDialogSubtitle.setText("Ajoutez un lieu que vous souhaitez absolument visiter.");
+        d.tvDialogTitle.setText(R.string.dialog_place_title);
+        d.tvDialogSubtitle.setText(R.string.dialog_place_subtitle);
         d.tvDialogSubtitle.setVisibility(android.view.View.VISIBLE);
-        d.etDialogInput.setHint("ex. Place de la Comédie…");
+        d.etDialogInput.setHint(R.string.dialog_place_hint);
 
         d.btnDialogCancel.setOnClickListener(v -> sheet.dismiss());
         d.btnDialogConfirm.setOnClickListener(v -> {

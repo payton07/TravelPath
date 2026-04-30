@@ -117,4 +117,43 @@
         app:strokeColor="@color/border_color"
         app:strokeWidth="1dp" />
 
+    <!-- Language toggle -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="@string/language_section"
+        android:textColor="@color/text_muted"
+        android:textSize="10sp"
+        android:textAllCaps="true"
+        android:letterSpacing="0.08" />
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleLanguage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        app:singleSelection="true"
+        app:selectionRequired="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLangFr"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:paddingHorizontal="24dp"
+            android:text="FR"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLangEn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:paddingHorizontal="24dp"
+            android:text="EN"
+            android:textStyle="bold" />
+
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
 </LinearLayout>

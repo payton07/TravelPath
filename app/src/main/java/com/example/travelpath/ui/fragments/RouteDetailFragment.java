@@ -158,6 +158,22 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         binding.btnSaveRoute.setOnClickListener(v  -> viewModel.toggleSave());
         binding.btnShareRoute.setOnClickListener(v -> viewModel.shareItinerary());
         binding.btnExportPdf.setOnClickListener(v  -> viewModel.generatePdf());
+
+        binding.btnStartRoute.setOnClickListener(v -> {
+            Itinerary it = viewModel.getItinerary().getValue();
+            if (it != null) {
+                ((MainActivity) requireActivity()).navigateTo(
+                    FullScreenMapFragment.newInstance(it), "fullscreen_map");
+            }
+        });
+
+        binding.btnMapFullscreen.setOnClickListener(v -> {
+            Itinerary it = viewModel.getItinerary().getValue();
+            if (it != null) {
+                ((MainActivity) requireActivity()).navigateTo(
+                    FullScreenMapFragment.newInstance(it), "fullscreen_map");
+            }
+        });
     }
 
     // =========================================================================
@@ -263,6 +279,11 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
 
             bindOpeningHours(step, poi);
             bindStepPhoto(step, poi);
+
+            final PointOfInterest finalPoi = poi;
+            step.getRoot().setOnClickListener(v ->
+                ((MainActivity) requireActivity()).navigateTo(
+                    PoiDetailFragment.newInstance(finalPoi), "poi_detail"));
 
             binding.timelineContainer.addView(step.getRoot());
         }

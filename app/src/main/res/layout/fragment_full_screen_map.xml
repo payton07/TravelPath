@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Back button — top left -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_margin="20dp"
+        android:padding="7dp"
+        android:src="@drawable/ic_arrow_back"
+        android:tint="@color/color_ink"
+        android:background="@drawable/bg_circle_button"
+        android:contentDescription="@string/back"
+        android:elevation="4dp" />
+
+    <!-- Distance badge — top right -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_margin="20dp"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="5dp"
+        android:background="@drawable/bg_city_pill"
+        android:gravity="center_vertical"
+        android:elevation="4dp">
+
+        <ImageView
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@android:drawable/ic_menu_directions"
+            android:tint="@color/color_ink_soft" />
+
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:text="@string/route_coverage_badge"
+            android:textColor="@color/color_ink"
+            android:textSize="11sp"
+            android:fontFamily="@font/geist"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,6 +1,7 @@
 package com.example.travelpath;
 
 import android.app.Application;
+import androidx.appcompat.app.AppCompatDelegate;
 import com.example.travelpath.data.preferences.UserPreferencesManager;
 import com.example.travelpath.data.repository.TravelRepository;
 import com.example.travelpath.di.AppModule;
@@ -42,6 +43,7 @@ public final class TravelApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
+        AppCompatDelegate.setApplicationLocales(AppCompatDelegate.getApplicationLocales());
         initTimber();
         initPlaces();
         initDependencies();

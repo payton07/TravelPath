@@ -1,0 +1,48 @@
+<resources>
+    <!-- Overrides for French strings in values/strings.xml -->
+
+    <string name="open">Open</string>
+    <string name="closed">Currently closed</string>
+
+    <string name="generating_routes">Generating your routes…</string>
+    <string name="no_routes_found">No routes found for these criteria.</string>
+    <string name="btn_select_route">Select this route</string>
+
+    <string name="cost">COST</string>
+    <string name="duration">DURATION</string>
+
+    <string name="route_saved">Route saved!</string>
+    <string name="route_removed">Route removed</string>
+    <string name="share_message">Discover my TravelPath route: %1$s</string>
+    <string name="share_via">Share via</string>
+
+    <string name="weather_alert_title">Weather alert: %1$s</string>
+    <string name="weather_alert_desc">Precipitation expected. Plan indoor activities.</string>
+
+    <string name="generating_pdf">Generating PDF…</string>
+    <string name="pdf_generating">PDF generation in progress…</string>
+    <string name="pdf_success">PDF generated, downloading…</string>
+    <string name="pdf_error">Error: %1$s</string>
+    <string name="pdf_desc">Downloading your itinerary</string>
+    <string name="download_started">Download started</string>
+
+    <string name="offline_mode_active">Offline mode active</string>
+    <string name="offline_title">Offline Browsing</string>
+    <string name="offline_desc">Some photos and the interactive map may be limited without a connection, but your stops are saved.</string>
+
+    <!-- F3 -->
+    <string name="start_route">Start this route</string>
+
+    <!-- F2 -->
+    <string name="get_directions">Get directions</string>
+    <string name="error_maps_unavailable">Unable to open Google Maps.</string>
+
+    <!-- F4 — dialog strings -->
+    <string name="dialog_city_title">Choose a city</string>
+    <string name="dialog_city_subtitle">Enter the city you want to explore.</string>
+    <string name="dialog_city_hint">e.g. Barcelona, Paris…</string>
+    <string name="dialog_place_title">Must-see place</string>
+    <string name="dialog_place_subtitle">Add a place you absolutely want to visit.</string>
+    <string name="dialog_place_hint">e.g. Times Square…</string>
+
+</resources>

@@ -123,4 +123,22 @@
     <string name="offline_title">Consultation Hors-Ligne</string>
     <string name="offline_desc">Certaines photos et la carte interactive peuvent être limitées sans connexion, mais vos étapes sont sauvegardées.</string>
 
+    <!-- F3 — Start Route -->
+    <string name="start_route">Démarrer ce parcours</string>
+
+    <!-- F2 — POI Detail -->
+    <string name="get_directions">Obtenir l\'itinéraire</string>
+    <string name="error_maps_unavailable">Impossible d\'ouvrir Google Maps.</string>
+
+    <!-- F4 — Dialog strings (externalized from ExploreFragment) -->
+    <string name="dialog_city_title">Choisir une ville</string>
+    <string name="dialog_city_subtitle">Entrez la ville que vous souhaitez explorer.</string>
+    <string name="dialog_city_hint">ex. Barcelone, Paris…</string>
+    <string name="dialog_place_title">Lieu incontournable</string>
+    <string name="dialog_place_subtitle">Ajoutez un lieu que vous souhaitez absolument visiter.</string>
+    <string name="dialog_place_hint">ex. Place de la Comédie…</string>
+
+    <!-- F4 — Profile language toggle -->
+    <string name="language_section">LANGUE / LANGUAGE</string>
+
 </resources>

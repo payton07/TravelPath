@@ -9,6 +9,8 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import com.example.travelpath.R;
@@ -67,6 +69,19 @@ public final class ProfileFragment extends Fragment {
 
     private void setupActions() {
         binding.btnEditProfile.setOnClickListener(v -> showEditNameDialog());
+        setupLanguageToggle();
+    }
+
+    private void setupLanguageToggle() {
+        LocaleListCompat locales = AppCompatDelegate.getApplicationLocales();
+        boolean isEn = !locales.isEmpty() && "en".equals(locales.get(0).getLanguage());
+        binding.toggleLanguage.check(isEn ? R.id.btnLangEn : R.id.btnLangFr);
+
+        binding.toggleLanguage.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (!isChecked) return;
+            String tag = checkedId == R.id.btnLangEn ? "en" : "fr";
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag));
+        });
     }
 
     // =========================================================================
