@@ -12,6 +12,7 @@ import com.example.travelpath.ui.fragments.ExploreFragment;
 import com.example.travelpath.ui.fragments.ProfileFragment;
 import com.example.travelpath.ui.fragments.SavedFragment;
 import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
+import com.example.travelpath.ui.widget.MessageBanner;
 import androidx.lifecycle.ViewModelProvider;
 import timber.log.Timber;
 
@@ -44,6 +45,7 @@ public final class MainActivity extends AppCompatActivity {
     private static final String KEY_ACTIVE_TAB = "active_tab";
 
     private ActivityMainBinding binding;
+    private MessageBanner       messageBanner;
     private String activeTabTag = TAG_EXPLORE;
 
     @Override
@@ -58,6 +60,7 @@ public final class MainActivity extends AppCompatActivity {
             activeTabTag = savedInstanceState.getString(KEY_ACTIVE_TAB, TAG_EXPLORE);
         }
 
+        messageBanner = MessageBanner.attach(binding);
         setupNavigation();
         setupBackPress();
         new ViewModelProvider(this).get(SavedRoutesViewModel.class);
@@ -192,6 +195,10 @@ public final class MainActivity extends AppCompatActivity {
     // =========================================================================
     // API publique pour les fragments enfants
     // =========================================================================
+
+    public void showMessage(MessageBanner.Type type, String message) {
+        messageBanner.show(type, message);
+    }
 
     /**
      * Permet aux fragments onglet (Explore, Saved) de pousser un fragment de

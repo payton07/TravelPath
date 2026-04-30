@@ -23,6 +23,9 @@ import com.example.travelpath.databinding.FragmentExploreBinding;
 import com.example.travelpath.ui.viewmodels.MainViewModel;
 import com.google.android.material.chip.Chip;
 import timber.log.Timber;
+import android.view.inputmethod.InputMethodManager;
+import com.example.travelpath.databinding.LayoutInputDialogBinding;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -173,20 +176,33 @@ public final class ExploreFragment extends Fragment {
     }
 
     private void showCityDialog() {
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(requireContext());
-        builder.setTitle("Enter city");
-        android.widget.EditText input = new android.widget.EditText(requireContext());
-        input.setHint("e.g. Barcelona");
-        builder.setView(input);
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            String city = input.getText().toString().trim();
+        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
+        LayoutInputDialogBinding d = LayoutInputDialogBinding.inflate(getLayoutInflater());
+        sheet.setContentView(d.getRoot());
+
+        d.tvDialogTitle.setText("Choisir une ville");
+        d.tvDialogSubtitle.setText("Entrez la ville que vous souhaitez explorer.");
+        d.tvDialogSubtitle.setVisibility(android.view.View.VISIBLE);
+        d.etDialogInput.setHint("ex. Barcelone, Paris…");
+
+        d.btnDialogCancel.setOnClickListener(v -> sheet.dismiss());
+        d.btnDialogConfirm.setOnClickListener(v -> {
+            String city = d.etDialogInput.getText().toString().trim();
             if (!city.isEmpty()) {
                 viewModel.setDestination(city, null);
                 binding.tvCityName.setText(city);
+                sheet.dismiss();
             }
         });
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+
+        sheet.setOnShowListener(dlg -> {
+            d.etDialogInput.requestFocus();
+            InputMethodManager imm = (InputMethodManager)
+                    requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showSoftInput(d.etDialogInput, InputMethodManager.SHOW_IMPLICIT);
+        });
+
+        sheet.show();
     }
 
     // ── Mood card ─────────────────────────────────────────────────────────────
@@ -300,11 +316,14 @@ public final class ExploreFragment extends Fragment {
             binding.chipNature,  binding.chipShopping, binding.chipNightlife,
         };
         for (Chip chip : chips) {
-            // Sync initially checked chips to ViewModel
             if (chip.isChecked()) viewModel.toggleInterest(chip.getText().toString());
 
-            chip.setOnCheckedChangeListener((btn, isChecked) ->
-                    viewModel.toggleInterest(chip.getText().toString()));
+            chip.setOnCheckedChangeListener((btn, isChecked) -> {
+                viewModel.toggleInterest(chip.getText().toString());
+                boolean anyChecked = false;
+                for (Chip c : chips) anyChecked |= c.isChecked();
+                binding.tvInterestsError.setVisibility(anyChecked ? View.GONE : View.VISIBLE);
+            });
         }
     }
 
@@ -415,17 +434,32 @@ public final class ExploreFragment extends Fragment {
     }
 
     private void showAddPlaceDialog() {
-        android.widget.EditText input = new android.widget.EditText(requireContext());
-        input.setHint("e.g. Place de la Comédie");
-        new android.app.AlertDialog.Builder(requireContext())
-                .setTitle("Add a must-see place")
-                .setView(input)
-                .setPositiveButton("Add", (dialog, which) -> {
-                    String name = input.getText().toString().trim();
-                    if (!name.isEmpty()) addCustomMustSeePlace(name);
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
+        LayoutInputDialogBinding d = LayoutInputDialogBinding.inflate(getLayoutInflater());
+        sheet.setContentView(d.getRoot());
+
+        d.tvDialogTitle.setText("Lieu incontournable");
+        d.tvDialogSubtitle.setText("Ajoutez un lieu que vous souhaitez absolument visiter.");
+        d.tvDialogSubtitle.setVisibility(android.view.View.VISIBLE);
+        d.etDialogInput.setHint("ex. Place de la Comédie…");
+
+        d.btnDialogCancel.setOnClickListener(v -> sheet.dismiss());
+        d.btnDialogConfirm.setOnClickListener(v -> {
+            String name = d.etDialogInput.getText().toString().trim();
+            if (!name.isEmpty()) {
+                addCustomMustSeePlace(name);
+                sheet.dismiss();
+            }
+        });
+
+        sheet.setOnShowListener(dlg -> {
+            d.etDialogInput.requestFocus();
+            InputMethodManager imm = (InputMethodManager)
+                    requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showSoftInput(d.etDialogInput, InputMethodManager.SHOW_IMPLICIT);
+        });
+
+        sheet.show();
     }
 
     private void addCustomMustSeePlace(String name) {
@@ -613,17 +647,27 @@ public final class ExploreFragment extends Fragment {
         binding.btnFindMyDay.setOnClickListener(v -> {
             String city = viewModel.getDestinationCity().getValue();
             if (city == null || city.isEmpty()) {
-                Toast.makeText(getContext(), R.string.error_enter_destination, Toast.LENGTH_SHORT).show();
+                ((MainActivity) requireActivity()).showMessage(
+                        com.example.travelpath.ui.widget.MessageBanner.Type.ERROR,
+                        getString(R.string.error_enter_destination));
                 return;
             }
             SearchCriteria criteria = viewModel.buildCriteria();
             if (criteria == null) {
                 String err = viewModel.getLastValidationError().getValue();
-                Toast.makeText(getContext(),
-                        err != null ? err : getString(R.string.error_select_interest),
-                        Toast.LENGTH_SHORT).show();
+                boolean isInterestError = err != null && err.toLowerCase().contains("interest");
+                if (isInterestError) {
+                    binding.tvInterestsError.setVisibility(View.VISIBLE);
+                    binding.scrollView.post(() ->
+                            binding.scrollView.smoothScrollTo(0, binding.tvInterestsError.getTop()));
+                } else {
+                    ((MainActivity) requireActivity()).showMessage(
+                            com.example.travelpath.ui.widget.MessageBanner.Type.ERROR,
+                            err != null ? err : getString(R.string.error_select_interest));
+                }
                 return;
             }
+            binding.tvInterestsError.setVisibility(View.GONE);
             Timber.d("Find my day — %s", city);
             ((MainActivity) requireActivity()).navigateTo(
                     RoutesFragment.newInstance(criteria), "routes");

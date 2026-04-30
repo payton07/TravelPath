@@ -94,5 +94,13 @@ public final class SavedFragment extends Fragment {
                 adapter.submitList(itineraries);
             }
         });
+
+        viewModel.getUiState().observe(getViewLifecycleOwner(), state -> {
+            if (state instanceof com.example.travelpath.ui.viewmodels.UiState.Error) {
+                ((MainActivity) requireActivity()).showMessage(
+                        com.example.travelpath.ui.widget.MessageBanner.Type.ERROR,
+                        ((com.example.travelpath.ui.viewmodels.UiState.Error<?>) state).getMessage());
+            }
+        });
     }
 }

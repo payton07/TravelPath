@@ -303,6 +303,18 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Estimation notice -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="~ Prix et durées estimés · Basés sur le niveau de prix Google Places"
+                android:textColor="@color/color_ink_soft"
+                android:textSize="10.5sp"
+                android:fontFamily="@font/geist"
+                android:letterSpacing="0.02"
+                android:drawablePadding="4dp" />
+
             <!-- Map card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"

@@ -79,7 +79,7 @@
     <color name="text_secondary">@color/color_ink_soft</color>
 
     <!-- Semantic -->
-    <color name="status_success">@color/color_accent</color>
+    <color name="status_success">#5A9176</color>
     <color name="status_success_bg">@color/color_blush</color>
     <color name="status_error">#C0544A</color>
     <color name="status_error_bg">#FFF0EE</color>

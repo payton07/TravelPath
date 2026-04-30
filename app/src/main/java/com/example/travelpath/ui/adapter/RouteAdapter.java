@@ -128,7 +128,7 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         void bind(@NonNull Itinerary it, @NonNull OnRouteActionListener listener) {
             b.tvRouteName.setText(it.getName());
-            b.tvCost.setText(String.format("%s€", it.getCost()));
+            b.tvCost.setText(String.format("~%s€", it.getCost()));
             b.tvDuration.setText(it.getDuration());
             b.tvEffort.setText(it.getEffort());
             b.tvWeather.setText(it.getWeather());
@@ -173,10 +173,15 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
         void bind(@NonNull Itinerary it, @NonNull OnRouteActionListener listener) {
             b.tvRouteName.setText(it.getName());
-            b.tvCost.setText(String.format("%s€", it.getCost()));
+            b.tvCost.setText(String.format("~%s€", it.getCost()));
             b.tvDuration.setText(it.getDuration());
             b.tvEffort.setText(it.getEffort());
             b.tvWeather.setText(it.getWeather());
+
+            String type = it.getRouteType();
+            if ("BALANCED".equalsIgnoreCase(type))      b.tvBadge.setText("Équilibré");
+            else if ("COMFORT".equalsIgnoreCase(type))  b.tvBadge.setText("Confort");
+            else                                         b.tvBadge.setText("Économique");
 
             if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
                 Glide.with(itemView)

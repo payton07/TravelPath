@@ -165,10 +165,14 @@ export class GooglePlacesService {
         // Nettoyage du nom pour éviter les \\n dans le JSON final
         const cleanName = result.name.replace(/\n/g, ' ').replace(/\r/g, '').trim();
 
-        // TÂCHE 5 : Construction des URLs de photos
+        // Construction des URLs de photos
         const photoUrls = result.photos
             ?.slice(0, 3)
             .map(p => this.buildPhotoUrl(p.photo_reference)) ?? [];
+
+        const categoryKey = category.toLowerCase();
+        const duration = PlacesConfig.DURATION_BY_CATEGORY[categoryKey]
+                      ?? PlacesConfig.DEFAULTS.DURATION_HOURS;
 
         const poi: PointOfInterest = {
             id:                   result.place_id,
@@ -178,7 +182,7 @@ export class GooglePlacesService {
             longitude:            result.geometry.location.lng,
             baseCost:             PlacesConfig.COST_BY_PRICE_LEVEL[priceLevel] ?? PlacesConfig.DEFAULTS.COST,
             rating:               result.rating                                ?? PlacesConfig.DEFAULTS.RATING,
-            averageDurationHours: PlacesConfig.DEFAULTS.DURATION_HOURS,
+            averageDurationHours: duration,
             preferredTimeSlot:    this.resolveTimeSlot(category, result.name),
             weatherCompatibility: ['ANY'],
             effortScore:          PlacesConfig.DEFAULTS.EFFORT_SCORE,

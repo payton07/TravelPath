@@ -7,7 +7,6 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -156,7 +155,8 @@ public final class RoutesFragment extends Fragment {
 
     private void renderError(String message) {
         renderEmpty(message);
-        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+        ((MainActivity) requireActivity()).showMessage(
+                com.example.travelpath.ui.widget.MessageBanner.Type.ERROR, message);
     }
 
     // ── Page indicator helpers ────────────────────────────────────────────────
