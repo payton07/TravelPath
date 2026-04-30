@@ -23,6 +23,7 @@ import com.example.travelpath.databinding.FragmentExploreBinding;
 import com.example.travelpath.ui.viewmodels.MainViewModel;
 import com.google.android.material.chip.Chip;
 import timber.log.Timber;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -73,6 +74,7 @@ public final class ExploreFragment extends Fragment {
         new Place("Miradouro da Graça",      "View",         R.color.color_lilac,  false),
     };
     private final boolean[] placePinned = {true, true, false};
+    private final ArrayList<String> customPlaces = new ArrayList<>();
 
     // ── Pace ──────────────────────────────────────────────────────────────────
 
@@ -408,6 +410,105 @@ public final class ExploreFragment extends Fragment {
         for (int i = 0; i < PLACES.length; i++) {
             if (placePinned[i]) viewModel.addMandatoryPoi(PLACES[i].name());
         }
+
+        binding.tvAddPlace.setOnClickListener(v -> showAddPlaceDialog());
+    }
+
+    private void showAddPlaceDialog() {
+        android.widget.EditText input = new android.widget.EditText(requireContext());
+        input.setHint("e.g. Place de la Comédie");
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Add a must-see place")
+                .setView(input)
+                .setPositiveButton("Add", (dialog, which) -> {
+                    String name = input.getText().toString().trim();
+                    if (!name.isEmpty()) addCustomMustSeePlace(name);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void addCustomMustSeePlace(String name) {
+        if (name.isEmpty() || customPlaces.contains(name)) return;
+        customPlaces.add(name);
+        viewModel.addMandatoryPoi(name);
+
+        LinearLayout row = new LinearLayout(requireContext());
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+
+        float density = requireContext().getResources().getDisplayMetrics().density;
+        int paddingH = (int) (14 * density);
+        int paddingV = (int) (10 * density);
+        row.setPadding(paddingH, paddingV, paddingH, paddingV);
+        row.setBackgroundResource(R.drawable.bg_must_see_row);
+
+        LinearLayout.LayoutParams rowLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        rowLp.bottomMargin = (int) (8 * density);
+        row.setLayoutParams(rowLp);
+
+        // Icon square — accent color
+        TextView icon = new TextView(requireContext());
+        int iconSize = (int) (32 * density);
+        icon.setLayoutParams(new LinearLayout.LayoutParams(iconSize, iconSize));
+        GradientDrawable iconBg = new GradientDrawable();
+        iconBg.setColor(ContextCompat.getColor(requireContext(), R.color.color_accent));
+        iconBg.setCornerRadius(8 * density);
+        icon.setBackground(iconBg);
+        icon.setGravity(android.view.Gravity.CENTER);
+        icon.setText(String.valueOf(name.charAt(0)).toUpperCase());
+        icon.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
+        icon.setTextSize(14f);
+        row.addView(icon);
+
+        // Name + tag column
+        LinearLayout textCol = new LinearLayout(requireContext());
+        textCol.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams textLp = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        textLp.setMarginStart((int) (10 * density));
+        textCol.setLayoutParams(textLp);
+
+        TextView nameView = new TextView(requireContext());
+        nameView.setText(name);
+        nameView.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_ink));
+        nameView.setTextSize(14.5f);
+        try { nameView.setTypeface(android.graphics.Typeface.create("fraunces", android.graphics.Typeface.NORMAL)); }
+        catch (Exception ignored) {}
+        textCol.addView(nameView);
+
+        TextView tagView = new TextView(requireContext());
+        tagView.setText("CUSTOM · pinned");
+        tagView.setTextColor(ContextCompat.getColor(requireContext(), R.color.color_ink_soft));
+        tagView.setTextSize(10f);
+        tagView.setLetterSpacing(0.06f);
+        LinearLayout.LayoutParams tagLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        tagLp.topMargin = (int) (2 * density);
+        tagView.setLayoutParams(tagLp);
+        textCol.addView(tagView);
+        row.addView(textCol);
+
+        // Pin button — always selected; tap removes the row
+        TextView pinBtn = new TextView(requireContext());
+        int pinSize = (int) (22 * density);
+        pinBtn.setLayoutParams(new LinearLayout.LayoutParams(pinSize, pinSize));
+        pinBtn.setGravity(android.view.Gravity.CENTER);
+        pinBtn.setBackgroundResource(R.drawable.bg_pin_selected);
+        pinBtn.setText("✓");
+        pinBtn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white));
+        pinBtn.setTextSize(10f);
+        pinBtn.setClickable(true);
+        pinBtn.setFocusable(true);
+        pinBtn.setOnClickListener(v -> {
+            customPlaces.remove(name);
+            viewModel.removeMandatoryPoi(name);
+            binding.layoutMustSee.removeView(row);
+        });
+        row.addView(pinBtn);
+
+        binding.layoutMustSee.addView(row);
     }
 
     private View buildPlaceRow(int index) {

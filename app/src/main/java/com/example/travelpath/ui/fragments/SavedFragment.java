@@ -43,7 +43,7 @@ public final class SavedFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(SavedRoutesViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(SavedRoutesViewModel.class);
 
         setupRecyclerView();
         observeViewModel();

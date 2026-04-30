@@ -11,6 +11,8 @@ import com.example.travelpath.databinding.ActivityMainBinding;
 import com.example.travelpath.ui.fragments.ExploreFragment;
 import com.example.travelpath.ui.fragments.ProfileFragment;
 import com.example.travelpath.ui.fragments.SavedFragment;
+import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import timber.log.Timber;
 
 /**
@@ -58,6 +60,7 @@ public final class MainActivity extends AppCompatActivity {
 
         setupNavigation();
         setupBackPress();
+        new ViewModelProvider(this).get(SavedRoutesViewModel.class);
 
         if (savedInstanceState == null) {
             showTab(TAG_EXPLORE);

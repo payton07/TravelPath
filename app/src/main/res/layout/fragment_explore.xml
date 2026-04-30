@@ -337,7 +337,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:valueFrom="0"
-                android:valueTo="300"
+                android:valueTo="1000"
                 app:values="@array/initial_budget_values"
                 app:thumbColor="@color/color_surface"
                 app:thumbStrokeColor="@color/color_ink"
