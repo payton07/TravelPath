@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.content.res.ColorStateList;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -228,6 +229,11 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         }
     }
 
+    private static final int[] STOP_COLORS = {
+        R.color.color_butter, R.color.color_sky,
+        R.color.color_blush,  R.color.color_mint, R.color.color_lilac
+    };
+
     private void buildTimeline(@Nullable List<PointOfInterest> pois) {
         binding.timelineContainer.removeAllViews();
         if (pois == null || pois.isEmpty()) return;
@@ -241,6 +247,9 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
             step.tvStepName.setText(poi.getName());
             step.tvStepTime.setText(poi.getPreferredTimeSlot() != null
                 ? poi.getPreferredTimeSlot().toUpperCase() : "");
+
+            int stopColor = ContextCompat.getColor(requireContext(), STOP_COLORS[i % STOP_COLORS.length]);
+            step.tvStepNumber.setBackgroundTintList(ColorStateList.valueOf(stopColor));
 
             bindOpeningHours(step, poi);
             bindStepPhoto(step, poi);
@@ -276,6 +285,9 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         binding.btnSaveRoute.setIconResource(saved
             ? android.R.drawable.btn_star_big_on
             : android.R.drawable.ic_menu_save);
+        int iconColor = ContextCompat.getColor(requireContext(),
+            saved ? R.color.color_accent : R.color.color_ink);
+        binding.btnSaveRoute.setIconTint(ColorStateList.valueOf(iconColor));
     }
 
     // =========================================================================

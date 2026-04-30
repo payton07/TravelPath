@@ -3,12 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="0dp"
     android:layout_marginBottom="16dp"
     app:cardCornerRadius="24dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="@color/bg_surface"
-    app:strokeColor="@color/border_default"
+    app:cardBackgroundColor="@color/color_surface"
+    app:strokeColor="@color/color_line"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -28,22 +27,24 @@
                 android:scaleType="centerCrop"
                 android:src="@drawable/bg_travel_mode" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_gravity="bottom"
-                android:background="@drawable/bg_badge_popular" />
-
+            <!-- Like / save button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLike"
                 style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="8dp"
+                android:layout_margin="10dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 app:icon="@android:drawable/btn_star_big_off"
-                app:iconTint="@color/gold"
-                app:backgroundTint="@color/bg_surface" />
+                app:iconTint="@color/color_ink"
+                app:iconSize="18dp"
+                app:iconPadding="0dp"
+                app:backgroundTint="@color/color_surface"
+                app:strokeColor="@color/color_line"
+                app:strokeWidth="1dp"
+                app:cornerRadius="18dp" />
         </FrameLayout>
 
         <!-- Content -->
@@ -58,9 +59,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Route Name"
-                android:textColor="@color/text_cream"
+                android:textColor="@color/color_ink"
                 android:textSize="18sp"
-                android:fontFamily="serif"
+                android:fontFamily="@font/fraunces"
                 android:textStyle="bold"
                 android:maxLines="2"
                 android:ellipsize="end" />
@@ -78,8 +79,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="20€"
-                    android:textColor="@color/gold"
+                    android:textColor="@color/color_accent"
                     android:textSize="13sp"
+                    android:fontFamily="@font/geist"
                     android:textStyle="bold" />
 
                 <TextView
@@ -87,7 +89,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="8dp"
                     android:text="·"
-                    android:textColor="@color/text_dim"
+                    android:textColor="@color/color_line"
                     android:textSize="16sp" />
 
                 <TextView
@@ -95,15 +97,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="5h"
-                    android:textColor="@color/text_muted"
-                    android:textSize="13sp" />
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/geist" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="8dp"
                     android:text="·"
-                    android:textColor="@color/text_dim"
+                    android:textColor="@color/color_line"
                     android:textSize="16sp" />
 
                 <TextView
@@ -111,8 +114,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Moderate"
-                    android:textColor="@color/text_muted"
-                    android:textSize="13sp" />
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/geist" />
             </LinearLayout>
 
             <TextView
@@ -121,8 +125,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="SUNNY"
-                android:textColor="@color/text_dim"
+                android:textColor="@color/color_ink_soft"
                 android:textSize="11sp"
+                android:fontFamily="@font/geist"
                 android:textAllCaps="true"
                 android:letterSpacing="0.06" />
 
@@ -132,12 +137,13 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="14dp"
                 android:text="@string/select_route"
-                android:textSize="12sp"
-                android:textAllCaps="true"
-                android:letterSpacing="0.06"
-                android:textColor="@color/gold_text_on"
+                android:textSize="13sp"
+                android:textAllCaps="false"
+                android:letterSpacing="0.01"
+                android:textColor="@color/color_surface"
+                android:fontFamily="@font/geist"
                 app:cornerRadius="24dp"
-                app:backgroundTint="@color/gold" />
+                app:backgroundTint="@color/color_ink" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
