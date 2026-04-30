@@ -184,7 +184,7 @@ export class GooglePlacesService {
             rating:               result.rating                                ?? PlacesConfig.DEFAULTS.RATING,
             averageDurationHours: duration,
             preferredTimeSlot:    this.resolveTimeSlot(category, result.name),
-            weatherCompatibility: ['ANY'],
+            weatherCompatibility: this.resolveWeatherCompatibility(category),
             effortScore:          PlacesConfig.DEFAULTS.EFFORT_SCORE,
             comfortLevel:         priceLevel                                    ?? PlacesConfig.DEFAULTS.COMFORT_LEVEL,
             photoUrls,
@@ -202,6 +202,11 @@ export class GooglePlacesService {
 
     private buildPhotoUrl(ref: string): string {
         return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${this.apiKey}`;
+    }
+
+    private resolveWeatherCompatibility(category: string): string[] {
+        const outdoor = ['nature', 'architecture'];
+        return outdoor.includes(category.toLowerCase()) ? ['SUN', 'CLOUD'] : ['ANY'];
     }
 
     private resolveTimeSlot(category: string, name: string): TimeSlot {

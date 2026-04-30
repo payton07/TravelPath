@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -131,7 +132,7 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             b.tvCost.setText(String.format("~%s€", it.getCost()));
             b.tvDuration.setText(it.getDuration());
             b.tvEffort.setText(it.getEffort());
-            b.tvWeather.setText(it.getWeather());
+            b.tvWeather.setText(formatWeather(it.getWeather()));
 
             loadThumbnail(it);
             refreshLikeIcon(it.isSaved());
@@ -176,7 +177,7 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             b.tvCost.setText(String.format("~%s€", it.getCost()));
             b.tvDuration.setText(it.getDuration());
             b.tvEffort.setText(it.getEffort());
-            b.tvWeather.setText(it.getWeather());
+            b.tvWeather.setText(formatWeather(it.getWeather()));
 
             String type = it.getRouteType();
             if ("BALANCED".equalsIgnoreCase(type))      b.tvBadge.setText("Équilibré");
@@ -207,5 +208,23 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 ? android.R.drawable.btn_star_big_on
                 : android.R.drawable.btn_star_big_off);
         }
+    }
+
+    // =========================================================================
+    // Helpers
+    // =========================================================================
+
+    public static String formatWeather(@Nullable String raw) {
+        if (raw == null || raw.isEmpty()) return "—";
+        String lower = raw.toLowerCase().trim();
+        if (lower.equals("any") || lower.contains("sun") && lower.contains("cloud") && lower.contains("rain")) {
+            return "Toutes météos";
+        }
+        if (lower.contains("sun") && lower.contains("cloud")) return "Hors pluie";
+        if (lower.equals("sun"))   return "Beau temps";
+        if (lower.equals("cloud")) return "Couvert";
+        if (lower.equals("rain"))  return "Pluie";
+        if (lower.equals("varies")) return "Variable";
+        return raw;
     }
 }

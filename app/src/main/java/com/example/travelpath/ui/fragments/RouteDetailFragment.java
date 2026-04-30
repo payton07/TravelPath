@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.example.travelpath.R;
 import com.example.travelpath.data.entities.Itinerary;
+import com.example.travelpath.ui.adapter.RouteAdapter;
 import com.example.travelpath.data.models.PointOfInterest;
 import com.example.travelpath.databinding.FragmentRouteDetailBinding;
 import com.example.travelpath.databinding.ItemTimelineStepBinding;
@@ -210,7 +211,7 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         binding.tvCostDetail.setText(String.format("~%s€", it.getCost()));
         binding.tvDurationDetail.setText(it.getDuration());
         binding.tvEffortDetail.setText(it.getEffort());
-        binding.tvWeatherDetail.setText(it.getWeather());
+        binding.tvWeatherDetail.setText(RouteAdapter.formatWeather(it.getWeather()));
 
         if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
             binding.ivRouteHeader.setVisibility(View.VISIBLE);
