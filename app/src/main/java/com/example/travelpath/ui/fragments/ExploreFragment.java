@@ -73,7 +73,7 @@ public final class ExploreFragment extends Fragment {
         new Place("Pastéis de Belém",        "Food",         R.color.color_blush,  true),
         new Place("Miradouro da Graça",      "View",         R.color.color_lilac,  false),
     };
-    private final boolean[] placePinned = {true, true, false};
+    private final boolean[] placePinned = {false, false, false};
     private final ArrayList<String> customPlaces = new ArrayList<>();
 
     // ── Pace ──────────────────────────────────────────────────────────────────
