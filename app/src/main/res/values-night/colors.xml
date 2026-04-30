@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        The app uses a single dark-first palette defined in values/colors.xml.
-        No night-mode overrides needed — the warm dark palette applies to all modes.
+        Direction 01 "Bright & Airy" is a light-only design.
+        No night-mode overrides — the light palette applies in all modes.
     -->
 </resources>

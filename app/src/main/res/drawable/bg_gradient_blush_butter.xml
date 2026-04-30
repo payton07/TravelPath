@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Explore card visual block gradient: peach → butter (vibe/culture cards) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="135"
+        android:startColor="@color/color_blush"
+        android:endColor="@color/color_butter" />
+    <corners android:radius="18dp" />
+</shape>

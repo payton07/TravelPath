@@ -9,105 +9,106 @@
     <color name="transparent">#00000000</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         BACKGROUND HIERARCHY  (dark warm editorial)
-         Extracted from: .root bg, .frame bg, card bg, featured card bg
+         PASTEL PALETTE — Direction 01 "Bright & Airy"
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="bg_deep">#111110</color>         <!-- main app background -->
-    <color name="bg_frame">#0D0D0B</color>        <!-- deepest — frame / bottom bar -->
-    <color name="bg_surface">#1A1A18</color>      <!-- cards, inputs, route options -->
-    <color name="bg_featured">#1E1C12</color>     <!-- active/featured — golden tint -->
-    <color name="bg_meta">#141412</color>         <!-- meta pill backgrounds -->
+    <color name="color_bg">#FBF7F2</color>          <!-- warm cream — page background -->
+    <color name="color_surface">#FFFFFF</color>      <!-- white — cards, inputs -->
+    <color name="color_ink">#1B1A17</color>          <!-- primary text + frame -->
+    <color name="color_ink_soft">#6E6A62</color>     <!-- secondary / muted text -->
+    <color name="color_line">#EAE3D8</color>         <!-- 1px borders + dividers -->
 
-    <!-- Legacy aliases so existing layouts don't break -->
-    <color name="bg_main">@color/bg_deep</color>
-    <color name="bg_primary">@color/bg_deep</color>
-    <color name="card_bg">@color/bg_surface</color>
+    <!-- Pastels — gradients, stop dots, avatar accents -->
+    <color name="color_blush">#F4D4C4</color>
+    <color name="color_sky">#C8DCE8</color>
+    <color name="color_mint">#CFE3D2</color>
+    <color name="color_butter">#F4E5BB</color>
+    <color name="color_lilac">#DCD0E8</color>
+
+    <!-- Tomato accent — CTAs, italic key words, primary action -->
+    <color name="color_accent">#E8654A</color>
+    <color name="color_accent_pressed">#C84F36</color>
 
     <!-- ═══════════════════════════════════════════════════════════════
-         BORDERS
+         LEGACY ALIASES — keep existing layout attributes from crashing
+         during the phase-by-phase migration. Remove after all layouts
+         are updated.
          ═══════════════════════════════════════════════════════════════ -->
-    <color name="border_default">#2A2A22</color>  <!-- subtle warm dark border -->
-    <color name="border_gold">#3A3520</color>     <!-- active / featured border -->
 
-    <!-- Legacy alias -->
-    <color name="border_color">@color/border_default</color>
+    <!-- Background hierarchy (old dark names → new light tokens) -->
+    <color name="bg_deep">@color/color_bg</color>
+    <color name="bg_frame">@color/color_bg</color>
+    <color name="bg_surface">@color/color_surface</color>
+    <color name="bg_featured">@color/color_blush</color>
+    <color name="bg_meta">@color/color_bg</color>
+    <color name="bg_main">@color/color_bg</color>
+    <color name="bg_primary">@color/color_bg</color>
+    <color name="card_bg">@color/color_surface</color>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         GOLD ACCENT  — the ONLY color in this palette
-         Extracted from: #C8B87A used on CTAs, active chips, stats, timeline
-         ═══════════════════════════════════════════════════════════════ -->
-    <color name="gold">#C8B87A</color>            <!-- primary accent -->
-    <color name="gold_dim">#8A7A52</color>        <!-- pressed / secondary gold -->
-    <color name="gold_text_on">#0D0D0B</color>    <!-- text on gold bg (buttons) -->
+    <!-- Borders -->
+    <color name="border_default">@color/color_line</color>
+    <color name="border_gold">@color/color_line</color>
+    <color name="border_color">@color/color_line</color>
 
-    <!-- Legacy brand aliases -->
-    <color name="brand_primary">@color/gold</color>
-    <color name="brand_primary_dark">@color/gold_dim</color>
-    <color name="brand_primary_light">#3A3520</color>
-    <color name="brand_accent">@color/gold</color>
-    <color name="brand_accent_light">@color/bg_featured</color>
-    <color name="emerald_primary">@color/gold</color>
-    <color name="emerald_accent">@color/gold</color>
-    <color name="emerald_light">@color/bg_featured</color>
+    <!-- Accent (was gold) -->
+    <color name="gold">@color/color_accent</color>
+    <color name="gold_dim">@color/color_accent_pressed</color>
+    <color name="gold_text_on">@color/white</color>
 
-    <!-- Surface system aliases (used in upgraded themes.xml) -->
-    <color name="surface_0">@color/bg_frame</color>
-    <color name="surface_1">@color/bg_deep</color>
-    <color name="surface_2">@color/bg_surface</color>
-    <color name="surface_3">@color/bg_featured</color>
+    <!-- Brand aliases -->
+    <color name="brand_primary">@color/color_accent</color>
+    <color name="brand_primary_dark">@color/color_accent_pressed</color>
+    <color name="brand_primary_light">@color/color_blush</color>
+    <color name="brand_accent">@color/color_accent</color>
+    <color name="brand_accent_light">@color/color_blush</color>
+    <color name="emerald_primary">@color/color_accent</color>
+    <color name="emerald_accent">@color/color_accent</color>
+    <color name="emerald_light">@color/color_blush</color>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         TYPOGRAPHY
-         Extracted from: .muted #6B6B5E, section-hd #4A4A42, dim #3A3A32
-         ═══════════════════════════════════════════════════════════════ -->
-    <color name="text_cream">#F5F0E8</color>      <!-- primary text — warm white -->
-    <color name="text_muted">#6B6B5E</color>      <!-- secondary / subtext -->
-    <color name="text_dim">#4A4A42</color>        <!-- section headers -->
-    <color name="text_ghost">#3A3A32</color>      <!-- very muted, bottom nav inactive -->
+    <!-- Surface system aliases -->
+    <color name="surface_0">@color/color_bg</color>
+    <color name="surface_1">@color/color_bg</color>
+    <color name="surface_2">@color/color_surface</color>
+    <color name="surface_3">@color/color_blush</color>
 
-    <!-- Legacy aliases -->
-    <color name="text_primary">@color/text_cream</color>
-    <color name="text_secondary">@color/text_muted</color>
+    <!-- Typography (old cream/muted → new ink tokens) -->
+    <color name="text_cream">@color/color_ink</color>
+    <color name="text_muted">@color/color_ink_soft</color>
+    <color name="text_dim">@color/color_ink_soft</color>
+    <color name="text_ghost">@color/color_line</color>
+    <color name="text_primary">@color/color_ink</color>
+    <color name="text_secondary">@color/color_ink_soft</color>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         SEMANTIC — kept minimal; gold replaces all color signal
-         ═══════════════════════════════════════════════════════════════ -->
-    <color name="status_success">@color/gold</color>
-    <color name="status_success_bg">@color/bg_featured</color>
-    <color name="status_error">#C0544A</color>    <!-- muted red, used sparingly -->
-    <color name="status_error_bg">#1A0E0D</color>
-    <color name="status_warning">@color/gold</color>
-    <color name="status_warning_bg">@color/bg_featured</color>
-
-    <!-- Legacy -->
+    <!-- Semantic -->
+    <color name="status_success">@color/color_accent</color>
+    <color name="status_success_bg">@color/color_blush</color>
+    <color name="status_error">#C0544A</color>
+    <color name="status_error_bg">#FFF0EE</color>
+    <color name="status_warning">@color/color_accent</color>
+    <color name="status_warning_bg">@color/color_blush</color>
     <color name="warning_bg">@color/status_warning_bg</color>
     <color name="warning_text">@color/status_error</color>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         MODE BADGES  — gold-tinted variants for Economy/Balanced/Comfort
-         ═══════════════════════════════════════════════════════════════ -->
-    <color name="mode_economy_bg">@color/bg_featured</color>
-    <color name="mode_economy_text">@color/gold</color>
-    <color name="mode_balanced_bg">@color/bg_featured</color>
-    <color name="mode_balanced_text">@color/gold</color>
-    <color name="mode_comfort_bg">@color/bg_featured</color>
-    <color name="mode_comfort_text">@color/gold</color>
+    <!-- Mode badges -->
+    <color name="mode_economy_bg">@color/color_blush</color>
+    <color name="mode_economy_text">@color/color_accent</color>
+    <color name="mode_balanced_bg">@color/color_butter</color>
+    <color name="mode_balanced_text">@color/color_ink</color>
+    <color name="mode_comfort_bg">@color/color_mint</color>
+    <color name="mode_comfort_text">@color/color_ink</color>
 
-    <!-- ═══════════════════════════════════════════════════════════════
-         MISC UI
-         ═══════════════════════════════════════════════════════════════ -->
-    <color name="route_blue">@color/gold</color>
-    <color name="chip_inactive_bg">@color/bg_surface</color>
-    <color name="chip_inactive_text">@color/text_muted</color>
-    <color name="divider">@color/border_default</color>
-    <color name="scrim">#CC0D0D0B</color>         <!-- 80% dark scrim -->
+    <!-- Misc UI -->
+    <color name="route_blue">@color/color_sky</color>
+    <color name="chip_inactive_bg">@color/color_surface</color>
+    <color name="chip_inactive_text">@color/color_ink_soft</color>
+    <color name="divider">@color/color_line</color>
+    <color name="scrim">#80FBF7F2</color>            <!-- 50% cream scrim -->
 
-    <!-- Category dots — all gold-family to stay in palette -->
-    <color name="category_culture">@color/gold</color>
-    <color name="category_nature">@color/gold_dim</color>
-    <color name="category_food">@color/gold</color>
-    <color name="category_shopping">@color/gold_dim</color>
-    <color name="category_sport">@color/gold</color>
-    <color name="category_wellness">@color/gold_dim</color>
+    <!-- Category dots — pastel family -->
+    <color name="category_culture">@color/color_sky</color>
+    <color name="category_nature">@color/color_mint</color>
+    <color name="category_food">@color/color_blush</color>
+    <color name="category_shopping">@color/color_butter</color>
+    <color name="category_sport">@color/color_lilac</color>
+    <color name="category_wellness">@color/color_mint</color>
 
 </resources>

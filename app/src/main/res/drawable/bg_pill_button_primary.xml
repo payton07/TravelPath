@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Full-width primary pill CTA: black bg, 27dp radius -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/color_bg" />
-    <corners android:radius="14dp" />
+    <solid android:color="@color/color_ink" />
+    <corners android:radius="27dp" />
 </shape>

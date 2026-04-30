@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-        No night overrides needed. The base theme in values/themes.xml is already
-        dark-first. Window chrome (status bar / nav bar) stays dark in all modes.
+        Direction 01 "Bright & Airy" is a light-only design.
+        No night-mode overrides — Theme.TravelPath in values/themes.xml applies in all modes.
     -->
 </resources>

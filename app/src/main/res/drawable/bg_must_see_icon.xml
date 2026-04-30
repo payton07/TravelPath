@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 32×32 colored square with rounded corners for must-see place icon -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/color_sky" />
+    <corners android:radius="8dp" />
+    <size android:width="32dp" android:height="32dp" />
+</shape>

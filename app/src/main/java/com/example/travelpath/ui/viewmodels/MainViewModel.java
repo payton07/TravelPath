@@ -192,6 +192,43 @@ public final class MainViewModel extends AndroidViewModel {
     }
 
     // =========================================================================
+    // Swipe decisions → SearchCriteria mapping
+    // =========================================================================
+
+    /**
+     * Maps the 5 swipe-card decisions to SearchCriteria fields.
+     *
+     * Card index → dimension:
+     *   0 = vibe      (right → slow/easy,  left → skip)
+     *   1 = pace      (right → easy,       left → high effort)
+     *   2 = culture   (right → add Culture interest)
+     *   3 = budget    (right → frugal €0–50, left → generous €50–200)
+     *   4 = group     (right → future feature, currently no-op)
+     */
+    public void applySwipeDecisions(boolean[] decisions) {
+        if (decisions == null || decisions.length < 5) return;
+
+        // Vibe (0): right = slow & sunlit → easy effort
+        if (decisions[0]) setEffortLevel(SearchCriteria.EFFORT_EASY);
+
+        // Pace (1): right = relaxed → easy; left = brisk → moderate
+        if (decisions[1]) setEffortLevel(SearchCriteria.EFFORT_EASY);
+        else              setEffortLevel(SearchCriteria.EFFORT_MODERATE);
+
+        // Culture (2): right = add Culture interest
+        List<String> interests = new ArrayList<>(safeList(selectedInterests));
+        if (decisions[2] && !interests.contains("Culture")) interests.add("Culture");
+        if (!decisions[2] && interests.isEmpty())           interests.add("Nature");
+        selectedInterests.setValue(interests);
+
+        // Budget (3): right = frugal, left = more generous
+        if (decisions[3]) setBudgetRange(0, 50);
+        else              setBudgetRange(30, 150);
+
+        // Group (4): scaffold for future — no-op for v1
+    }
+
+    // =========================================================================
     // Construction des critères
     // =========================================================================
 
