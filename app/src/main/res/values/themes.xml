@@ -3,10 +3,6 @@
 
     <style name="Base.Theme.TravelPath" parent="Theme.Material3.Light.NoActionBar">
 
-        <!-- Default font: Geist (downloadable), system sans-serif fallback -->
-        <item name="android:fontFamily">@font/geist</item>
-        <item name="fontFamily">@font/geist</item>
-
         <!-- ── Color roles ──────────────────────────────────────────── -->
         <item name="colorPrimary">@color/color_accent</item>
         <item name="colorOnPrimary">@color/white</item>
