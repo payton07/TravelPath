@@ -8,12 +8,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.example.travelpath.MainActivity;
+import com.example.travelpath.R;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.databinding.FragmentSavedBinding;
 import com.example.travelpath.ui.adapter.RouteAdapter;
 import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
+import com.example.travelpath.ui.widget.MessageBanner;
 
 /**
  * Liste des itinéraires sauvegardés par l'utilisateur.
@@ -78,6 +82,31 @@ public final class SavedFragment extends Fragment {
 
         binding.rvSavedRoutes.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvSavedRoutes.setAdapter(adapter);
+        attachSwipeToDelete();
+    }
+
+    private void attachSwipeToDelete() {
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(
+                0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView rv,
+                                  @NonNull RecyclerView.ViewHolder vh,
+                                  @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder vh, int direction) {
+                int pos = vh.getAdapterPosition();
+                if (pos == RecyclerView.NO_ID) return;
+                Itinerary itinerary = adapter.getItemAt(pos);
+                viewModel.deleteItinerary(itinerary);
+                ((MainActivity) requireActivity()).showMessage(
+                        MessageBanner.Type.SUCCESS,
+                        getString(R.string.route_removed));
+            }
+        }).attachToRecyclerView(binding.rvSavedRoutes);
     }
 
     // =========================================================================

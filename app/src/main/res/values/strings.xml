@@ -62,6 +62,10 @@
     <string name="balanced_title">The Gourmet Walker</string>
     <string name="balanced_desc">€45 • 3.5h • Moderate</string>
     <string name="popular">POPULAR</string>
+    <string name="badge_economy">Économique</string>
+    <string name="badge_balanced">Équilibré</string>
+    <string name="badge_comfort">Confort</string>
+    <string name="badge_popular">POPULAIRE</string>
     
     <string name="comfort">COMFORT</string>
     <string name="comfort_title">The Luxury Stroller</string>
@@ -96,6 +100,7 @@
     <!-- SavedRoutesActivity Strings -->
     <string name="saved_routes_title">Saved\nJourneys</string>
     <string name="saved_routes_empty">No journeys saved yet.\nStart exploring!</string>
+    <string name="saved_swipe_hint">Swipez pour supprimer un parcours</string>
     
     <!-- Profile Strings -->
     <string name="edit_profile_title">Edit Profile Name</string>
@@ -160,5 +165,26 @@
     <string name="nav_next">Suivant</string>
     <string name="nav_prev">Précédent</string>
     <string name="nav_finish">Terminer</string>
+
+    <!-- S5-F3 — Onboarding swipe-card -->
+    <string name="onboard_skip">Passer</string>
+    <string name="onboard_swipe_hint">Swipez pour répondre</string>
+    <string name="onboard_hint_no">← Non</string>
+    <string name="onboard_hint_yes">Oui →</string>
+    <string name="onboard_yes">OUI</string>
+    <string name="onboard_no">NON</string>
+    <string name="onboard_q1">Ambiance détendue\nou intense ?</string>
+    <string name="onboard_q1_hint">Comment aimez-vous vivre votre journée ?</string>
+    <string name="onboard_q2">Rythme tranquille\nou soutenu ?</string>
+    <string name="onboard_q2_hint">Promenades lentes ou marche rapide ?</string>
+    <string name="onboard_q3">Culture\n&amp; musées ?</string>
+    <string name="onboard_q3_hint">Art, histoire, patrimoine — ça vous parle ?</string>
+    <string name="onboard_q4">Budget\nserré ?</string>
+    <string name="onboard_q4_hint">Économiser ou vous faire plaisir ?</string>
+    <string name="onboard_q5">En\ngroupe ?</string>
+    <string name="onboard_q5_hint">Seul ou accompagné ?</string>
+    <string name="onboard_ready_title">Tout est prêt !</string>
+    <string name="onboard_ready_subtitle">Vos préférences sont configurées.\nDécouvrez votre premier parcours.</string>
+    <string name="onboard_cta">C\'est parti !</string>
 
 </resources>

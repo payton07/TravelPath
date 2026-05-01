@@ -5,6 +5,7 @@
     android:layout_height="match_parent">
 
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardRoot"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginHorizontal="8dp"
@@ -33,8 +34,9 @@
                     android:scaleType="centerCrop"
                     android:src="@drawable/bg_travel_mode" />
 
-                <!-- Gradient overlay -->
+                <!-- Gradient overlay — background + alpha swappés par tier dans l'adapter -->
                 <View
+                    android:id="@+id/viewHeroTint"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:background="@drawable/bg_travel_mode"
@@ -56,6 +58,26 @@
                     android:textAllCaps="true"
                     android:letterSpacing="0.06"
                     android:background="@drawable/bg_pill_button_outline" />
+
+                <!-- Badge "POPULAIRE" — visible uniquement pour BALANCED (géré par adapter) -->
+                <TextView
+                    android:id="@+id/tvBadgePopular"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|start"
+                    android:layout_margin="14dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:text="@string/badge_popular"
+                    android:textColor="@color/color_ink"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/geist"
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.06"
+                    android:background="@drawable/bg_pill_button_outline"
+                    android:backgroundTint="@color/color_butter"
+                    android:visibility="gone" />
 
                 <!-- Like / save button top-right -->
                 <com.google.android.material.button.MaterialButton

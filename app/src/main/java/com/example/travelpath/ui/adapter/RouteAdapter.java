@@ -1,10 +1,14 @@
 package com.example.travelpath.ui.adapter;
 
+import android.content.Context;
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.AsyncListDiffer;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -58,6 +62,10 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     /** Met à jour la liste via un diff asynchrone — pas de flash, pas de perte de position. */
     public void submitList(@NonNull List<Itinerary> itineraries) {
         differ.submitList(itineraries);
+    }
+
+    public Itinerary getItemAt(int position) {
+        return differ.getCurrentList().get(position);
     }
 
     /** 
@@ -180,9 +188,11 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             b.tvWeather.setText(formatWeather(it.getWeather()));
 
             String type = it.getRouteType();
-            if ("BALANCED".equalsIgnoreCase(type))      b.tvBadge.setText("Équilibré");
-            else if ("COMFORT".equalsIgnoreCase(type))  b.tvBadge.setText("Confort");
-            else                                         b.tvBadge.setText("Économique");
+            if ("BALANCED".equalsIgnoreCase(type))      b.tvBadge.setText(R.string.badge_balanced);
+            else if ("COMFORT".equalsIgnoreCase(type))  b.tvBadge.setText(R.string.badge_comfort);
+            else                                         b.tvBadge.setText(R.string.badge_economy);
+
+            applyTierStyle(type);
 
             if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
                 Glide.with(itemView)
@@ -201,6 +211,58 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
             b.btnSelectRoute.setOnClickListener(v -> listener.onRouteClick(it));
             b.getRoot().setOnClickListener(v -> listener.onRouteClick(it));
+        }
+
+        private void applyTierStyle(@Nullable String routeType) {
+            Context ctx = itemView.getContext();
+            int dp2 = Math.round(ctx.getResources().getDisplayMetrics().density) * 2;
+
+            if ("COMFORT".equalsIgnoreCase(routeType)) {
+                // Carte indigo profond — premium
+                b.cardRoot.setCardBackgroundColor(ContextCompat.getColor(ctx, R.color.color_comfort_bg));
+                b.cardRoot.setStrokeWidth(0);
+                b.viewHeroTint.setBackgroundResource(R.drawable.bg_card_header_comfort);
+                b.viewHeroTint.setAlpha(0.75f);
+                b.tvRouteName.setTextColor(0xFFFFFFFF);
+                b.btnLike.setIconTint(ColorStateList.valueOf(0xFFFFFFFF));
+                b.btnLike.setBackgroundTintList(ColorStateList.valueOf(0x33FFFFFF));
+                b.btnLike.setStrokeColor(ColorStateList.valueOf(0x44FFFFFF));
+                b.btnSelectRoute.setBackgroundTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.color_butter)));
+                b.btnSelectRoute.setTextColor(ContextCompat.getColor(ctx, R.color.color_ink));
+                b.tvBadgePopular.setVisibility(View.GONE);
+
+            } else if ("BALANCED".equalsIgnoreCase(routeType)) {
+                // Carte sky — populaire
+                b.cardRoot.setCardBackgroundColor(ContextCompat.getColor(ctx, R.color.color_sky));
+                b.cardRoot.setStrokeColor(ContextCompat.getColor(ctx, R.color.color_sky));
+                b.cardRoot.setStrokeWidth(dp2);
+                b.viewHeroTint.setBackgroundResource(R.drawable.bg_card_header_balanced);
+                b.viewHeroTint.setAlpha(0.65f);
+                b.tvRouteName.setTextColor(ContextCompat.getColor(ctx, R.color.color_ink));
+                b.btnLike.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.color_ink)));
+                b.btnLike.setBackgroundTintList(ColorStateList.valueOf(0xCCFFFFFF));
+                b.btnLike.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.color_line)));
+                b.btnSelectRoute.setBackgroundTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.color_ink)));
+                b.btnSelectRoute.setTextColor(ContextCompat.getColor(ctx, R.color.color_surface));
+                b.tvBadgePopular.setVisibility(View.VISIBLE);
+
+            } else {
+                // ECONOMY — carte butter chaude
+                b.cardRoot.setCardBackgroundColor(ContextCompat.getColor(ctx, R.color.color_butter));
+                b.cardRoot.setStrokeWidth(0);
+                b.viewHeroTint.setBackgroundResource(R.drawable.bg_card_header_economy);
+                b.viewHeroTint.setAlpha(0.60f);
+                b.tvRouteName.setTextColor(ContextCompat.getColor(ctx, R.color.color_ink));
+                b.btnLike.setIconTint(ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.color_ink)));
+                b.btnLike.setBackgroundTintList(ColorStateList.valueOf(0xCCFFFFFF));
+                b.btnLike.setStrokeColor(ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.color_line)));
+                b.btnSelectRoute.setBackgroundTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.color_ink)));
+                b.btnSelectRoute.setTextColor(ContextCompat.getColor(ctx, R.color.color_surface));
+                b.tvBadgePopular.setVisibility(View.GONE);
+            }
         }
 
         private void refreshLikeIcon(boolean saved) {

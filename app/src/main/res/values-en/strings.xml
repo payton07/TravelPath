@@ -10,9 +10,14 @@
 
     <string name="cost">COST</string>
     <string name="duration">DURATION</string>
+    <string name="badge_economy">Economy</string>
+    <string name="badge_balanced">Balanced</string>
+    <string name="badge_comfort">Comfort</string>
+    <string name="badge_popular">POPULAR</string>
 
     <string name="route_saved">Route saved!</string>
     <string name="route_removed">Route removed</string>
+    <string name="saved_swipe_hint">Swipe to remove a route</string>
     <string name="share_message">Discover my TravelPath route: %1$s</string>
     <string name="share_via">Share via</string>
 
@@ -66,5 +71,26 @@
     <string name="dialog_place_title">Must-see place</string>
     <string name="dialog_place_subtitle">Add a place you absolutely want to visit.</string>
     <string name="dialog_place_hint">e.g. Times Square…</string>
+
+    <!-- S5-F3 — Onboarding swipe-card -->
+    <string name="onboard_skip">Skip</string>
+    <string name="onboard_swipe_hint">Swipe to answer</string>
+    <string name="onboard_hint_no">← No</string>
+    <string name="onboard_hint_yes">Yes →</string>
+    <string name="onboard_yes">YES</string>
+    <string name="onboard_no">NO</string>
+    <string name="onboard_q1">Relaxed or intense\nvibe?</string>
+    <string name="onboard_q1_hint">How do you like to live your day?</string>
+    <string name="onboard_q2">Easy or brisk\npace?</string>
+    <string name="onboard_q2_hint">Slow strolls or fast walking?</string>
+    <string name="onboard_q3">Culture\n&amp; museums?</string>
+    <string name="onboard_q3_hint">Art, history, heritage — does it speak to you?</string>
+    <string name="onboard_q4">Tight\nbudget?</string>
+    <string name="onboard_q4_hint">Save money or treat yourself?</string>
+    <string name="onboard_q5">Traveling in\na group?</string>
+    <string name="onboard_q5_hint">Solo or with others?</string>
+    <string name="onboard_ready_title">All set!</string>
+    <string name="onboard_ready_subtitle">Your preferences are configured.\nDiscover your first route.</string>
+    <string name="onboard_cta">Let\'s go!</string>
 
 </resources>

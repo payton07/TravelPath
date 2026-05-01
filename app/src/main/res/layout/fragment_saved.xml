@@ -38,6 +38,17 @@
             android:textStyle="bold"
             android:lineSpacingMultiplier="1.05" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/saved_swipe_hint"
+            android:textColor="@color/color_ink_soft"
+            android:textSize="12sp"
+            android:fontFamily="@font/geist"
+            android:drawablePadding="4dp"
+            android:drawableStart="@drawable/ic_swipe_hint" />
+
         <!-- Saved list -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSavedRoutes"

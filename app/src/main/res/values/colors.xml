@@ -28,6 +28,9 @@
     <color name="color_accent">#E8654A</color>
     <color name="color_accent_pressed">#C84F36</color>
 
+    <!-- Comfort card — deep indigo/plum, premium alternative to pure black -->
+    <color name="color_comfort_bg">#3D3354</color>
+
     <!-- ═══════════════════════════════════════════════════════════════
          LEGACY ALIASES — keep existing layout attributes from crashing
          during the phase-by-phase migration. Remove after all layouts

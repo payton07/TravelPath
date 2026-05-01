@@ -22,13 +22,14 @@ public final class UserPreferencesManager {
     private static final String DATASTORE_NAME = "user_prefs";
 
     // ── Clés DataStore ────────────────────────────────────────────────────────
-    private static final Preferences.Key<String>  KEY_USER_NAME    = PreferencesKeys.stringKey("user_name");
-    private static final Preferences.Key<Integer> KEY_BUDGET_MIN   = PreferencesKeys.intKey("budget_min");
-    private static final Preferences.Key<Integer> KEY_BUDGET_MAX   = PreferencesKeys.intKey("budget_max");
-    private static final Preferences.Key<Float>   KEY_DURATION_MIN = PreferencesKeys.floatKey("duration_min");
-    private static final Preferences.Key<Float>   KEY_DURATION_MAX = PreferencesKeys.floatKey("duration_max");
-    private static final Preferences.Key<String>  KEY_EFFORT       = PreferencesKeys.stringKey("effort_level");
-    private static final Preferences.Key<String>  KEY_WEATHER      = PreferencesKeys.stringKey("weather_prefs"); // JSON array
+    private static final Preferences.Key<String>  KEY_USER_NAME       = PreferencesKeys.stringKey("user_name");
+    private static final Preferences.Key<Integer> KEY_BUDGET_MIN      = PreferencesKeys.intKey("budget_min");
+    private static final Preferences.Key<Integer> KEY_BUDGET_MAX      = PreferencesKeys.intKey("budget_max");
+    private static final Preferences.Key<Float>   KEY_DURATION_MIN    = PreferencesKeys.floatKey("duration_min");
+    private static final Preferences.Key<Float>   KEY_DURATION_MAX    = PreferencesKeys.floatKey("duration_max");
+    private static final Preferences.Key<String>  KEY_EFFORT          = PreferencesKeys.stringKey("effort_level");
+    private static final Preferences.Key<String>  KEY_WEATHER         = PreferencesKeys.stringKey("weather_prefs"); // JSON array
+    private static final Preferences.Key<Boolean> KEY_ONBOARDING_DONE = PreferencesKeys.booleanKey("onboarding_complete");
 
     // ── Valeurs par défaut ────────────────────────────────────────────────────
     private static final String  DEFAULT_USER_NAME    = "Traveler";
@@ -146,6 +147,28 @@ public final class UserPreferencesManager {
         return dataStore.updateDataAsync(p -> {
             MutablePreferences m = p.toMutablePreferences();
             m.set(KEY_WEATHER, json);
+            return Single.just(m);
+        });
+    }
+
+    // =========================================================================
+    // Onboarding
+    // =========================================================================
+
+    /** Returns true if the user has already completed the onboarding flow. */
+    public Single<Boolean> isOnboardingComplete() {
+        return dataStore.data()
+                .map(p -> {
+                    Boolean done = p.get(KEY_ONBOARDING_DONE);
+                    return done != null && done;
+                })
+                .firstOrError();
+    }
+
+    public Single<Preferences> setOnboardingComplete() {
+        return dataStore.updateDataAsync(p -> {
+            MutablePreferences m = p.toMutablePreferences();
+            m.set(KEY_ONBOARDING_DONE, true);
             return Single.just(m);
         });
     }

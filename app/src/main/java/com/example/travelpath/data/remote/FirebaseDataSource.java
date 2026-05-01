@@ -4,6 +4,7 @@ import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.data.models.SearchCriteria;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
 import java.util.List;
@@ -22,10 +23,12 @@ public final class FirebaseDataSource {
 
     private final FirebaseFunctions functions;
     private final RemoteMapper      mapper;
+    private final Gson              gson;
 
     public FirebaseDataSource(FirebaseFunctions functions, Gson gson) {
         this.functions = functions;
         this.mapper    = new RemoteMapper(gson);
+        this.gson      = gson;
     }
 
     // =========================================================================
@@ -70,7 +73,26 @@ public final class FirebaseDataSource {
             payload.put("description", itinerary.getDescription());
             payload.put("cost",        itinerary.getCost());
             payload.put("duration",    itinerary.getDuration());
+            payload.put("effort",      itinerary.getEffort());
+            payload.put("weather",     itinerary.getWeather());
             payload.put("steps",       itinerary.getSteps());
+            payload.put("routeType",   itinerary.getRouteType());
+
+            // Parse fullStepsJson → typed list so PdfBuilder can render one page per POI
+            String fullStepsJson = itinerary.getFullStepsJson();
+            if (fullStepsJson != null && !fullStepsJson.isEmpty()) {
+                try {
+                    List<Map<String, Object>> fullSteps = gson.fromJson(
+                        fullStepsJson,
+                        new TypeToken<List<Map<String, Object>>>(){}.getType()
+                    );
+                    payload.put("fullSteps", fullSteps);
+                } catch (Exception ignored) {}
+            }
+
+            if (itinerary.getEncodedPolyline() != null) {
+                payload.put("encodedPolyline", itinerary.getEncodedPolyline());
+            }
 
             functions.getHttpsCallable("generatePDF")
                     .call(payload)
