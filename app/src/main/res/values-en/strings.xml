@@ -37,6 +37,28 @@
     <string name="get_directions">Get directions</string>
     <string name="error_maps_unavailable">Unable to open Google Maps.</string>
 
+    <!-- Navigation in-app -->
+    <string name="nav_step_counter">Step %1$d of %2$d</string>
+    <string name="nav_next">Next</string>
+    <string name="nav_prev">Previous</string>
+    <string name="nav_finish">Finish</string>
+
+    <!-- Profile redesign -->
+    <string name="profile_tagline">Passionate traveller</string>
+    <string name="stat_trips">Trips</string>
+    <string name="stat_cities">Cities</string>
+    <string name="stat_km">km</string>
+    <string name="profile_section_style">Your style</string>
+    <string name="profile_section_prefs">Preferences</string>
+    <string name="profile_section_account">Account</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_dark_mode">Dark mode</string>
+    <string name="profile_dark_mode_unavailable">Coming soon</string>
+    <string name="profile_edit_name">Edit name</string>
+    <string name="profile_clear_cache">Clear cache</string>
+    <string name="profile_clear_cache_success">Cache cleared successfully</string>
+    <string name="profile_style_empty">No interests selected.\nSet your preferences in the Explore tab.</string>
+
     <!-- F4 — dialog strings -->
     <string name="dialog_city_title">Choose a city</string>
     <string name="dialog_city_subtitle">Enter the city you want to explore.</string>

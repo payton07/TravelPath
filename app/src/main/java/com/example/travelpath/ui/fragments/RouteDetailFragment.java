@@ -163,7 +163,7 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
             Itinerary it = viewModel.getItinerary().getValue();
             if (it != null) {
                 ((MainActivity) requireActivity()).navigateTo(
-                    FullScreenMapFragment.newInstance(it), "fullscreen_map");
+                    NavigationFragment.newInstance(it), "navigation");
             }
         });
 

@@ -138,7 +138,27 @@
     <string name="dialog_place_subtitle">Ajoutez un lieu que vous souhaitez absolument visiter.</string>
     <string name="dialog_place_hint">ex. Place de la Comédie…</string>
 
-    <!-- F4 — Profile language toggle -->
+    <!-- Profile redesign -->
     <string name="language_section">LANGUE / LANGUAGE</string>
+    <string name="profile_tagline">Voyageur passionné</string>
+    <string name="stat_trips">Voyages</string>
+    <string name="stat_cities">Villes</string>
+    <string name="stat_km">km</string>
+    <string name="profile_section_style">Votre style</string>
+    <string name="profile_section_prefs">Préférences</string>
+    <string name="profile_section_account">Compte</string>
+    <string name="profile_language">Langue</string>
+    <string name="profile_dark_mode">Mode sombre</string>
+    <string name="profile_dark_mode_unavailable">Bientôt disponible</string>
+    <string name="profile_edit_name">Modifier mon nom</string>
+    <string name="profile_clear_cache">Vider le cache</string>
+    <string name="profile_clear_cache_success">Cache vidé avec succès</string>
+    <string name="profile_style_empty">Aucun intérêt sélectionné.\nConfigurez vos préférences dans l\'onglet Explorer.</string>
+
+    <!-- Navigation in-app -->
+    <string name="nav_step_counter">Étape %1$d / %2$d</string>
+    <string name="nav_next">Suivant</string>
+    <string name="nav_prev">Précédent</string>
+    <string name="nav_finish">Terminer</string>
 
 </resources>

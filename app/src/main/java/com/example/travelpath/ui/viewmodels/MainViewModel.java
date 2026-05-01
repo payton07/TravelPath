@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import com.example.travelpath.TravelApplication;
 import com.example.travelpath.data.models.SearchCriteria;
 import com.example.travelpath.data.preferences.UserPreferencesManager;
 import com.example.travelpath.domain.validation.CriteriaValidator;
@@ -189,6 +190,27 @@ public final class MainViewModel extends AndroidViewModel {
                     p  -> Timber.d("Nom persisté : %s", name),
                     err -> Timber.w("Erreur persistance nom : %s", err.getMessage())
                 ));
+    }
+
+    // =========================================================================
+    // Cache management
+    // =========================================================================
+
+    private final MutableLiveData<Boolean> cacheClearedEvent = new MutableLiveData<>();
+
+    public LiveData<Boolean> getCacheClearedEvent() { return cacheClearedEvent; }
+
+    public void clearCache() {
+        disposables.add(
+            ((TravelApplication) getApplication()).getRepository()
+                .purgeExpiredCache()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    () -> cacheClearedEvent.setValue(true),
+                    err -> Timber.w("Erreur purge cache : %s", err.getMessage())
+                )
+        );
     }
 
     // =========================================================================
