@@ -114,6 +114,15 @@
     <string name="btn_select_route">Sélectionner ce parcours</string>
     <string name="weather_placeholder">22°C Ensoleillé</string>
 
+    <!-- S5-F4 — Story Card -->
+    <string name="story_card_btn">Story</string>
+    <string name="story_card_share_via">Partager la story</string>
+    <string name="story_card_error">Impossible de générer la story card</string>
+    <string name="story_card_city_prefix">MON PARCOURS À </string>
+    <string name="story_card_my_route">MON PARCOURS</string>
+    <string name="story_card_steps_label">LES ÉTAPES</string>
+    <string name="story_card_footer">Généré avec TravelPath</string>
+
     <!-- PDF Export Strings -->
     <string name="generating_pdf">Génération du PDF...</string>
     <string name="pdf_generating">Génération du PDF en cours...</string>
@@ -160,11 +169,21 @@
     <string name="profile_clear_cache_success">Cache vidé avec succès</string>
     <string name="profile_style_empty">Aucun intérêt sélectionné.\nConfigurez vos préférences dans l\'onglet Explorer.</string>
 
+    <!-- S5-F7 — World map -->
+    <string name="saved_map_label">MES DESTINATIONS</string>
+
+    <!-- S5-F6 — Crowd level -->
+    <string name="crowd_low">Peu fréquenté</string>
+    <string name="crowd_medium">Affluence modérée</string>
+    <string name="crowd_high">Très fréquenté</string>
+
     <!-- Navigation in-app -->
     <string name="nav_step_counter">Étape %1$d / %2$d</string>
     <string name="nav_next">Suivant</string>
     <string name="nav_prev">Précédent</string>
     <string name="nav_finish">Terminer</string>
+    <string name="nav_budget_remaining">~%1$.0f€ restant</string>
+    <string name="nav_budget_total">sur ~%1$.0f€</string>
 
     <!-- S5-F3 — Onboarding swipe-card -->
     <string name="onboard_skip">Passer</string>

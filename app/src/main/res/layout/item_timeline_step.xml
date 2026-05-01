@@ -96,6 +96,20 @@
                     android:textSize="11sp"
                     android:fontFamily="@font/geist"
                     android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvCrowdLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="3dp"
+                    android:background="@drawable/bg_city_pill"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/geist"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_ink"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

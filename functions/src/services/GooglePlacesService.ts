@@ -188,6 +188,7 @@ export class GooglePlacesService {
             effortScore:          PlacesConfig.DEFAULTS.EFFORT_SCORE,
             comfortLevel:         priceLevel                                    ?? PlacesConfig.DEFAULTS.COMFORT_LEVEL,
             photoUrls,
+            crowdLevel:           this.resolveCrowdLevel(category, priceLevel),
         };
 
         if (result.opening_hours) {
@@ -207,6 +208,21 @@ export class GooglePlacesService {
     private resolveWeatherCompatibility(category: string): string[] {
         const outdoor = ['nature', 'architecture'];
         return outdoor.includes(category.toLowerCase()) ? ['SUN', 'CLOUD'] : ['ANY'];
+    }
+
+    private resolveCrowdLevel(category: string, priceLevel: number): 'LOW' | 'MEDIUM' | 'HIGH' {
+        const cat = category.toLowerCase();
+        if (cat.includes('nature') || cat.includes('park') || cat.includes('jardin') || cat.includes('garden')) {
+            return priceLevel >= 3 ? 'LOW' : 'MEDIUM';
+        }
+        if (cat.includes('food') || cat.includes('restau') || cat.includes('café') || cat.includes('bar') || cat.includes('brasserie')) {
+            return priceLevel >= 3 ? 'MEDIUM' : 'HIGH';
+        }
+        if (cat.includes('shop') || cat.includes('mall') || cat.includes('marché') || cat.includes('market')) {
+            return 'HIGH';
+        }
+        // Museums, monuments, culture, wellness, sport
+        return priceLevel >= 3 ? 'LOW' : 'MEDIUM';
     }
 
     private resolveTimeSlot(category: string, name: string): TimeSlot {

@@ -2,6 +2,7 @@ package com.example.travelpath.ui.fragments;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -102,6 +103,20 @@ public final class PoiDetailFragment extends Fragment {
                 poi.getAverageDurationHours()));
         } else {
             binding.tvPoiDuration.setText("—");
+        }
+
+        String crowd = poi.getCrowdLevel();
+        if (crowd != null) {
+            binding.layoutCrowdLevel.setVisibility(View.VISIBLE);
+            int labelRes, colorRes;
+            switch (crowd) {
+                case "LOW":  labelRes = R.string.crowd_low;    colorRes = R.color.color_mint;   break;
+                case "HIGH": labelRes = R.string.crowd_high;   colorRes = R.color.color_blush;  break;
+                default:     labelRes = R.string.crowd_medium; colorRes = R.color.color_butter; break;
+            }
+            binding.tvPoiCrowdLevel.setText(labelRes);
+            binding.tvPoiCrowdLevel.setBackgroundTintList(ColorStateList.valueOf(
+                    ContextCompat.getColor(requireContext(), colorRes)));
         }
 
         String photoUrl = poi.getPrimaryPhotoUrl();

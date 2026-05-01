@@ -197,6 +197,40 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- Crowd level row -->
+            <LinearLayout
+                android:id="@+id/layoutCrowdLevel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="AFFLUENCE"
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/geist"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:id="@+id/tvPoiCrowdLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="5dp"
+                    android:background="@drawable/bg_city_pill"
+                    android:textSize="12sp"
+                    android:fontFamily="@font/geist"
+                    android:textStyle="bold"
+                    android:textColor="@color/color_ink" />
+            </LinearLayout>
+
             <!-- Get directions button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGetDirections"

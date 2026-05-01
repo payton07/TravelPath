@@ -15,6 +15,16 @@
     <string name="badge_comfort">Comfort</string>
     <string name="badge_popular">POPULAR</string>
 
+    <!-- S5-F4 — Story Card -->
+    <string name="story_card_btn">Story</string>
+    <string name="story_card_share_via">Share story</string>
+    <string name="story_card_error">Unable to generate story card</string>
+
+    <string name="story_card_city_prefix">MY ROUTE IN </string>
+    <string name="story_card_my_route">MY ROUTE</string>
+    <string name="story_card_steps_label">ITINERARY</string>
+    <string name="story_card_footer">Generated with TravelPath</string>
+
     <string name="route_saved">Route saved!</string>
     <string name="route_removed">Route removed</string>
     <string name="saved_swipe_hint">Swipe to remove a route</string>
@@ -42,11 +52,21 @@
     <string name="get_directions">Get directions</string>
     <string name="error_maps_unavailable">Unable to open Google Maps.</string>
 
+    <!-- S5-F7 — World map -->
+    <string name="saved_map_label">MY DESTINATIONS</string>
+
+    <!-- S5-F6 — Crowd level -->
+    <string name="crowd_low">Low crowd</string>
+    <string name="crowd_medium">Moderate crowd</string>
+    <string name="crowd_high">Very busy</string>
+
     <!-- Navigation in-app -->
     <string name="nav_step_counter">Step %1$d of %2$d</string>
     <string name="nav_next">Next</string>
     <string name="nav_prev">Previous</string>
     <string name="nav_finish">Finish</string>
+    <string name="nav_budget_remaining">~%1$.0f€ left</string>
+    <string name="nav_budget_total">of ~%1$.0f€</string>
 
     <!-- Profile redesign -->
     <string name="profile_tagline">Passionate traveller</string>

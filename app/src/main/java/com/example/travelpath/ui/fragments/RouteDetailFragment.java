@@ -4,9 +4,14 @@ import android.app.DownloadManager;
 import com.example.travelpath.MainActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import androidx.core.content.FileProvider;
+import com.example.travelpath.ui.util.StoryCardGenerator;
+import java.io.File;
+import java.io.FileOutputStream;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -158,6 +163,7 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         binding.btnSaveRoute.setOnClickListener(v  -> viewModel.toggleSave());
         binding.btnShareRoute.setOnClickListener(v -> viewModel.shareItinerary());
         binding.btnExportPdf.setOnClickListener(v  -> viewModel.generatePdf());
+        binding.btnShareStory.setOnClickListener(v -> shareStoryCard());
 
         binding.btnStartRoute.setOnClickListener(v -> {
             Itinerary it = viewModel.getItinerary().getValue();
@@ -278,6 +284,7 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
             step.tvStepNumber.setBackgroundTintList(ColorStateList.valueOf(stopColor));
 
             bindOpeningHours(step, poi);
+            bindCrowdLevel(step, poi);
             bindStepPhoto(step, poi);
 
             final PointOfInterest finalPoi = poi;
@@ -299,6 +306,24 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         step.tvOpeningHours.setText(open ? R.string.open : R.string.closed);
         step.tvOpeningHours.setTextColor(ContextCompat.getColor(requireContext(),
             open ? R.color.emerald_primary : android.R.color.holo_red_dark));
+    }
+
+    private void bindCrowdLevel(ItemTimelineStepBinding step, PointOfInterest poi) {
+        String crowd = poi.getCrowdLevel();
+        if (crowd == null) {
+            step.tvCrowdLevel.setVisibility(View.GONE);
+            return;
+        }
+        step.tvCrowdLevel.setVisibility(View.VISIBLE);
+        int labelRes, colorRes;
+        switch (crowd) {
+            case "LOW":  labelRes = R.string.crowd_low;    colorRes = R.color.color_mint;   break;
+            case "HIGH": labelRes = R.string.crowd_high;   colorRes = R.color.color_blush;  break;
+            default:     labelRes = R.string.crowd_medium; colorRes = R.color.color_butter; break;
+        }
+        step.tvCrowdLevel.setText(labelRes);
+        step.tvCrowdLevel.setBackgroundTintList(ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(), colorRes)));
     }
 
     private void bindStepPhoto(ItemTimelineStepBinding step, PointOfInterest poi) {
@@ -373,6 +398,40 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         intent.putExtra(Intent.EXTRA_TEXT,
             getString(R.string.share_message, shareUrl));
         startActivity(Intent.createChooser(intent, getString(R.string.share_via)));
+    }
+
+    private void shareStoryCard() {
+        Itinerary it = viewModel.getItinerary().getValue();
+        if (it == null) return;
+
+        List<PointOfInterest> pois = viewModel.parseFullSteps(it.getFullStepsJson());
+        Bitmap bmp = StoryCardGenerator.generate(requireContext(), it, pois);
+
+        try {
+            File dir  = new File(requireContext().getCacheDir(), "story_cards");
+            dir.mkdirs();
+            String safe = it.getName().replaceAll("[^a-zA-Z0-9]", "_");
+            File file = new File(dir, safe + ".png");
+
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                bmp.compress(Bitmap.CompressFormat.PNG, 90, fos);
+            }
+            bmp.recycle();
+
+            Uri uri = FileProvider.getUriForFile(
+                    requireContext(), "com.example.travelpath.fileprovider", file);
+
+            Intent intent = new Intent(Intent.ACTION_SEND)
+                    .setType("image/png")
+                    .putExtra(Intent.EXTRA_STREAM, uri)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(intent, getString(R.string.story_card_share_via)));
+        } catch (Exception e) {
+            ((MainActivity) requireActivity()).showMessage(
+                    com.example.travelpath.ui.widget.MessageBanner.Type.ERROR,
+                    getString(R.string.story_card_error));
+            Timber.w("Story card error: %s", e.getMessage());
+        }
     }
 
     private void enqueueDownload(@NonNull String url) {

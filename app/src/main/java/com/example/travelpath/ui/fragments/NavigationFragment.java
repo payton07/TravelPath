@@ -2,6 +2,7 @@ package com.example.travelpath.ui.fragments;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,7 +41,8 @@ public final class NavigationFragment extends Fragment implements OnMapReadyCall
     private GoogleMap                 googleMap;
     private final Gson                gson = new Gson();
     private List<PointOfInterest>     pois = new ArrayList<>();
-    private int                       currentStep = 0;
+    private int                       currentStep   = 0;
+    private double                    totalBudget   = 0;
 
     private final ActivityResultLauncher<String> locationPermission =
         registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -78,7 +80,8 @@ public final class NavigationFragment extends Fragment implements OnMapReadyCall
             return;
         }
 
-        pois = parseSteps(it.getFullStepsJson());
+        pois        = parseSteps(it.getFullStepsJson());
+        totalBudget = it.getCost();
 
         binding.btnBack.setOnClickListener(v ->
             requireActivity().getOnBackPressedDispatcher().onBackPressed());
@@ -195,6 +198,36 @@ public final class NavigationFragment extends Fragment implements OnMapReadyCall
         binding.btnNavPrev.setEnabled(!isFirst);
         binding.btnNavPrev.setAlpha(isFirst ? 0.4f : 1f);
         binding.btnNavNext.setText(isLast ? R.string.nav_finish : R.string.nav_next);
+
+        updateBudgetRow();
+    }
+
+    private void updateBudgetRow() {
+        // Sum costs of steps already visited (indices 0..currentStep-1)
+        double spent = 0;
+        for (int i = 0; i < currentStep; i++) spent += stepCost(i);
+        double remaining = Math.max(0, totalBudget - spent);
+
+        binding.tvNavBudget.setText(
+                getString(R.string.nav_budget_remaining, remaining));
+        binding.tvNavBudgetTotal.setText(
+                getString(R.string.nav_budget_total, totalBudget));
+
+        int progressPct = totalBudget > 0 ? (int) (remaining / totalBudget * 100) : 100;
+        binding.progressBudget.setProgress(progressPct);
+
+        // Turn bar red when less than 20 % remains
+        int tintColor = ContextCompat.getColor(requireContext(),
+                progressPct < 20 ? android.R.color.holo_red_dark : R.color.color_accent);
+        binding.progressBudget.setProgressTintList(ColorStateList.valueOf(tintColor));
+    }
+
+    /** Cost of step i: use baseCost if > 0, else spread total evenly across all stops. */
+    private double stepCost(int i) {
+        if (i < 0 || i >= pois.size()) return 0;
+        double base = pois.get(i).getBaseCost();
+        if (base > 0) return base;
+        return pois.isEmpty() ? 0 : totalBudget / pois.size();
     }
 
     // ── Localisation ──────────────────────────────────────────────────────────

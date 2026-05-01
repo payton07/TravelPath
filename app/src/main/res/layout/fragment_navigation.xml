@@ -111,6 +111,44 @@
                 android:visibility="gone" />
         </LinearLayout>
 
+        <!-- Budget tracker -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvNavBudget"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/color_ink_soft"
+                android:textSize="12sp"
+                android:fontFamily="@font/geist" />
+
+            <TextView
+                android:id="@+id/tvNavBudgetTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/color_ink_soft"
+                android:textSize="12sp"
+                android:fontFamily="@font/geist"
+                android:alpha="0.55" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progressBudget"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginTop="8dp"
+            android:max="100"
+            android:progress="100"
+            android:progressBackgroundTint="@color/color_line"
+            android:progressTint="@color/color_accent" />
+
         <!-- Divider -->
         <View
             android:layout_width="match_parent"
