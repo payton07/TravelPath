@@ -85,20 +85,18 @@ export const PdfConfig = {
 
     STORAGE_FOLDER: 'pdfs',
 
-    COLORS: {
-        EMERALD:    '#10B981',
-        SLATE_950:  '#020617',
-        SLATE_900:  '#0F172A',
-        SLATE_500:  '#64748B',
-        SLATE_400:  '#94A3B8',
-    },
-
-    FONTS: {
-        TITLE_SIZE:    24,
-        HEADING_SIZE:  20,
-        SECTION_SIZE:  16,
-        BODY_SIZE:     14,
-        SMALL_SIZE:    12,
-        CAPTION_SIZE:  10,
+    /** Palette "Bright & Airy" — miroir de res/values/colors.xml. */
+    PALETTE: {
+        BG:       '#FBF7F2',
+        SURFACE:  '#FFFFFF',
+        INK:      '#1B1A17',
+        INK_SOFT: '#6E6A62',
+        LINE:     '#EAE3D8',
+        BUTTER:   '#F4E5BB',
+        SKY:      '#C8DCE8',
+        BLUSH:    '#F4D4C4',
+        MINT:     '#CFE3D2',
+        LILAC:    '#DCD0E8',
+        ACCENT:   '#E8654A',
     },
 } as const;
