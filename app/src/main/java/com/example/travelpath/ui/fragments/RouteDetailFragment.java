@@ -233,7 +233,7 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         binding.tvCostDetail.setText(String.format("~%s€", it.getCost()));
         binding.tvDurationDetail.setText(it.getDuration());
         binding.tvEffortDetail.setText(it.getEffort());
-        binding.tvWeatherDetail.setText(RouteAdapter.formatWeather(it.getWeather()));
+        binding.tvWeatherDetail.setText(RouteAdapter.formatWeather(requireContext(), it.getWeather()));
 
         if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
             binding.ivRouteHeader.setVisibility(View.VISIBLE);

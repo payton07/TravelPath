@@ -153,7 +153,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="COÛT"
+                            android:text="@string/cost"
                             android:textColor="@color/color_ink_soft"
                             android:textSize="9sp"
                             android:fontFamily="@font/geist"
@@ -188,7 +188,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="DURÉE"
+                            android:text="@string/duration"
                             android:textColor="@color/color_ink_soft"
                             android:textSize="9sp"
                             android:fontFamily="@font/geist"
@@ -223,7 +223,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="EFFORT"
+                            android:text="@string/effort"
                             android:textColor="@color/color_ink_soft"
                             android:textSize="9sp"
                             android:fontFamily="@font/geist"
@@ -258,7 +258,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="MÉTÉO"
+                            android:text="@string/label_weather"
                             android:textColor="@color/color_ink_soft"
                             android:textSize="9sp"
                             android:fontFamily="@font/geist"

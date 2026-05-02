@@ -33,6 +33,13 @@
 
     <string name="weather_alert_title">Weather alert: %1$s</string>
     <string name="weather_alert_desc">Precipitation expected. Plan indoor activities.</string>
+    <string name="label_weather">WEATHER</string>
+    <string name="weather_display_any">Any weather</string>
+    <string name="weather_display_no_rain">No rain</string>
+    <string name="weather_display_sunny">Sunny</string>
+    <string name="weather_display_cloudy">Cloudy</string>
+    <string name="weather_display_rain">Rainy</string>
+    <string name="weather_display_varies">Variable</string>
 
     <string name="generating_pdf">Generating PDF…</string>
     <string name="pdf_generating">PDF generation in progress…</string>

@@ -35,6 +35,13 @@
     <string name="weather_snow">SNOW</string>
     <string name="weather_rain">RAIN</string>
     <string name="weather_sun">SUN</string>
+    <string name="label_weather">MÉTÉO</string>
+    <string name="weather_display_any">Toutes météos</string>
+    <string name="weather_display_no_rain">Hors pluie</string>
+    <string name="weather_display_sunny">Beau temps</string>
+    <string name="weather_display_cloudy">Couvert</string>
+    <string name="weather_display_rain">Pluie</string>
+    <string name="weather_display_varies">Variable</string>
     
     <string name="btn_generate">Generate Journey</string>
     <string name="generating_toast">Generating your journey...</string>

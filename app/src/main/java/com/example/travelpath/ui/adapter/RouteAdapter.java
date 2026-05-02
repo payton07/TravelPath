@@ -140,7 +140,7 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             b.tvCost.setText(String.format("~%s€", it.getCost()));
             b.tvDuration.setText(it.getDuration());
             b.tvEffort.setText(it.getEffort());
-            b.tvWeather.setText(formatWeather(it.getWeather()));
+            b.tvWeather.setText(formatWeather(itemView.getContext(), it.getWeather()));
 
             loadThumbnail(it);
             refreshLikeIcon(it.isSaved());
@@ -185,7 +185,7 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             b.tvCost.setText(String.format("~%s€", it.getCost()));
             b.tvDuration.setText(it.getDuration());
             b.tvEffort.setText(it.getEffort());
-            b.tvWeather.setText(formatWeather(it.getWeather()));
+            b.tvWeather.setText(formatWeather(itemView.getContext(), it.getWeather()));
 
             String type = it.getRouteType();
             if ("BALANCED".equalsIgnoreCase(type))      b.tvBadge.setText(R.string.badge_balanced);
@@ -276,17 +276,17 @@ public final class RouteAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     // Helpers
     // =========================================================================
 
-    public static String formatWeather(@Nullable String raw) {
+    public static String formatWeather(@NonNull Context ctx, @Nullable String raw) {
         if (raw == null || raw.isEmpty()) return "—";
         String lower = raw.toLowerCase().trim();
         if (lower.equals("any") || lower.contains("sun") && lower.contains("cloud") && lower.contains("rain")) {
-            return "Toutes météos";
+            return ctx.getString(R.string.weather_display_any);
         }
-        if (lower.contains("sun") && lower.contains("cloud")) return "Hors pluie";
-        if (lower.equals("sun"))   return "Beau temps";
-        if (lower.equals("cloud")) return "Couvert";
-        if (lower.equals("rain"))  return "Pluie";
-        if (lower.equals("varies")) return "Variable";
+        if (lower.contains("sun") && lower.contains("cloud")) return ctx.getString(R.string.weather_display_no_rain);
+        if (lower.equals("sun"))    return ctx.getString(R.string.weather_display_sunny);
+        if (lower.equals("cloud"))  return ctx.getString(R.string.weather_display_cloudy);
+        if (lower.equals("rain"))   return ctx.getString(R.string.weather_display_rain);
+        if (lower.equals("varies")) return ctx.getString(R.string.weather_display_varies);
         return raw;
     }
 }
