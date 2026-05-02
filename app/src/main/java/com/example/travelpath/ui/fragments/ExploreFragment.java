@@ -140,6 +140,8 @@ public final class ExploreFragment extends Fragment {
                 ContextCompat.getColor(requireContext(), R.color.color_accent)),
                 start, start + 3, 0);
         binding.tvHeaderHeadline.setText(ssb);
+        binding.tvAvatar.setOnClickListener(v ->
+            ((MainActivity) requireActivity()).switchToProfileTab());
     }
 
     // ── City section ──────────────────────────────────────────────────────────
@@ -679,6 +681,11 @@ public final class ExploreFragment extends Fragment {
     private void observeViewModel() {
         viewModel.getDestinationCity().observe(getViewLifecycleOwner(), city -> {
             if (city != null) binding.tvCityName.setText(extractCityName(city));
+        });
+        viewModel.getUserName().observe(getViewLifecycleOwner(), name -> {
+            if (name != null && !name.isEmpty()) {
+                binding.tvAvatar.setText(String.valueOf(name.charAt(0)).toUpperCase());
+            }
         });
     }
 

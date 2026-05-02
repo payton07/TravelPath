@@ -231,6 +231,104 @@
                     android:textColor="@color/color_ink" />
             </LinearLayout>
 
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="20dp"
+                android:background="@color/color_line" />
+
+            <!-- Address section -->
+            <LinearLayout
+                android:id="@+id/layoutAddress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/label_address"
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/geist"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:id="@+id/tvPoiAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/color_ink"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/geist" />
+            </LinearLayout>
+
+            <!-- Cost row -->
+            <LinearLayout
+                android:id="@+id/layoutCost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_cost_detail"
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/geist"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:id="@+id/tvPoiCost"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/color_ink"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/fraunces"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Best time row -->
+            <LinearLayout
+                android:id="@+id/layoutBestTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_best_time"
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="10sp"
+                    android:fontFamily="@font/geist"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:id="@+id/tvPoiBestTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/color_ink"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/fraunces"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
             <!-- Get directions button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnGetDirections"

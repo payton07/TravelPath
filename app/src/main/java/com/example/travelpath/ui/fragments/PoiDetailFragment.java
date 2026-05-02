@@ -119,12 +119,38 @@ public final class PoiDetailFragment extends Fragment {
                     ContextCompat.getColor(requireContext(), colorRes)));
         }
 
+        String address = poi.getAddress();
+        if (address != null && !address.isEmpty()) {
+            binding.tvPoiAddress.setText(address);
+            binding.layoutAddress.setVisibility(View.VISIBLE);
+        }
+
+        if (poi.getBaseCost() > 0) {
+            binding.tvPoiCost.setText(String.format(Locale.getDefault(), "~€%.0f", poi.getBaseCost()));
+            binding.layoutCost.setVisibility(View.VISIBLE);
+        }
+
+        String slot = poi.getPreferredTimeSlot();
+        if (slot != null && !slot.isEmpty()) {
+            binding.tvPoiBestTime.setText(resolveTimeSlotLabel(slot));
+            binding.layoutBestTime.setVisibility(View.VISIBLE);
+        }
+
         String photoUrl = poi.getPrimaryPhotoUrl();
         if (photoUrl != null) {
             Glide.with(this).load(photoUrl).into(binding.ivPoiPhoto);
         }
 
         binding.btnGetDirections.setOnClickListener(v -> launchMaps(poi));
+    }
+
+    private String resolveTimeSlotLabel(@NonNull String slot) {
+        switch (slot.toLowerCase()) {
+            case "morning":    return getString(R.string.time_slot_morning);
+            case "evening":    return getString(R.string.time_slot_evening);
+            case "late_night": return getString(R.string.time_slot_late);
+            default:           return getString(R.string.time_slot_afternoon);
+        }
     }
 
     private void launchMaps(@NonNull PointOfInterest poi) {

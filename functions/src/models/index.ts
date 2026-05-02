@@ -28,6 +28,7 @@ export interface PointOfInterest {
         weekdayText: string[];
     };
     crowdLevel?:          'LOW' | 'MEDIUM' | 'HIGH';
+    address?:             string;
 }
 
 // ─── SearchCriteria ───────────────────────────────────────────────────────────

@@ -184,6 +184,15 @@
     <string name="crowd_medium">Affluence modérée</string>
     <string name="crowd_high">Très fréquenté</string>
 
+    <!-- POI detail — new info rows -->
+    <string name="label_address">ADRESSE</string>
+    <string name="label_cost_detail">COÛT ESTIMÉ</string>
+    <string name="label_best_time">MEILLEUR MOMENT</string>
+    <string name="time_slot_morning">Matin</string>
+    <string name="time_slot_afternoon">Après-midi</string>
+    <string name="time_slot_evening">Soirée</string>
+    <string name="time_slot_late">Nuit</string>
+
     <!-- Navigation in-app -->
     <string name="nav_step_counter">Étape %1$d / %2$d</string>
     <string name="nav_next">Suivant</string>

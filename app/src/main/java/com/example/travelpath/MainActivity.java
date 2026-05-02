@@ -258,6 +258,10 @@ public final class MainActivity extends AppCompatActivity {
         messageBanner.show(type, message);
     }
 
+    public void switchToProfileTab() {
+        binding.bottomNavigation.setSelectedItemId(R.id.nav_profile);
+    }
+
     /**
      * Permet aux fragments onglet (Explore, Saved) de pousser un fragment de
      * détail dans le back-stack sans connaître le container ID.

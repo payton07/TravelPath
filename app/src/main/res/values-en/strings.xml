@@ -67,6 +67,15 @@
     <string name="crowd_medium">Moderate crowd</string>
     <string name="crowd_high">Very busy</string>
 
+    <!-- POI detail — new info rows -->
+    <string name="label_address">ADDRESS</string>
+    <string name="label_cost_detail">EST. COST</string>
+    <string name="label_best_time">BEST TIME</string>
+    <string name="time_slot_morning">Morning</string>
+    <string name="time_slot_afternoon">Afternoon</string>
+    <string name="time_slot_evening">Evening</string>
+    <string name="time_slot_late">Late night</string>
+
     <!-- Navigation in-app -->
     <string name="nav_step_counter">Step %1$d of %2$d</string>
     <string name="nav_next">Next</string>

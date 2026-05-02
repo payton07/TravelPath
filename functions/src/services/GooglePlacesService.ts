@@ -6,16 +6,14 @@ import { Logger }                               from '../utils/Logger';
 // ─── Types internes (réponse brute Places API) ────────────────────────────────
 
 interface PlacesApiResult {
-    place_id:     string;
-    name:         string;
-    rating?:      number;
-    price_level?: number;
-    photos?:      Array<{ photo_reference: string }>;
-    opening_hours?: {
-        open_now?: boolean;
-        weekday_text?: string[];
-    };
-    geometry: { location: { lat: number; lng: number } };
+    place_id:          string;
+    name:              string;
+    formatted_address?: string;
+    rating?:           number;
+    price_level?:      number;
+    photos?:           Array<{ photo_reference: string }>;
+    opening_hours?:    { open_now?: boolean; weekday_text?: string[]; };
+    geometry:          { location: { lat: number; lng: number } };
 }
 
 interface PlacesApiResponse {
@@ -189,6 +187,7 @@ export class GooglePlacesService {
             comfortLevel:         priceLevel                                    ?? PlacesConfig.DEFAULTS.COMFORT_LEVEL,
             photoUrls,
             crowdLevel:           this.resolveCrowdLevel(category, priceLevel),
+            address:              result.formatted_address ?? '',
         };
 
         if (result.opening_hours) {
