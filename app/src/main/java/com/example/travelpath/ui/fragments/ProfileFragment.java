@@ -1,14 +1,12 @@
 package com.example.travelpath.ui.fragments;
 
 import android.os.Bundle;
-import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
+import android.view.inputmethod.InputMethodManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.os.LocaleListCompat;
 import androidx.fragment.app.Fragment;
@@ -17,7 +15,9 @@ import com.example.travelpath.MainActivity;
 import com.example.travelpath.R;
 import com.example.travelpath.data.entities.Itinerary;
 import com.example.travelpath.databinding.FragmentProfileBinding;
+import com.example.travelpath.databinding.LayoutInputDialogBinding;
 import com.example.travelpath.ui.viewmodels.MainViewModel;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
 import com.example.travelpath.ui.widget.MessageBanner;
 import com.google.android.material.chip.Chip;
@@ -147,20 +147,29 @@ public final class ProfileFragment extends Fragment {
     // =========================================================================
 
     private void showEditNameDialog() {
-        EditText input = new EditText(requireContext());
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        input.setHint(R.string.hint_enter_name);
-        String current = mainViewModel.getUserName().getValue();
-        if (current != null) input.setText(current);
+        BottomSheetDialog sheet = new BottomSheetDialog(requireContext());
+        LayoutInputDialogBinding d = LayoutInputDialogBinding.inflate(getLayoutInflater());
+        sheet.setContentView(d.getRoot());
 
-        new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.edit_profile_title)
-                .setView(input)
-                .setPositiveButton(R.string.save, (dialog, which) -> {
-                    String newName = input.getText().toString().trim();
-                    if (!newName.isEmpty()) mainViewModel.setUserName(newName);
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
+        d.tvDialogTitle.setText(R.string.edit_profile_title);
+        d.etDialogInput.setHint(R.string.hint_enter_name);
+
+        String current = mainViewModel.getUserName().getValue();
+        if (current != null) d.etDialogInput.setText(current);
+
+        d.btnDialogCancel.setOnClickListener(v -> sheet.dismiss());
+        d.btnDialogConfirm.setOnClickListener(v -> {
+            String newName = d.etDialogInput.getText().toString().trim();
+            if (!newName.isEmpty()) {
+                mainViewModel.setUserName(newName);
+                sheet.dismiss();
+            }
+        });
+
+        sheet.show();
+        d.etDialogInput.requestFocus();
+        InputMethodManager imm = (InputMethodManager)
+            requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+        if (imm != null) imm.showSoftInput(d.etDialogInput, InputMethodManager.SHOW_IMPLICIT);
     }
 }
