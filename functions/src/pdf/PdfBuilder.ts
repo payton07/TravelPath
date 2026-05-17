@@ -21,7 +21,8 @@ const SLOT_LABELS: Record<string, string> = {
  *
  * Structure :
  *   1. Page couverture — palette pastel selon le tier, stats grid 4 cellules
- *   2. Une page par POI — photo Google Places, infos, horaires
+ *   2. Une page par POI — photo plein cadre (aucun texte dessus), badge
+ *      numéroté sur le seam photo/contenu, infos structurées en dessous
  *   3. Page carte — snapshot Google Maps Static API (polyline + marqueurs)
  *
  * Retourne un Buffer ; le stockage Firebase est géré dans PdfService.
@@ -132,6 +133,21 @@ export class PdfBuilder {
         // Grille des stats
         this.renderStatsGrid(doc, it, 50, divY + 22, W - 100);
 
+        // Nombre d'étapes
+        const stepCount = (it.fullSteps ?? []).length;
+        if (stepCount > 0) {
+            const stepsY = divY + 22 + 78 + 20;
+            doc.circle(56, stepsY + 5, 3).fill(P.ACCENT);
+            doc.fillColor(P.INK_SOFT)
+               .fontSize(11)
+               .font('Helvetica')
+               .text(
+                   `${stepCount} étape${stepCount > 1 ? 's' : ''} au programme`,
+                   66, stepsY,
+                   { lineBreak: false },
+               );
+        }
+
         // Bande pied de page
         doc.rect(0, H - 60, W, 60).fill(P.INK);
 
@@ -186,10 +202,10 @@ export class PdfBuilder {
                .fontSize(8)
                .font('Helvetica')
                .text(cell.label, cx, y + 48, {
-                   width: cellW,
-                   align: 'center',
+                   width:            cellW,
+                   align:            'center',
                    characterSpacing: 1.5,
-                   lineBreak: false,
+                   lineBreak:        false,
                });
         });
     }
@@ -207,79 +223,77 @@ export class PdfBuilder {
         const W         = doc.page.width;
         const H         = doc.page.height;
         const stopColor = STOP_COLORS[index % STOP_COLORS.length];
-        const photoH    = 210;
+        const PHOTO_H   = 340;
+        const BADGE_R   = 28;
+        const BADGE_CX  = 60;
+        const BADGE_CY  = PHOTO_H;
 
         // Fond crème
         doc.rect(0, 0, W, H).fill(P.BG);
 
-        // Photo ou bandeau coloré
+        // Photo plein cadre — aucun texte, aucun overlay
         if (photo) {
             try {
-                doc.image(photo, 0, 0, { cover: [W, photoH] });
+                doc.image(photo, 0, 0, { cover: [W, PHOTO_H] });
             } catch {
                 this.log.warn(`Photo embedding échoué pour ${poi.name}`);
-                doc.rect(0, 0, W, photoH).fill(stopColor);
+                doc.rect(0, 0, W, PHOTO_H).fill(stopColor);
             }
         } else {
-            doc.rect(0, 0, W, photoH).fill(stopColor);
+            doc.rect(0, 0, W, PHOTO_H).fill(stopColor);
         }
 
-        // Dégradé sombre en bas de la photo pour lisibilité
-        doc.save()
-           .fillOpacity(0.5)
-           .rect(0, photoH - 70, W, 70)
-           .fill(P.INK)
-           .restore();
-
-        // Pastille numérotée (bas gauche de la photo)
-        const circleR = 24;
-        const circleX = 50;
-        const circleY = photoH - circleR - 14;
-        doc.circle(circleX + circleR, circleY, circleR).fill(stopColor);
+        // Badge numéroté — centré sur la jonction photo / contenu
+        doc.circle(BADGE_CX, BADGE_CY, BADGE_R).fill(stopColor);
         doc.fillColor(P.INK)
-           .fontSize(15)
+           .fontSize(16)
            .font('Helvetica-Bold')
-           .text(String(index + 1), circleX, circleY - 10, {
-               width: circleR * 2,
-               align: 'center',
+           .text(String(index + 1), BADGE_CX - BADGE_R, BADGE_CY - 9, {
+               width:     BADGE_R * 2,
+               align:     'center',
                lineBreak: false,
            });
 
-        // Zone de contenu
-        let curY = photoH + 24;
+        // Zone contenu — démarre sous le badge
+        let curY = BADGE_CY + BADGE_R + 10;
 
-        // Nom du POI
+        // Nom du POI + rating
         doc.fillColor(P.INK)
            .fontSize(22)
            .font('Helvetica-Bold')
-           .text(poi.name, 50, curY, { width: W - 100 });
-        curY += doc.heightOfString(poi.name, { width: W - 100 }) + 6;
-
-        // Catégorie + rating sur la même ligne
-        const cat = (poi.category ?? '').toUpperCase();
-        doc.fillColor(P.INK_SOFT)
-           .fontSize(9)
-           .font('Helvetica')
-           .text(cat, 50, curY, { characterSpacing: 1, lineBreak: false });
+           .text(poi.name, 50, curY, { width: W - 120 });
 
         if (poi.rating) {
             doc.fillColor(P.ACCENT)
-               .fontSize(11)
+               .fontSize(12)
                .font('Helvetica-Bold')
                .text(`★ ${poi.rating.toFixed(1)}`, W - 110, curY, {
-                   width: 60,
-                   align: 'right',
+                   width:     60,
+                   align:     'right',
                    lineBreak: false,
                });
         }
-        curY += 20;
+        curY += doc.heightOfString(poi.name, { width: W - 120 }) + 6;
 
-        // Séparateur
-        doc.moveTo(50, curY).lineTo(W - 50, curY)
-           .strokeColor(P.LINE).lineWidth(0.5).stroke();
-        curY += 18;
+        // Catégorie
+        const cat = (poi.category ?? '').toUpperCase();
+        if (cat) {
+            doc.fillColor(P.INK_SOFT)
+               .fontSize(9)
+               .font('Helvetica')
+               .text(cat, 50, curY, { characterSpacing: 1.5, lineBreak: false });
+            curY += 20;
+        }
 
-        // Statut ouverture
+        curY = this.renderDivider(doc, curY, 50, W - 50);
+
+        // Adresse
+        if (poi.address) {
+            curY = this.renderInfoRow(doc, poi.address, curY, W);
+            curY = this.renderDivider(doc, curY, 50, W - 50);
+        }
+
+        // Statut ouverture + horaires
         if (poi.openingHours) {
             const open      = poi.openingHours.isOpenNow;
             const dotColor  = open ? '#22C55E' : '#EF4444';
@@ -295,30 +309,34 @@ export class PdfBuilder {
             if (weekdays.length) {
                 doc.fillColor(P.INK_SOFT).fontSize(9).font('Helvetica');
                 for (const line of weekdays) {
-                    if (curY >= H - 100) break;
-                    doc.text(line, 50, curY, { lineBreak: false });
+                    if (curY >= H - 120) break;
+                    doc.text(line, 66, curY, { lineBreak: false });
                     curY += 13;
                 }
                 curY += 6;
             }
+            curY = this.renderDivider(doc, curY, 50, W - 50);
         }
 
         // Durée estimée
-        if (poi.averageDurationHours && curY < H - 80) {
-            doc.fillColor(P.INK_SOFT)
-               .fontSize(10)
-               .font('Helvetica')
-               .text(`Durée estimée : ${poi.averageDurationHours}h`, 50, curY, { lineBreak: false });
-            curY += 18;
+        if (poi.averageDurationHours && curY < H - 120) {
+            curY = this.renderInfoRow(
+                doc, `Durée estimée : ${poi.averageDurationHours}h`, curY, W,
+            );
         }
 
         // Créneau recommandé
-        if (poi.preferredTimeSlot && curY < H - 80) {
+        if (poi.preferredTimeSlot && curY < H - 120) {
             const slotLabel = SLOT_LABELS[poi.preferredTimeSlot] ?? poi.preferredTimeSlot;
-            doc.fillColor(P.INK_SOFT)
-               .fontSize(10)
-               .font('Helvetica')
-               .text(`Créneau recommandé : ${slotLabel}`, 50, curY, { lineBreak: false });
+            curY = this.renderInfoRow(
+                doc, `Créneau recommandé : ${slotLabel}`, curY, W,
+            );
+        }
+
+        // Badge affluence
+        if (poi.crowdLevel && curY < H - 100) {
+            curY += 8;
+            this.renderCrowdBadge(doc, poi.crowdLevel, 50, curY);
         }
 
         this.renderFooterStrip(doc, W, H);
@@ -351,16 +369,23 @@ export class PdfBuilder {
 
         const mapY = 98;
         const mapW = W - 100;
-        const mapH = H - mapY - 80;
+        const mapH = H - mapY - 120; // réduit pour laisser place à la légende
 
         try {
             doc.image(mapBuffer, 50, mapY, { fit: [mapW, mapH] });
         } catch (e) {
             this.log.warn('Carte statique non embarquée', e);
-            doc.roundedRect(50, mapY, mapW, mapH, 12)
-               .fillColor(P.LINE)
-               .fill();
+            doc.roundedRect(50, mapY, mapW, mapH, 12).fillColor(P.LINE).fill();
         }
+
+        // Bordure arrondie autour de la carte
+        doc.roundedRect(50, mapY, mapW, mapH, 12)
+           .strokeColor(P.LINE)
+           .lineWidth(1)
+           .stroke();
+
+        // Légende des étapes
+        this.renderMapLegend(doc, it.fullSteps ?? [], 50, mapY + mapH + 16, mapW);
 
         this.renderFooterStrip(doc, W, H);
     }
@@ -379,8 +404,8 @@ export class PdfBuilder {
                .fontSize(8)
                .font('Helvetica')
                .text(`${i + 1} / ${count}`, W - 90, H - 26, {
-                   width: 50,
-                   align: 'right',
+                   width:     50,
+                   align:     'right',
                    lineBreak: false,
                });
         }
@@ -389,6 +414,107 @@ export class PdfBuilder {
     // =========================================================================
     // Composants partagés
     // =========================================================================
+
+    /** Ligne d'info avec puce tomate. Retourne le prochain Y. */
+    private renderInfoRow(
+        doc: PDFKit.PDFDocument,
+        text: string,
+        y: number,
+        W: number,
+    ): number {
+        doc.circle(56, y + 5, 3).fill(P.ACCENT);
+        doc.fillColor(P.INK_SOFT)
+           .fontSize(10)
+           .font('Helvetica')
+           .text(text, 70, y, { width: W - 120, lineBreak: false });
+        return y + 20;
+    }
+
+    /** Divider horizontal. Retourne le prochain Y. */
+    private renderDivider(
+        doc: PDFKit.PDFDocument,
+        y: number,
+        x1: number,
+        x2: number,
+    ): number {
+        const divY = y + 8;
+        doc.moveTo(x1, divY).lineTo(x2, divY)
+           .strokeColor(P.LINE).lineWidth(0.5).stroke();
+        return divY + 14;
+    }
+
+    /** Pill colorée d'affluence + libellé. */
+    private renderCrowdBadge(
+        doc: PDFKit.PDFDocument,
+        crowdLevel: string,
+        x: number,
+        y: number,
+    ): void {
+        const level = crowdLevel.toUpperCase();
+        const colorMap: Record<string, string> = {
+            LOW:    P.MINT,
+            MEDIUM: P.BUTTER,
+            HIGH:   P.BLUSH,
+        };
+        const labelMap: Record<string, string> = {
+            LOW:    'FAIBLE',
+            MEDIUM: 'MOYEN',
+            HIGH:   'ELEVE',
+        };
+        const bgColor   = colorMap[level] ?? P.LINE;
+        const badgeText = labelMap[level] ?? level;
+
+        const badgeW = 72;
+        const badgeH = 22;
+        doc.roundedRect(x, y, badgeW, badgeH, 11).fill(bgColor);
+        doc.fillColor(P.INK)
+           .fontSize(8)
+           .font('Helvetica-Bold')
+           .text(badgeText, x, y + 7, {
+               width:            badgeW,
+               align:            'center',
+               characterSpacing: 1,
+               lineBreak:        false,
+           });
+        doc.fillColor(P.INK_SOFT)
+           .fontSize(10)
+           .font('Helvetica')
+           .text(`Affluence ${badgeText.toLowerCase()}`, x + badgeW + 10, y + 6, {
+               lineBreak: false,
+           });
+    }
+
+    /** Légende de la page carte : puce colorée + nom pour chaque étape. */
+    private renderMapLegend(
+        doc: PDFKit.PDFDocument,
+        pois: PointOfInterest[],
+        x: number,
+        y: number,
+        totalW: number,
+    ): void {
+        if (!pois.length) return;
+
+        const cols = 3;
+        const colW = totalW / cols;
+        const rowH = 18;
+
+        pois.slice(0, 6).forEach((poi, i) => {
+            const col   = i % cols;
+            const row   = Math.floor(i / cols);
+            const lx    = x + col * colW;
+            const ly    = y + row * rowH;
+            const color = STOP_COLORS[i % STOP_COLORS.length];
+
+            doc.circle(lx + 7, ly + 7, 6).fill(color);
+            doc.fillColor(P.INK_SOFT)
+               .fontSize(9)
+               .font('Helvetica')
+               .text(`${i + 1}. ${poi.name}`, lx + 18, ly + 2, {
+                   width:     colW - 22,
+                   lineBreak: false,
+               });
+        });
+    }
 
     private renderFooterStrip(doc: PDFKit.PDFDocument, W: number, H: number): void {
         doc.rect(0, H - 40, W, 40).fill(P.LINE);

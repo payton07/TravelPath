@@ -1,0 +1,124 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ────────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    // ─── Photos ─────────────────────────────────────────────────
+    match /photos/{photoId} {
+      // Anyone can read public photos (feed discovery)
+      allow read: if resource.data.isPublic == true || isOwner(resource.data.authorId);
+      // Authenticated users can create photos
+      allow create: if isAuth() && request.resource.data.authorId == request.auth.uid;
+      // Only owner can update/delete
+      allow update, delete: if isOwner(resource.data.authorId);
+    }
+
+    // ─── Users ──────────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow write: if isOwner(userId);
+    }
+
+    // ─── Likes ──────────────────────────────────────────────────
+    match /likes/{likeId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.userId == request.auth.uid;
+    }
+
+    // ─── Comments ────────────────────────────────────────────────
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if isAuth() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isOwner(resource.data.userId);
+    }
+
+    // ─── Follows ─────────────────────────────────────────────────
+    match /follows/{followId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.followerId == request.auth.uid;
+      allow delete: if isAuth() && resource.data.followerId == request.auth.uid;
+    }
+
+    // ─── Notifications ───────────────────────────────────────────
+    match /notifications/{notifId} {
+      // Only recipient can read their own notifications (field is "userId" in the document)
+      allow read: if isOwner(resource.data.userId);
+      // Any authenticated user can create notifications (e.g. like, follow)
+      allow create: if isAuth();
+      // Only recipient can update (mark as read) or delete
+      allow update, delete: if isOwner(resource.data.userId);
+    }
+
+    // ─── Groups ──────────────────────────────────────────────────
+    match /groups/{groupId} {
+      // Any authenticated user can read groups
+      allow read: if isAuth();
+      // Authenticated users can create groups
+      allow create: if isAuth() && request.resource.data.createdBy == request.auth.uid;
+      // Members or creator can update (e.g. join group adds to memberIds)
+      allow update: if isAuth() && (
+        resource.data.createdBy == request.auth.uid ||
+        request.auth.uid in resource.data.memberIds ||
+        request.auth.uid in request.resource.data.memberIds
+      );
+      allow delete: if isOwner(resource.data.createdBy);
+    }
+
+    // ─── Reports ─────────────────────────────────────────────────
+    match /reports/{reportId} {
+      allow create: if isAuth();
+      allow read, update, delete: if false; // admin only via console
+    }
+
+    // ─── Conversations ───────────────────────────────────────────
+    match /conversations/{conversationId} {
+      // Participants can read their conversations
+      allow read: if isAuth() && request.auth.uid in resource.data.participantIds;
+      // Authenticated users can create conversations
+      allow create: if isAuth() && request.auth.uid in request.resource.data.participantIds;
+      // Participants can update (e.g. last message)
+      allow update: if isAuth() && request.auth.uid in resource.data.participantIds;
+      allow delete: if false;
+    }
+
+    // ─── Messages ────────────────────────────────────────────────
+    match /messages/{messageId} {
+      allow read: if isAuth();
+      allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
+      allow update, delete: if isOwner(resource.data.senderId);
+    }
+
+    // ─── Shared Itineraries (Bridge 2) ───────────────────────────
+    match /shared_itineraries/{docId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if isOwner(resource.data.userId);
+    }
+
+    // ─── Reactions ───────────────────────────────────────────────
+    match /reactions/{docId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // ─── TravelPath — Itineraries (Cloud Functions write these) ──
+    match /itineraries/{docId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+
+    match /itineraries/{docId}/{subcol}/{subDocId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
+    }
+  }
+}

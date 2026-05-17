@@ -198,11 +198,11 @@ public final class MainActivity extends AppCompatActivity {
 
     @NonNull
     private Fragment createTabFragment(@NonNull String tag) {
-        switch (tag) {
-            case TAG_SAVED:   return new SavedFragment();
-            case TAG_PROFILE: return new ProfileFragment();
-            default:          return new ExploreFragment();
-        }
+        return switch (tag) {
+            case TAG_SAVED -> new SavedFragment();
+            case TAG_PROFILE -> new ProfileFragment();
+            default -> new ExploreFragment();
+        };
     }
 
     /**
