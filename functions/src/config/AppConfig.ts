@@ -17,7 +17,7 @@ export const Env = {
     OPENWEATHER_API_KEY:  process.env.OPENWEATHER_API_KEY ?? '',
     GOOGLE_AI_API_KEY:    process.env.GOOGLE_AI_API_KEY   ?? '',
     NODE_ENV:             process.env.NODE_ENV      ?? 'development',
-    FIREBASE_REGION:      process.env.FIREBASE_REGION ?? 'us-central1',
+    FIREBASE_REGION:      process.env.FIREBASE_REGION ?? 'europe-west1',
 } as const;
 
 // ─── Google Places ────────────────────────────────────────────────────────────
