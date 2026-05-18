@@ -80,17 +80,17 @@ service cloud.firestore {
 
     // ─── Conversations ───────────────────────────────────────────
     match /conversations/{conversationId} {
-      // Participants can read their conversations
-      allow read: if isAuth() && request.auth.uid in resource.data.participantIds;
-      // Authenticated users can create conversations
+      // resource == null allows get() on non-existent doc (needed for findOrCreate pattern)
+      allow read: if isAuth() && (resource == null || request.auth.uid in resource.data.participantIds);
+      // Authenticated users can create conversations they participate in
       allow create: if isAuth() && request.auth.uid in request.resource.data.participantIds;
       // Participants can update (e.g. last message)
       allow update: if isAuth() && request.auth.uid in resource.data.participantIds;
       allow delete: if false;
     }
 
-    // ─── Messages ────────────────────────────────────────────────
-    match /messages/{messageId} {
+    // ─── Messages (sous-collection de conversations) ─────────────
+    match /conversations/{conversationId}/messages/{messageId} {
       allow read: if isAuth();
       allow create: if isAuth() && request.resource.data.senderId == request.auth.uid;
       allow update, delete: if isOwner(resource.data.senderId);
