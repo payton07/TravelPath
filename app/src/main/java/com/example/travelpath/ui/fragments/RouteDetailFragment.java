@@ -1,23 +1,30 @@
 package com.example.travelpath.ui.fragments;
 
 import android.app.DownloadManager;
+import com.example.travelpath.MainActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import androidx.core.content.FileProvider;
+import com.example.travelpath.ui.util.StoryCardGenerator;
+import java.io.File;
+import java.io.FileOutputStream;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import android.content.res.ColorStateList;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.example.travelpath.R;
 import com.example.travelpath.data.entities.Itinerary;
+import com.example.travelpath.ui.adapter.RouteAdapter;
 import com.example.travelpath.data.models.PointOfInterest;
 import com.example.travelpath.databinding.FragmentRouteDetailBinding;
 import com.example.travelpath.databinding.ItemTimelineStepBinding;
@@ -104,7 +111,9 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
 
     private void checkConnectivity() {
         if (!com.example.travelpath.utils.NetworkUtils.isOnline(requireContext())) {
-            Toast.makeText(getContext(), R.string.offline_mode_active, Toast.LENGTH_LONG).show();
+            ((MainActivity) requireActivity()).showMessage(
+                    com.example.travelpath.ui.widget.MessageBanner.Type.INFO,
+                    getString(R.string.offline_mode_active));
             binding.cardWeatherWarning.setVisibility(View.VISIBLE);
             binding.tvWarningTitle.setText(R.string.offline_title);
             binding.tvWarningDesc.setText(R.string.offline_desc);
@@ -154,6 +163,23 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         binding.btnSaveRoute.setOnClickListener(v  -> viewModel.toggleSave());
         binding.btnShareRoute.setOnClickListener(v -> viewModel.shareItinerary());
         binding.btnExportPdf.setOnClickListener(v  -> viewModel.generatePdf());
+        binding.btnShareStory.setOnClickListener(v -> shareStoryCard());
+
+        binding.btnStartRoute.setOnClickListener(v -> {
+            Itinerary it = viewModel.getItinerary().getValue();
+            if (it != null) {
+                ((MainActivity) requireActivity()).navigateTo(
+                    NavigationFragment.newInstance(it), "navigation");
+            }
+        });
+
+        binding.btnMapFullscreen.setOnClickListener(v -> {
+            Itinerary it = viewModel.getItinerary().getValue();
+            if (it != null) {
+                ((MainActivity) requireActivity()).navigateTo(
+                    FullScreenMapFragment.newInstance(it), "fullscreen_map");
+            }
+        });
     }
 
     // =========================================================================
@@ -166,26 +192,33 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         viewModel.getSaveState().observe(getViewLifecycleOwner(), saved -> {
             refreshSaveButton(saved);
             String msg = saved ? getString(R.string.route_saved) : getString(R.string.route_removed);
-            Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            com.example.travelpath.ui.widget.MessageBanner.Type type = saved
+                    ? com.example.travelpath.ui.widget.MessageBanner.Type.SUCCESS
+                    : com.example.travelpath.ui.widget.MessageBanner.Type.INFO;
+            ((MainActivity) requireActivity()).showMessage(type, msg);
         });
 
         viewModel.getShareState().observe(getViewLifecycleOwner(), state -> {
             if (state instanceof UiState.Success) {
                 launchShareIntent(((UiState.Success<String>) state).getData());
             } else if (state instanceof UiState.Error) {
-                Toast.makeText(getContext(),
-                    ((UiState.Error) state).getMessage(), Toast.LENGTH_LONG).show();
+                ((MainActivity) requireActivity()).showMessage(
+                        com.example.travelpath.ui.widget.MessageBanner.Type.ERROR,
+                        ((UiState.Error) state).getMessage());
             }
         });
 
         viewModel.getPdfState().observe(getViewLifecycleOwner(), state -> {
             if (state instanceof UiState.Loading) {
-                Toast.makeText(getContext(), R.string.generating_pdf, Toast.LENGTH_SHORT).show();
+                ((MainActivity) requireActivity()).showMessage(
+                        com.example.travelpath.ui.widget.MessageBanner.Type.INFO,
+                        getString(R.string.generating_pdf));
             } else if (state instanceof UiState.Success) {
                 enqueueDownload(((UiState.Success<String>) state).getData());
             } else if (state instanceof UiState.Error) {
-                Toast.makeText(getContext(),
-                    ((UiState.Error) state).getMessage(), Toast.LENGTH_SHORT).show();
+                ((MainActivity) requireActivity()).showMessage(
+                        com.example.travelpath.ui.widget.MessageBanner.Type.ERROR,
+                        ((UiState.Error) state).getMessage());
             }
         });
     }
@@ -197,10 +230,10 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
     private void renderItinerary(@NonNull Itinerary it) {
         binding.tvRouteTitle.setText(it.getName());
         binding.tvRouteDescription.setText(it.getDescription());
-        binding.tvCostDetail.setText(String.format("%s€", it.getCost()));
+        binding.tvCostDetail.setText(String.format("~%s€", it.getCost()));
         binding.tvDurationDetail.setText(it.getDuration());
         binding.tvEffortDetail.setText(it.getEffort());
-        binding.tvWeatherDetail.setText(it.getWeather());
+        binding.tvWeatherDetail.setText(RouteAdapter.formatWeather(requireContext(), it.getWeather()));
 
         if (it.getImageUrl() != null && !it.getImageUrl().isEmpty()) {
             binding.ivRouteHeader.setVisibility(View.VISIBLE);
@@ -228,6 +261,11 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         }
     }
 
+    private static final int[] STOP_COLORS = {
+        R.color.color_butter, R.color.color_sky,
+        R.color.color_blush,  R.color.color_mint, R.color.color_lilac
+    };
+
     private void buildTimeline(@Nullable List<PointOfInterest> pois) {
         binding.timelineContainer.removeAllViews();
         if (pois == null || pois.isEmpty()) return;
@@ -242,8 +280,17 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
             step.tvStepTime.setText(poi.getPreferredTimeSlot() != null
                 ? poi.getPreferredTimeSlot().toUpperCase() : "");
 
+            int stopColor = ContextCompat.getColor(requireContext(), STOP_COLORS[i % STOP_COLORS.length]);
+            step.tvStepNumber.setBackgroundTintList(ColorStateList.valueOf(stopColor));
+
             bindOpeningHours(step, poi);
+            bindCrowdLevel(step, poi);
             bindStepPhoto(step, poi);
+
+            final PointOfInterest finalPoi = poi;
+            step.getRoot().setOnClickListener(v ->
+                ((MainActivity) requireActivity()).navigateTo(
+                    PoiDetailFragment.newInstance(finalPoi), "poi_detail"));
 
             binding.timelineContainer.addView(step.getRoot());
         }
@@ -261,6 +308,24 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
             open ? R.color.emerald_primary : android.R.color.holo_red_dark));
     }
 
+    private void bindCrowdLevel(ItemTimelineStepBinding step, PointOfInterest poi) {
+        String crowd = poi.getCrowdLevel();
+        if (crowd == null) {
+            step.tvCrowdLevel.setVisibility(View.GONE);
+            return;
+        }
+        step.tvCrowdLevel.setVisibility(View.VISIBLE);
+        int labelRes, colorRes;
+        switch (crowd) {
+            case "LOW":  labelRes = R.string.crowd_low;    colorRes = R.color.color_mint;   break;
+            case "HIGH": labelRes = R.string.crowd_high;   colorRes = R.color.color_blush;  break;
+            default:     labelRes = R.string.crowd_medium; colorRes = R.color.color_butter; break;
+        }
+        step.tvCrowdLevel.setText(labelRes);
+        step.tvCrowdLevel.setBackgroundTintList(ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(), colorRes)));
+    }
+
     private void bindStepPhoto(ItemTimelineStepBinding step, PointOfInterest poi) {
         String photoUrl = poi.getPrimaryPhotoUrl();
         if (photoUrl != null) {
@@ -276,6 +341,9 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         binding.btnSaveRoute.setIconResource(saved
             ? android.R.drawable.btn_star_big_on
             : android.R.drawable.ic_menu_save);
+        int iconColor = ContextCompat.getColor(requireContext(),
+            saved ? R.color.color_accent : R.color.color_ink);
+        binding.btnSaveRoute.setIconTint(ColorStateList.valueOf(iconColor));
     }
 
     // =========================================================================
@@ -332,6 +400,40 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
         startActivity(Intent.createChooser(intent, getString(R.string.share_via)));
     }
 
+    private void shareStoryCard() {
+        Itinerary it = viewModel.getItinerary().getValue();
+        if (it == null) return;
+
+        List<PointOfInterest> pois = viewModel.parseFullSteps(it.getFullStepsJson());
+        Bitmap bmp = StoryCardGenerator.generate(requireContext(), it, pois);
+
+        try {
+            File dir  = new File(requireContext().getCacheDir(), "story_cards");
+            dir.mkdirs();
+            String safe = it.getName().replaceAll("[^a-zA-Z0-9]", "_");
+            File file = new File(dir, safe + ".png");
+
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                bmp.compress(Bitmap.CompressFormat.PNG, 90, fos);
+            }
+            bmp.recycle();
+
+            Uri uri = FileProvider.getUriForFile(
+                    requireContext(), "com.example.travelpath.fileprovider", file);
+
+            Intent intent = new Intent(Intent.ACTION_SEND)
+                    .setType("image/png")
+                    .putExtra(Intent.EXTRA_STREAM, uri)
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(intent, getString(R.string.story_card_share_via)));
+        } catch (Exception e) {
+            ((MainActivity) requireActivity()).showMessage(
+                    com.example.travelpath.ui.widget.MessageBanner.Type.ERROR,
+                    getString(R.string.story_card_error));
+            Timber.w("Story card error: %s", e.getMessage());
+        }
+    }
+
     private void enqueueDownload(@NonNull String url) {
         Itinerary it = viewModel.getItinerary().getValue();
         if (it == null) return;
@@ -348,7 +450,9 @@ public final class RouteDetailFragment extends Fragment implements OnMapReadyCal
             requireContext().getSystemService(Context.DOWNLOAD_SERVICE);
         if (dm != null) {
             dm.enqueue(req);
-            Toast.makeText(getContext(), R.string.download_started, Toast.LENGTH_SHORT).show();
+            ((MainActivity) requireActivity()).showMessage(
+                    com.example.travelpath.ui.widget.MessageBanner.Type.SUCCESS,
+                    getString(R.string.download_started));
         }
     }
 

@@ -26,6 +26,8 @@ public final class PointOfInterest implements Serializable {
     private final int           comfortLevel;
     private final List<String>  photoUrls;
     private final OpeningHours  openingHours;
+    private final String        crowdLevel;
+    private final String        address;
 
     private PointOfInterest(Builder b) {
         this.id                   = b.id;
@@ -42,6 +44,8 @@ public final class PointOfInterest implements Serializable {
         this.comfortLevel         = b.comfortLevel;
         this.photoUrls            = b.photoUrls;
         this.openingHours         = b.openingHours;
+        this.crowdLevel           = b.crowdLevel;
+        this.address              = b.address;
     }
 
     // ── Getters ───────────────────────────────────────────────────────────────
@@ -59,6 +63,8 @@ public final class PointOfInterest implements Serializable {
     public int          getComfortLevel()         { return comfortLevel; }
     public List<String> getPhotoUrls()            { return photoUrls; }
     public OpeningHours getOpeningHours()         { return openingHours; }
+    public String       getCrowdLevel()           { return crowdLevel; }
+    public String       getAddress()              { return address; }
 
     /** Retourne la première URL de photo disponible, ou null. */
     public String getPrimaryPhotoUrl() {
@@ -97,6 +103,8 @@ public final class PointOfInterest implements Serializable {
         private int           comfortLevel;
         private List<String>  photoUrls;
         private OpeningHours  openingHours;
+        private String        crowdLevel;
+        private String        address;
 
         public Builder id(String v)                          { this.id = v; return this; }
         public Builder name(String v)                        { this.name = v; return this; }
@@ -112,6 +120,8 @@ public final class PointOfInterest implements Serializable {
         public Builder comfortLevel(int v)                   { this.comfortLevel = v; return this; }
         public Builder photoUrls(List<String> v)             { this.photoUrls = v; return this; }
         public Builder openingHours(OpeningHours v)          { this.openingHours = v; return this; }
+        public Builder crowdLevel(String v)                  { this.crowdLevel = v; return this; }
+        public Builder address(String v)                     { this.address = v; return this; }
         public PointOfInterest build()                       { return new PointOfInterest(this); }
     }
 }

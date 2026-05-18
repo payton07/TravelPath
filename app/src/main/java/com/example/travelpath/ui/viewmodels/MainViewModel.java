@@ -6,8 +6,11 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import com.example.travelpath.TravelApplication;
 import com.example.travelpath.data.models.SearchCriteria;
 import com.example.travelpath.data.preferences.UserPreferencesManager;
+import com.example.travelpath.domain.validation.CriteriaValidator;
+import com.example.travelpath.domain.validation.ValidationResult;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -45,6 +48,7 @@ public final class MainViewModel extends AndroidViewModel {
     private static final String TAG = "MainViewModel";
 
     private final UserPreferencesManager prefs;
+    private final CriteriaValidator      validator   = CriteriaValidator.create();
     private final CompositeDisposable    disposables = new CompositeDisposable();
     private final Gson                   gson        = new Gson();
 
@@ -189,21 +193,77 @@ public final class MainViewModel extends AndroidViewModel {
     }
 
     // =========================================================================
+    // Cache management
+    // =========================================================================
+
+    private final MutableLiveData<Boolean> cacheClearedEvent = new MutableLiveData<>();
+
+    public LiveData<Boolean> getCacheClearedEvent() { return cacheClearedEvent; }
+
+    public void clearCache() {
+        disposables.add(
+            ((TravelApplication) getApplication()).getRepository()
+                .purgeExpiredCache()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    () -> cacheClearedEvent.setValue(true),
+                    err -> Timber.w("Erreur purge cache : %s", err.getMessage())
+                )
+        );
+    }
+
+    // =========================================================================
+    // Swipe decisions → SearchCriteria mapping
+    // =========================================================================
+
+    /**
+     * Maps the 5 swipe-card decisions to SearchCriteria fields.
+     *
+     * Card index → dimension:
+     *   0 = vibe      (right → slow/easy,  left → skip)
+     *   1 = pace      (right → easy,       left → high effort)
+     *   2 = culture   (right → add Culture interest)
+     *   3 = budget    (right → frugal €0–50, left → generous €50–200)
+     *   4 = group     (right → future feature, currently no-op)
+     */
+    public void applySwipeDecisions(boolean[] decisions) {
+        if (decisions == null || decisions.length < 5) return;
+
+        // Vibe (0): right = slow & sunlit → easy effort
+        if (decisions[0]) setEffortLevel(SearchCriteria.EFFORT_EASY);
+
+        // Pace (1): right = relaxed → easy; left = brisk → moderate
+        if (decisions[1]) setEffortLevel(SearchCriteria.EFFORT_EASY);
+        else              setEffortLevel(SearchCriteria.EFFORT_MODERATE);
+
+        // Culture (2): right = add Culture interest
+        List<String> interests = new ArrayList<>(safeList(selectedInterests));
+        if (decisions[2] && !interests.contains("Culture")) interests.add("Culture");
+        if (!decisions[2] && interests.isEmpty())           interests.add("Nature");
+        selectedInterests.setValue(interests);
+
+        // Budget (3): right = frugal, left = more generous
+        if (decisions[3]) setBudgetRange(0, 50);
+        else              setBudgetRange(30, 150);
+
+        // Group (4): scaffold for future — no-op for v1
+    }
+
+    // =========================================================================
     // Construction des critères
     // =========================================================================
 
     /**
-     * Construit un {@link SearchCriteria} à partir de l'état courant du ViewModel.
+     * Builds a {@link SearchCriteria} from current form state and validates it
+     * through the {@link CriteriaValidator} chain of responsibility.
      *
-     * Retourne {@code null} si la validation échoue (aucun intérêt sélectionné).
-     * D'autres validations peuvent être ajoutées ici sans modifier le fragment.
+     * Returns {@code null} on validation failure; callers check
+     * {@link #getLastValidationError()} for the user-facing message.
      */
     @Nullable
     public SearchCriteria buildCriteria() {
-        List<String> interests = safeList(selectedInterests);
-        if (interests.isEmpty()) return null;
-
-        return new SearchCriteria.Builder()
+        SearchCriteria candidate = new SearchCriteria.Builder()
                 .destinationCity(orDefault(destinationCity.getValue(), "Paris"))
                 .destinationPlaceId(destinationPlaceId.getValue())
                 .mandatoryPois(safeList(mandatoryPois))
@@ -213,11 +273,24 @@ public final class MainViewModel extends AndroidViewModel {
                 .duration(
                     orDefault(durationMin.getValue(), 3),
                     orDefault(durationMax.getValue(), 8))
-                .interests(interests)
+                .interests(safeList(selectedInterests))
                 .effortLevel(orDefault(effortLevel.getValue(), SearchCriteria.EFFORT_MODERATE))
                 .weatherPreferences(safeList(weatherPreferences))
                 .build();
+
+        ValidationResult validation = validator.validate(candidate);
+        if (!validation.isValid()) {
+            lastValidationError.setValue(validation.getErrorMessage());
+            return null;
+        }
+        lastValidationError.setValue(null);
+        return candidate;
     }
+
+    /** Non-null only when the last buildCriteria() call failed validation. */
+    private final MutableLiveData<String> lastValidationError = new MutableLiveData<>(null);
+
+    public LiveData<String> getLastValidationError() { return lastValidationError; }
 
     // =========================================================================
     // Chargement des préférences persistées

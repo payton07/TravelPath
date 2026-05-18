@@ -3,24 +3,98 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_main">
+    android:background="@color/color_bg">
 
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="80dp" />
+        android:layout_marginBottom="72dp" />
+
+    <!-- Message Banner — slides up above bottom nav -->
+    <LinearLayout
+        android:id="@+id/messageBanner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="14dp"
+        android:layout_marginBottom="82dp"
+        android:background="@drawable/bg_message_banner"
+        android:elevation="20dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:visibility="gone">
+
+        <!-- Icon circle -->
+        <TextView
+            android:id="@+id/bannerIcon"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:gravity="center"
+            android:textSize="15sp"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+        <!-- Type label + message -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvBannerLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="9.5sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.12"
+                android:fontFamily="@font/geist"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvBannerMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:textColor="#FFFFFFFF"
+                android:textSize="13.5sp"
+                android:fontFamily="@font/geist"
+                android:lineSpacingMultiplier="1.25" />
+
+        </LinearLayout>
+
+        <!-- Dismiss -->
+        <TextView
+            android:id="@+id/btnBannerDismiss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✕"
+            android:textColor="#66FFFFFF"
+            android:textSize="13sp"
+            android:paddingStart="12dp"
+            android:paddingEnd="2dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="72dp"
         android:layout_gravity="bottom"
-        android:background="@color/card_bg"
-        app:elevation="16dp"
+        android:background="@color/color_bg"
+        app:elevation="0dp"
         app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="@color/emerald_accent"
-        app:itemTextColor="@color/text_muted"
+        app:itemIconTint="@color/bottom_nav_color"
+        app:itemTextColor="@color/bottom_nav_color"
         app:labelVisibilityMode="labeled" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

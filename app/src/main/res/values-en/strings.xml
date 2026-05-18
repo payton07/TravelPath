@@ -1,0 +1,132 @@
+<resources>
+    <!-- Overrides for French strings in values/strings.xml -->
+
+    <string name="open">Open</string>
+    <string name="closed">Currently closed</string>
+
+    <string name="generating_routes">Generating your routes…</string>
+    <string name="no_routes_found">No routes found for these criteria.</string>
+    <string name="btn_select_route">Select this route</string>
+
+    <string name="cost">COST</string>
+    <string name="duration">DURATION</string>
+    <string name="badge_economy">Economy</string>
+    <string name="badge_balanced">Balanced</string>
+    <string name="badge_comfort">Comfort</string>
+    <string name="badge_popular">POPULAR</string>
+
+    <!-- S5-F4 — Story Card -->
+    <string name="story_card_btn">Story</string>
+    <string name="story_card_share_via">Share story</string>
+    <string name="story_card_error">Unable to generate story card</string>
+
+    <string name="story_card_city_prefix">MY ROUTE IN </string>
+    <string name="story_card_my_route">MY ROUTE</string>
+    <string name="story_card_steps_label">ITINERARY</string>
+    <string name="story_card_footer">Generated with TravelPath</string>
+
+    <string name="route_saved">Route saved!</string>
+    <string name="route_removed">Route removed</string>
+    <string name="saved_swipe_hint">Swipe to remove a route</string>
+    <string name="share_message">Discover my TravelPath route: %1$s</string>
+    <string name="share_via">Share via</string>
+
+    <string name="weather_alert_title">Weather alert: %1$s</string>
+    <string name="weather_alert_desc">Precipitation expected. Plan indoor activities.</string>
+    <string name="label_weather">WEATHER</string>
+    <string name="weather_display_any">Any weather</string>
+    <string name="weather_display_no_rain">No rain</string>
+    <string name="weather_display_sunny">Sunny</string>
+    <string name="weather_display_cloudy">Cloudy</string>
+    <string name="weather_display_rain">Rainy</string>
+    <string name="weather_display_varies">Variable</string>
+
+    <string name="generating_pdf">Generating PDF…</string>
+    <string name="pdf_generating">PDF generation in progress…</string>
+    <string name="pdf_success">PDF generated, downloading…</string>
+    <string name="pdf_error">Error: %1$s</string>
+    <string name="pdf_desc">Downloading your itinerary</string>
+    <string name="download_started">Download started</string>
+
+    <string name="offline_mode_active">Offline mode active</string>
+    <string name="offline_title">Offline Browsing</string>
+    <string name="offline_desc">Some photos and the interactive map may be limited without a connection, but your stops are saved.</string>
+
+    <!-- F3 -->
+    <string name="start_route">Start this route</string>
+
+    <!-- F2 -->
+    <string name="get_directions">Get directions</string>
+    <string name="error_maps_unavailable">Unable to open Google Maps.</string>
+
+    <!-- S5-F7 — World map -->
+    <string name="saved_map_label">MY DESTINATIONS</string>
+
+    <!-- S5-F6 — Crowd level -->
+    <string name="crowd_low">Low crowd</string>
+    <string name="crowd_medium">Moderate crowd</string>
+    <string name="crowd_high">Very busy</string>
+
+    <!-- POI detail — new info rows -->
+    <string name="label_address">ADDRESS</string>
+    <string name="label_cost_detail">EST. COST</string>
+    <string name="label_best_time">BEST TIME</string>
+    <string name="time_slot_morning">Morning</string>
+    <string name="time_slot_afternoon">Afternoon</string>
+    <string name="time_slot_evening">Evening</string>
+    <string name="time_slot_late">Late night</string>
+
+    <!-- Navigation in-app -->
+    <string name="nav_step_counter">Step %1$d of %2$d</string>
+    <string name="nav_next">Next</string>
+    <string name="nav_prev">Previous</string>
+    <string name="nav_finish">Finish</string>
+    <string name="nav_budget_remaining">~%1$.0f€ left</string>
+    <string name="nav_budget_total">of ~%1$.0f€</string>
+
+    <!-- Profile redesign -->
+    <string name="profile_tagline">Passionate traveller</string>
+    <string name="stat_trips">Trips</string>
+    <string name="stat_cities">Cities</string>
+    <string name="stat_km">km</string>
+    <string name="profile_section_style">Your style</string>
+    <string name="profile_section_prefs">Preferences</string>
+    <string name="profile_section_account">Account</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_dark_mode">Dark mode</string>
+    <string name="profile_dark_mode_unavailable">Coming soon</string>
+    <string name="profile_edit_name">Edit name</string>
+    <string name="profile_clear_cache">Clear cache</string>
+    <string name="profile_clear_cache_success">Cache cleared successfully</string>
+    <string name="profile_style_empty">No interests selected.\nSet your preferences in the Explore tab.</string>
+
+    <!-- F4 — dialog strings -->
+    <string name="dialog_city_title">Choose a city</string>
+    <string name="dialog_city_subtitle">Enter the city you want to explore.</string>
+    <string name="dialog_city_hint">e.g. Barcelona, Paris…</string>
+    <string name="dialog_place_title">Must-see place</string>
+    <string name="dialog_place_subtitle">Add a place you absolutely want to visit.</string>
+    <string name="dialog_place_hint">e.g. Times Square…</string>
+
+    <!-- S5-F3 — Onboarding swipe-card -->
+    <string name="onboard_skip">Skip</string>
+    <string name="onboard_swipe_hint">Swipe to answer</string>
+    <string name="onboard_hint_no">← No</string>
+    <string name="onboard_hint_yes">Yes →</string>
+    <string name="onboard_yes">YES</string>
+    <string name="onboard_no">NO</string>
+    <string name="onboard_q1">Relaxed or intense\nvibe?</string>
+    <string name="onboard_q1_hint">How do you like to live your day?</string>
+    <string name="onboard_q2">Easy or brisk\npace?</string>
+    <string name="onboard_q2_hint">Slow strolls or fast walking?</string>
+    <string name="onboard_q3">Culture\n&amp; museums?</string>
+    <string name="onboard_q3_hint">Art, history, heritage — does it speak to you?</string>
+    <string name="onboard_q4">Tight\nbudget?</string>
+    <string name="onboard_q4_hint">Save money or treat yourself?</string>
+    <string name="onboard_q5">Traveling in\na group?</string>
+    <string name="onboard_q5_hint">Solo or with others?</string>
+    <string name="onboard_ready_title">All set!</string>
+    <string name="onboard_ready_subtitle">Your preferences are configured.\nDiscover your first route.</string>
+    <string name="onboard_cta">Let\'s go!</string>
+
+</resources>

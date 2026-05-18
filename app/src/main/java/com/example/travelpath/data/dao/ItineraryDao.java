@@ -18,6 +18,9 @@ public interface ItineraryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     Completable insert(Itinerary itinerary);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    Single<Long> insertAndGetId(Itinerary itinerary);
+
     @Update
     Completable update(Itinerary itinerary);
 

@@ -16,8 +16,12 @@ local.properties
 .env
 .env.*
 *.docx
-*.typ
 *.pdf
+*.typ
+*.zip
+*.html
+design_handoff_travelpath_pastel/
+design_handoff_travelpath_pastel_2/
 !README.md
 ################################
 # Android Gradle
@@ -37,6 +41,8 @@ local.properties
 .externalNativeBuild
 .cxx
 local.properties
+rapport/
+*.py
 
 ################################
 # Build outputs

@@ -35,6 +35,13 @@
     <string name="weather_snow">SNOW</string>
     <string name="weather_rain">RAIN</string>
     <string name="weather_sun">SUN</string>
+    <string name="label_weather">MÉTÉO</string>
+    <string name="weather_display_any">Toutes météos</string>
+    <string name="weather_display_no_rain">Hors pluie</string>
+    <string name="weather_display_sunny">Beau temps</string>
+    <string name="weather_display_cloudy">Couvert</string>
+    <string name="weather_display_rain">Pluie</string>
+    <string name="weather_display_varies">Variable</string>
     
     <string name="btn_generate">Generate Journey</string>
     <string name="generating_toast">Generating your journey...</string>
@@ -62,6 +69,10 @@
     <string name="balanced_title">The Gourmet Walker</string>
     <string name="balanced_desc">€45 • 3.5h • Moderate</string>
     <string name="popular">POPULAR</string>
+    <string name="badge_economy">Économique</string>
+    <string name="badge_balanced">Équilibré</string>
+    <string name="badge_comfort">Confort</string>
+    <string name="badge_popular">POPULAIRE</string>
     
     <string name="comfort">COMFORT</string>
     <string name="comfort_title">The Luxury Stroller</string>
@@ -96,6 +107,7 @@
     <!-- SavedRoutesActivity Strings -->
     <string name="saved_routes_title">Saved\nJourneys</string>
     <string name="saved_routes_empty">No journeys saved yet.\nStart exploring!</string>
+    <string name="saved_swipe_hint">Swipez pour supprimer un parcours</string>
     
     <!-- Profile Strings -->
     <string name="edit_profile_title">Edit Profile Name</string>
@@ -108,6 +120,15 @@
     <string name="select_route">Select this route</string>
     <string name="btn_select_route">Sélectionner ce parcours</string>
     <string name="weather_placeholder">22°C Ensoleillé</string>
+
+    <!-- S5-F4 — Story Card -->
+    <string name="story_card_btn">Story</string>
+    <string name="story_card_share_via">Partager la story</string>
+    <string name="story_card_error">Impossible de générer la story card</string>
+    <string name="story_card_city_prefix">MON PARCOURS À </string>
+    <string name="story_card_my_route">MON PARCOURS</string>
+    <string name="story_card_steps_label">LES ÉTAPES</string>
+    <string name="story_card_footer">Généré avec TravelPath</string>
 
     <!-- PDF Export Strings -->
     <string name="generating_pdf">Génération du PDF...</string>
@@ -122,5 +143,83 @@
     <string name="offline_mode_active">Mode Hors-Ligne actif</string>
     <string name="offline_title">Consultation Hors-Ligne</string>
     <string name="offline_desc">Certaines photos et la carte interactive peuvent être limitées sans connexion, mais vos étapes sont sauvegardées.</string>
+
+    <!-- F3 — Start Route -->
+    <string name="start_route">Démarrer ce parcours</string>
+
+    <!-- F2 — POI Detail -->
+    <string name="get_directions">Obtenir l\'itinéraire</string>
+    <string name="error_maps_unavailable">Impossible d\'ouvrir Google Maps.</string>
+
+    <!-- F4 — Dialog strings (externalized from ExploreFragment) -->
+    <string name="dialog_city_title">Choisir une ville</string>
+    <string name="dialog_city_subtitle">Entrez la ville que vous souhaitez explorer.</string>
+    <string name="dialog_city_hint">ex. Barcelone, Paris…</string>
+    <string name="dialog_place_title">Lieu incontournable</string>
+    <string name="dialog_place_subtitle">Ajoutez un lieu que vous souhaitez absolument visiter.</string>
+    <string name="dialog_place_hint">ex. Place de la Comédie…</string>
+
+    <!-- Profile redesign -->
+    <string name="language_section">LANGUE / LANGUAGE</string>
+    <string name="profile_tagline">Voyageur passionné</string>
+    <string name="stat_trips">Voyages</string>
+    <string name="stat_cities">Villes</string>
+    <string name="stat_km">km</string>
+    <string name="profile_section_style">Votre style</string>
+    <string name="profile_section_prefs">Préférences</string>
+    <string name="profile_section_account">Compte</string>
+    <string name="profile_language">Langue</string>
+    <string name="profile_dark_mode">Mode sombre</string>
+    <string name="profile_dark_mode_unavailable">Bientôt disponible</string>
+    <string name="profile_edit_name">Modifier mon nom</string>
+    <string name="profile_clear_cache">Vider le cache</string>
+    <string name="profile_clear_cache_success">Cache vidé avec succès</string>
+    <string name="profile_style_empty">Aucun intérêt sélectionné.\nConfigurez vos préférences dans l\'onglet Explorer.</string>
+
+    <!-- S5-F7 — World map -->
+    <string name="saved_map_label">MES DESTINATIONS</string>
+
+    <!-- S5-F6 — Crowd level -->
+    <string name="crowd_low">Peu fréquenté</string>
+    <string name="crowd_medium">Affluence modérée</string>
+    <string name="crowd_high">Très fréquenté</string>
+
+    <!-- POI detail — new info rows -->
+    <string name="label_address">ADRESSE</string>
+    <string name="label_cost_detail">COÛT ESTIMÉ</string>
+    <string name="label_best_time">MEILLEUR MOMENT</string>
+    <string name="time_slot_morning">Matin</string>
+    <string name="time_slot_afternoon">Après-midi</string>
+    <string name="time_slot_evening">Soirée</string>
+    <string name="time_slot_late">Nuit</string>
+
+    <!-- Navigation in-app -->
+    <string name="nav_step_counter">Étape %1$d / %2$d</string>
+    <string name="nav_next">Suivant</string>
+    <string name="nav_prev">Précédent</string>
+    <string name="nav_finish">Terminer</string>
+    <string name="nav_budget_remaining">~%1$.0f€ restant</string>
+    <string name="nav_budget_total">sur ~%1$.0f€</string>
+
+    <!-- S5-F3 — Onboarding swipe-card -->
+    <string name="onboard_skip">Passer</string>
+    <string name="onboard_swipe_hint">Swipez pour répondre</string>
+    <string name="onboard_hint_no">← Non</string>
+    <string name="onboard_hint_yes">Oui →</string>
+    <string name="onboard_yes">OUI</string>
+    <string name="onboard_no">NON</string>
+    <string name="onboard_q1">Ambiance détendue\nou intense ?</string>
+    <string name="onboard_q1_hint">Comment aimez-vous vivre votre journée ?</string>
+    <string name="onboard_q2">Rythme tranquille\nou soutenu ?</string>
+    <string name="onboard_q2_hint">Promenades lentes ou marche rapide ?</string>
+    <string name="onboard_q3">Culture\n&amp; musées ?</string>
+    <string name="onboard_q3_hint">Art, histoire, patrimoine — ça vous parle ?</string>
+    <string name="onboard_q4">Budget\nserré ?</string>
+    <string name="onboard_q4_hint">Économiser ou vous faire plaisir ?</string>
+    <string name="onboard_q5">En\ngroupe ?</string>
+    <string name="onboard_q5_hint">Seul ou accompagné ?</string>
+    <string name="onboard_ready_title">Tout est prêt !</string>
+    <string name="onboard_ready_subtitle">Vos préférences sont configurées.\nDécouvrez votre premier parcours.</string>
+    <string name="onboard_cta">C\'est parti !</string>
 
 </resources>

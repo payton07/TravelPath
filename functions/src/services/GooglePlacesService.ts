@@ -6,16 +6,14 @@ import { Logger }                               from '../utils/Logger';
 // ─── Types internes (réponse brute Places API) ────────────────────────────────
 
 interface PlacesApiResult {
-    place_id:     string;
-    name:         string;
-    rating?:      number;
-    price_level?: number;
-    photos?:      Array<{ photo_reference: string }>;
-    opening_hours?: {
-        open_now?: boolean;
-        weekday_text?: string[];
-    };
-    geometry: { location: { lat: number; lng: number } };
+    place_id:          string;
+    name:              string;
+    formatted_address?: string;
+    rating?:           number;
+    price_level?:      number;
+    photos?:           Array<{ photo_reference: string }>;
+    opening_hours?:    { open_now?: boolean; weekday_text?: string[]; };
+    geometry:          { location: { lat: number; lng: number } };
 }
 
 interface PlacesApiResponse {
@@ -97,6 +95,10 @@ export class GooglePlacesService {
     // =========================================================================
 
     private async fetchForInterest(city: string, interest: string): Promise<PointOfInterest[]> {
+        return this.withRetry(() => this.doFetch(city, interest), interest, city);
+    }
+
+    private async doFetch(city: string, interest: string): Promise<PointOfInterest[]> {
         const response: AxiosResponse<PlacesApiResponse> = await this.http.get(
             PlacesConfig.BASE_URL,
             { params: { query: `${interest} in ${city}`, key: this.apiKey } },
@@ -106,17 +108,49 @@ export class GooglePlacesService {
 
         if (!results?.length) {
             this.log.warn(
-                `Aucun résultat pour "${interest}" à ${city}. `
+                `No results for "${interest}" in ${city}. `
                 + `Status: ${status}${error_message ? ` | ${error_message}` : ''}`,
             );
             return [];
         }
 
-        this.log.info(`${results.length} résultat(s) — "${interest}" à ${city}.`);
+        this.log.info(`${results.length} result(s) — "${interest}" in ${city}.`);
 
         return results
             .slice(0, PlacesConfig.MAX_RESULTS_PER_INTEREST)
             .map(r => this.normalize(r, interest));
+    }
+
+    /**
+     * Retries fn up to MAX_RETRIES times with exponential backoff + jitter.
+     * Specifically handles HTTP 429 (rate limit) and 5xx errors.
+     * Other errors are propagated immediately.
+     */
+    private async withRetry<T>(
+        fn:        () => Promise<T>,
+        interest:  string,
+        city:      string,
+        attempt =  1,
+        maxRetries = 3,
+    ): Promise<T> {
+        try {
+            return await fn();
+        } catch (err: any) {
+            const status = err?.response?.status;
+            const isRetryable = status === 429 || (status >= 500 && status < 600);
+
+            if (!isRetryable || attempt > maxRetries) {
+                this.log.error(`Places API failed for "${interest}" in ${city} (status ${status})`, err);
+                throw err;
+            }
+
+            // Exponential backoff: 1s, 2s, 4s + random jitter up to 500ms
+            const backoffMs = Math.pow(2, attempt - 1) * 1000 + Math.random() * 500;
+            this.log.warn(`Rate limited for "${interest}". Retry ${attempt}/${maxRetries} in ${Math.round(backoffMs)}ms.`);
+
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+            return this.withRetry(fn, interest, city, attempt + 1, maxRetries);
+        }
     }
 
     // =========================================================================
@@ -129,10 +163,14 @@ export class GooglePlacesService {
         // Nettoyage du nom pour éviter les \\n dans le JSON final
         const cleanName = result.name.replace(/\n/g, ' ').replace(/\r/g, '').trim();
 
-        // TÂCHE 5 : Construction des URLs de photos
+        // Construction des URLs de photos
         const photoUrls = result.photos
             ?.slice(0, 3)
             .map(p => this.buildPhotoUrl(p.photo_reference)) ?? [];
+
+        const categoryKey = category.toLowerCase();
+        const duration = PlacesConfig.DURATION_BY_CATEGORY[categoryKey]
+                      ?? PlacesConfig.DEFAULTS.DURATION_HOURS;
 
         const poi: PointOfInterest = {
             id:                   result.place_id,
@@ -142,12 +180,14 @@ export class GooglePlacesService {
             longitude:            result.geometry.location.lng,
             baseCost:             PlacesConfig.COST_BY_PRICE_LEVEL[priceLevel] ?? PlacesConfig.DEFAULTS.COST,
             rating:               result.rating                                ?? PlacesConfig.DEFAULTS.RATING,
-            averageDurationHours: PlacesConfig.DEFAULTS.DURATION_HOURS,
+            averageDurationHours: duration,
             preferredTimeSlot:    this.resolveTimeSlot(category, result.name),
-            weatherCompatibility: ['ANY'],
+            weatherCompatibility: this.resolveWeatherCompatibility(category),
             effortScore:          PlacesConfig.DEFAULTS.EFFORT_SCORE,
             comfortLevel:         priceLevel                                    ?? PlacesConfig.DEFAULTS.COMFORT_LEVEL,
             photoUrls,
+            crowdLevel:           this.resolveCrowdLevel(category, priceLevel),
+            address:              result.formatted_address ?? '',
         };
 
         if (result.opening_hours) {
@@ -162,6 +202,26 @@ export class GooglePlacesService {
 
     private buildPhotoUrl(ref: string): string {
         return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${ref}&key=${this.apiKey}`;
+    }
+
+    private resolveWeatherCompatibility(category: string): string[] {
+        const outdoor = ['nature', 'architecture'];
+        return outdoor.includes(category.toLowerCase()) ? ['SUN', 'CLOUD'] : ['ANY'];
+    }
+
+    private resolveCrowdLevel(category: string, priceLevel: number): 'LOW' | 'MEDIUM' | 'HIGH' {
+        const cat = category.toLowerCase();
+        if (cat.includes('nature') || cat.includes('park') || cat.includes('jardin') || cat.includes('garden')) {
+            return priceLevel >= 3 ? 'LOW' : 'MEDIUM';
+        }
+        if (cat.includes('food') || cat.includes('restau') || cat.includes('café') || cat.includes('bar') || cat.includes('brasserie')) {
+            return priceLevel >= 3 ? 'MEDIUM' : 'HIGH';
+        }
+        if (cat.includes('shop') || cat.includes('mall') || cat.includes('marché') || cat.includes('market')) {
+            return 'HIGH';
+        }
+        // Museums, monuments, culture, wellness, sport
+        return priceLevel >= 3 ? 'LOW' : 'MEDIUM';
     }
 
     private resolveTimeSlot(category: string, name: string): TimeSlot {

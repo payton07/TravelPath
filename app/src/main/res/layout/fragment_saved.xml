@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_main"
+    android:background="@color/color_bg"
     android:clipToPadding="false"
     android:paddingBottom="100dp">
 
@@ -12,34 +12,98 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:paddingTop="60dp">
+        android:paddingHorizontal="24dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="16dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="COLLECTION"
+            android:textColor="@color/color_accent"
+            android:textSize="10sp"
+            android:fontFamily="@font/geist"
+            android:textAllCaps="true"
+            android:letterSpacing="0.1" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="@string/saved_routes_title"
-            android:textColor="@color/text_primary"
-            android:textSize="36sp"
+            android:textColor="@color/color_ink"
+            android:textSize="32sp"
+            android:fontFamily="@font/fraunces"
             android:textStyle="bold"
-            android:lineHeight="44sp" />
+            android:lineSpacingMultiplier="1.05" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/saved_swipe_hint"
+            android:textColor="@color/color_ink_soft"
+            android:textSize="12sp"
+            android:fontFamily="@font/geist"
+            android:drawablePadding="4dp"
+            android:drawableStart="@drawable/ic_swipe_hint" />
+
+        <!-- World map overview -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardWorldMap"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="24dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/color_line"
+            app:strokeWidth="1dp"
+            android:visibility="gone">
+
+            <com.google.android.gms.maps.MapView
+                android:id="@+id/mapWorldView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="12dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="5dp"
+                android:text="@string/saved_map_label"
+                android:textColor="@color/color_ink"
+                android:textSize="9sp"
+                android:fontFamily="@font/geist"
+                android:textStyle="bold"
+                android:letterSpacing="0.1"
+                android:background="@drawable/bg_city_pill"
+                android:elevation="2dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Saved list -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSavedRoutes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="28dp"
             tools:listitem="@layout/item_route_card" />
 
+        <!-- Empty state -->
         <TextView
             android:id="@+id/tvEmptyMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="100dp"
+            android:layout_marginTop="80dp"
             android:gravity="center"
             android:text="@string/saved_routes_empty"
-            android:textColor="@color/text_muted"
-            android:textSize="16sp"
+            android:textColor="@color/color_ink_soft"
+            android:textSize="15sp"
+            android:fontFamily="@font/geist"
+            android:lineSpacingExtra="4dp"
             android:visibility="gone" />
 
     </LinearLayout>

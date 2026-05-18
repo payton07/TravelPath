@@ -1,16 +1,25 @@
 package com.example.travelpath;
 
 import android.os.Bundle;
+import android.view.ViewGroup;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import com.example.travelpath.data.preferences.UserPreferencesManager;
 import com.example.travelpath.databinding.ActivityMainBinding;
 import com.example.travelpath.ui.fragments.ExploreFragment;
+import com.example.travelpath.ui.fragments.OnboardingFragment;
 import com.example.travelpath.ui.fragments.ProfileFragment;
 import com.example.travelpath.ui.fragments.SavedFragment;
+import com.example.travelpath.ui.viewmodels.SavedRoutesViewModel;
+import com.example.travelpath.ui.widget.MessageBanner;
+import androidx.lifecycle.ViewModelProvider;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import timber.log.Timber;
 
 /**
@@ -40,8 +49,10 @@ public final class MainActivity extends AppCompatActivity {
     /** Tag de l'onglet affiché avant de pousser un fragment de détail. */
     private static final String KEY_ACTIVE_TAB = "active_tab";
 
-    private ActivityMainBinding binding;
-    private String activeTabTag = TAG_EXPLORE;
+    private ActivityMainBinding   binding;
+    private MessageBanner         messageBanner;
+    private String                activeTabTag  = TAG_EXPLORE;
+    private final CompositeDisposable disposables = new CompositeDisposable();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,11 +66,13 @@ public final class MainActivity extends AppCompatActivity {
             activeTabTag = savedInstanceState.getString(KEY_ACTIVE_TAB, TAG_EXPLORE);
         }
 
+        messageBanner = MessageBanner.attach(binding);
         setupNavigation();
         setupBackPress();
+        new ViewModelProvider(this).get(SavedRoutesViewModel.class);
 
         if (savedInstanceState == null) {
-            showTab(TAG_EXPLORE);
+            checkOnboardingAndStart();
         }
     }
 
@@ -71,9 +84,60 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        // Éviter les fuites mémoire sur ViewBinding avec une activité
+        disposables.clear();
         binding = null;
         super.onDestroy();
+    }
+
+    // =========================================================================
+    // Onboarding check
+    // =========================================================================
+
+    private void checkOnboardingAndStart() {
+        disposables.add(
+            UserPreferencesManager.getInstance(this)
+                .isOnboardingComplete()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    done -> { if (done) showTab(TAG_EXPLORE); else showOnboarding(); },
+                    err  -> {
+                        Timber.w("onboarding flag read error: %s", err.getMessage());
+                        showTab(TAG_EXPLORE);
+                    }
+                )
+        );
+    }
+
+    private void showOnboarding() {
+        // Remove fragment_container bottom margin so onboarding fills the full screen
+        ViewGroup.MarginLayoutParams lp =
+            (ViewGroup.MarginLayoutParams) binding.fragmentContainer.getLayoutParams();
+        lp.bottomMargin = 0;
+        binding.fragmentContainer.requestLayout();
+
+        binding.bottomNavigation.setVisibility(android.view.View.GONE);
+        getSupportFragmentManager()
+            .beginTransaction()
+            .replace(R.id.fragment_container, new OnboardingFragment(), "onboarding")
+            .commit();
+    }
+
+    /** Called by {@link OnboardingFragment} when all cards have been swiped (or skipped). */
+    public void onOnboardingComplete() {
+        // Restore bottom margin for the tab layout
+        int margin = (int) (72 * getResources().getDisplayMetrics().density);
+        ViewGroup.MarginLayoutParams lp =
+            (ViewGroup.MarginLayoutParams) binding.fragmentContainer.getLayoutParams();
+        lp.bottomMargin = margin;
+        binding.fragmentContainer.requestLayout();
+
+        binding.bottomNavigation.setVisibility(android.view.View.VISIBLE);
+        activeTabTag = TAG_EXPLORE;
+        getSupportFragmentManager()
+            .beginTransaction()
+            .replace(R.id.fragment_container, new ExploreFragment(), TAG_EXPLORE)
+            .commit();
     }
 
     // =========================================================================
@@ -188,6 +252,14 @@ public final class MainActivity extends AppCompatActivity {
     // =========================================================================
     // API publique pour les fragments enfants
     // =========================================================================
+
+    public void showMessage(MessageBanner.Type type, String message) {
+        messageBanner.show(type, message);
+    }
+
+    public void switchToProfileTab() {
+        binding.bottomNavigation.setSelectedItemId(R.id.nav_profile);
+    }
 
     /**
      * Permet aux fragments onglet (Explore, Saved) de pousser un fragment de

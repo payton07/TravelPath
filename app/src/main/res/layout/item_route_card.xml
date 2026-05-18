@@ -3,12 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="8dp"
+    android:layout_marginBottom="16dp"
     app:cardCornerRadius="24dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="@color/card_bg"
-    app:strokeColor="@color/border_color"
+    app:cardBackgroundColor="@color/color_surface"
+    app:strokeColor="@color/color_line"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -16,91 +15,108 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Image de fond / Miniature -->
+        <!-- Thumbnail -->
         <FrameLayout
-            android:id="@+id/flImageContainer"
             android:layout_width="match_parent"
-            android:layout_height="220dp">
-            
+            android:layout_height="180dp">
+
             <ImageView
                 android:id="@+id/ivRouteThumbnail"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:src="@drawable/bg_travel_mode" />
-            
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_badge_popular" />
 
+            <!-- Like / save button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLike"
                 style="@style/Widget.Material3.Button.IconButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:layout_gravity="top|end"
-                android:layout_margin="8dp"
+                android:layout_margin="10dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
                 app:icon="@android:drawable/btn_star_big_off"
-                app:iconTint="@color/white" />
+                app:iconTint="@color/color_ink"
+                app:iconSize="18dp"
+                app:iconPadding="0dp"
+                app:backgroundTint="@color/color_surface"
+                app:strokeColor="@color/color_line"
+                app:strokeWidth="1dp"
+                app:cornerRadius="18dp" />
         </FrameLayout>
 
+        <!-- Content -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="18dp">
 
             <TextView
                 android:id="@+id/tvRouteName"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Route Name"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/color_ink"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:fontFamily="@font/fraunces"
+                android:textStyle="bold"
+                android:maxLines="2"
+                android:ellipsize="end" />
 
+            <!-- Stats -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal">
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <TextView
                     android:id="@+id/tvCost"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="20€"
-                    android:textColor="@color/emerald_primary"
+                    android:textColor="@color/color_accent"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/geist"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="8dp"
-                    android:text="•"
-                    android:textColor="@color/text_muted" />
+                    android:text="·"
+                    android:textColor="@color/color_line"
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tvDuration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="5h"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/geist" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginHorizontal="8dp"
-                    android:text="•"
-                    android:textColor="@color/text_muted" />
+                    android:text="·"
+                    android:textColor="@color/color_line"
+                    android:textSize="16sp" />
 
                 <TextView
                     android:id="@+id/tvEffort"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Moderate"
-                    android:textColor="@color/text_secondary" />
+                    android:textColor="@color/color_ink_soft"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/geist" />
             </LinearLayout>
 
             <TextView
@@ -109,20 +125,25 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="SUNNY"
-                android:textColor="@color/text_muted"
-                android:textSize="12sp" />
+                android:textColor="@color/color_ink_soft"
+                android:textSize="11sp"
+                android:fontFamily="@font/geist"
+                android:textAllCaps="true"
+                android:letterSpacing="0.06" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSelectRoute"
-                style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="14dp"
                 android:text="@string/select_route"
-                app:cornerRadius="16dp"
-                app:backgroundTint="@color/emerald_light"
-                android:textColor="@color/emerald_primary" />
-
+                android:textSize="13sp"
+                android:textAllCaps="false"
+                android:letterSpacing="0.01"
+                android:textColor="@color/color_surface"
+                android:fontFamily="@font/geist"
+                app:cornerRadius="24dp"
+                app:backgroundTint="@color/color_ink" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

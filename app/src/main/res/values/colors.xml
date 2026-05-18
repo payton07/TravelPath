@@ -1,35 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base Colors -->
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         BASE
+         ═══════════════════════════════════════════════════════════════ -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
 
-    <!-- Brand Palette (Oceanic Indigo - Travel & Sky Style) -->
-    <color name="brand_primary">#4F46E5</color> 
-    <color name="brand_accent">#0EA5E9</color>
-    <color name="brand_light">#E0F2FE</color> 
+    <!-- ═══════════════════════════════════════════════════════════════
+         PASTEL PALETTE — Direction 01 "Bright & Airy"
+         ═══════════════════════════════════════════════════════════════ -->
+    <color name="color_bg">#FBF7F2</color>          <!-- warm cream — page background -->
+    <color name="color_surface">#FFFFFF</color>      <!-- white — cards, inputs -->
+    <color name="color_ink">#1B1A17</color>          <!-- primary text + frame -->
+    <color name="color_ink_soft">#6E6A62</color>     <!-- secondary / muted text -->
+    <color name="color_line">#EAE3D8</color>         <!-- 1px borders + dividers -->
 
-    <!-- Redirection pour compatibilité -->
-    <color name="emerald_primary">@color/brand_primary</color>
-    <color name="emerald_accent">@color/brand_accent</color>
-    <color name="emerald_light">@color/brand_light</color>
+    <!-- Pastels — gradients, stop dots, avatar accents -->
+    <color name="color_blush">#F4D4C4</color>
+    <color name="color_sky">#C8DCE8</color>
+    <color name="color_mint">#CFE3D2</color>
+    <color name="color_butter">#F4E5BB</color>
+    <color name="color_lilac">#DCD0E8</color>
 
-    <!-- Backgrounds & Surfaces (Sky Depth) -->
-    <color name="bg_main">#F0F9FF</color> 
-    <color name="bg_primary">#F0F9FF</color> 
-    <color name="card_bg">#FFFFFF</color> 
-    <color name="border_color">#E0F2FE</color> 
-    
-    <!-- Typography -->
-    <color name="text_primary">#222222</color> 
-    <color name="text_secondary">#717171</color> 
-    <color name="text_muted">#B0B0B0</color> 
+    <!-- Tomato accent — CTAs, italic key words, primary action -->
+    <color name="color_accent">#E8654A</color>
+    <color name="color_accent_pressed">#C84F36</color>
 
-    <!-- Status & UI specific -->
-    <color name="route_blue">#4285F4</color>
-    <color name="chip_inactive_bg">#F7F7F9</color>
-    <color name="chip_inactive_text">#717171</color>
-    
-    <color name="warning_bg">#FFF8F6</color> 
-    <color name="warning_text">#C13515</color> 
+    <!-- Comfort card — deep indigo/plum, premium alternative to pure black -->
+    <color name="color_comfort_bg">#3D3354</color>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+         LEGACY ALIASES — keep existing layout attributes from crashing
+         during the phase-by-phase migration. Remove after all layouts
+         are updated.
+         ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- Background hierarchy (old dark names → new light tokens) -->
+    <color name="bg_deep">@color/color_bg</color>
+    <color name="bg_frame">@color/color_bg</color>
+    <color name="bg_surface">@color/color_surface</color>
+    <color name="bg_featured">@color/color_blush</color>
+    <color name="bg_meta">@color/color_bg</color>
+    <color name="bg_main">@color/color_bg</color>
+    <color name="bg_primary">@color/color_bg</color>
+    <color name="card_bg">@color/color_surface</color>
+
+    <!-- Borders -->
+    <color name="border_default">@color/color_line</color>
+    <color name="border_gold">@color/color_line</color>
+    <color name="border_color">@color/color_line</color>
+
+    <!-- Accent (was gold) -->
+    <color name="gold">@color/color_accent</color>
+    <color name="gold_dim">@color/color_accent_pressed</color>
+    <color name="gold_text_on">@color/white</color>
+
+    <!-- Brand aliases -->
+    <color name="brand_primary">@color/color_accent</color>
+    <color name="brand_primary_dark">@color/color_accent_pressed</color>
+    <color name="brand_primary_light">@color/color_blush</color>
+    <color name="brand_accent">@color/color_accent</color>
+    <color name="brand_accent_light">@color/color_blush</color>
+    <color name="emerald_primary">@color/color_accent</color>
+    <color name="emerald_accent">@color/color_accent</color>
+    <color name="emerald_light">@color/color_blush</color>
+
+    <!-- Surface system aliases -->
+    <color name="surface_0">@color/color_bg</color>
+    <color name="surface_1">@color/color_bg</color>
+    <color name="surface_2">@color/color_surface</color>
+    <color name="surface_3">@color/color_blush</color>
+
+    <!-- Typography (old cream/muted → new ink tokens) -->
+    <color name="text_cream">@color/color_ink</color>
+    <color name="text_muted">@color/color_ink_soft</color>
+    <color name="text_dim">@color/color_ink_soft</color>
+    <color name="text_ghost">@color/color_line</color>
+    <color name="text_primary">@color/color_ink</color>
+    <color name="text_secondary">@color/color_ink_soft</color>
+
+    <!-- Semantic -->
+    <color name="status_success">#5A9176</color>
+    <color name="status_success_bg">@color/color_blush</color>
+    <color name="status_error">#C0544A</color>
+    <color name="status_error_bg">#FFF0EE</color>
+    <color name="status_warning">@color/color_accent</color>
+    <color name="status_warning_bg">@color/color_blush</color>
+    <color name="warning_bg">@color/status_warning_bg</color>
+    <color name="warning_text">@color/status_error</color>
+
+    <!-- Mode badges -->
+    <color name="mode_economy_bg">@color/color_blush</color>
+    <color name="mode_economy_text">@color/color_accent</color>
+    <color name="mode_balanced_bg">@color/color_butter</color>
+    <color name="mode_balanced_text">@color/color_ink</color>
+    <color name="mode_comfort_bg">@color/color_mint</color>
+    <color name="mode_comfort_text">@color/color_ink</color>
+
+    <!-- Misc UI -->
+    <color name="route_blue">@color/color_sky</color>
+    <color name="chip_inactive_bg">@color/color_surface</color>
+    <color name="chip_inactive_text">@color/color_ink_soft</color>
+    <color name="divider">@color/color_line</color>
+    <color name="scrim">#80FBF7F2</color>            <!-- 50% cream scrim -->
+
+    <!-- Category dots — pastel family -->
+    <color name="category_culture">@color/color_sky</color>
+    <color name="category_nature">@color/color_mint</color>
+    <color name="category_food">@color/color_blush</color>
+    <color name="category_shopping">@color/color_butter</color>
+    <color name="category_sport">@color/color_lilac</color>
+    <color name="category_wellness">@color/color_mint</color>
+
 </resources>

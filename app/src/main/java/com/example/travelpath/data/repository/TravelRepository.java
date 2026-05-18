@@ -139,7 +139,8 @@ public final class TravelRepository {
     private Completable insertAll(List<Itinerary> itineraries) {
         return Completable.fromAction(() -> {
             for (Itinerary it : itineraries) {
-                dao.insert(it).blockingAwait();
+                long roomId = dao.insertAndGetId(it).blockingGet();
+                it.setId((int) roomId);
             }
         }).subscribeOn(Schedulers.io());
     }

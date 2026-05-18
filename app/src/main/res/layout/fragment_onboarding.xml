@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/color_bg">
+
+    <!-- ── Main onboarding content ───────────────────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/contentOnboarding"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
+
+        <!-- Skip -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="56dp">
+
+            <TextView
+                android:id="@+id/tvSkip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:text="@string/onboard_skip"
+                android:fontFamily="@font/geist"
+                android:textSize="14sp"
+                android:textColor="@color/color_ink_soft"
+                android:clickable="true"
+                android:focusable="true" />
+        </FrameLayout>
+
+        <!-- Progress dots -->
+        <LinearLayout
+            android:id="@+id/dotsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingBottom="20dp" />
+
+        <!-- Card area (flex) -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardOnboarding"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@color/color_surface">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <!-- Main card content -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center_horizontal"
+                        android:padding="28dp">
+
+                        <!-- Icon circle -->
+                        <TextView
+                            android:id="@+id/tvIcon"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
+                            android:background="@drawable/bg_timeline_marker"
+                            android:backgroundTint="@color/color_butter"
+                            android:textSize="36sp"
+                            android:gravity="center"
+                            android:layout_marginBottom="24dp" />
+
+                        <!-- Question -->
+                        <TextView
+                            android:id="@+id/tvQuestion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/fraunces"
+                            android:textSize="28sp"
+                            android:textColor="@color/color_ink"
+                            android:gravity="center"
+                            android:lineSpacingMultiplier="1.1"
+                            android:layout_marginBottom="12dp" />
+
+                        <!-- Hint -->
+                        <TextView
+                            android:id="@+id/tvHint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/geist"
+                            android:textSize="14sp"
+                            android:textColor="@color/color_ink_soft"
+                            android:gravity="center"
+                            android:layout_marginBottom="36dp" />
+
+                        <!-- Static swipe labels -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/onboard_hint_no"
+                                android:fontFamily="@font/geist"
+                                android:textSize="13sp"
+                                android:textColor="@color/color_ink_soft" />
+
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/onboard_hint_yes"
+                                android:fontFamily="@font/geist"
+                                android:textSize="13sp"
+                                android:textColor="@color/color_ink_soft" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- OUI badge — top-left, appears on right swipe -->
+                    <TextView
+                        android:id="@+id/tvOverlayYes"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_margin="20dp"
+                        android:text="@string/onboard_yes"
+                        android:fontFamily="@font/fraunces"
+                        android:textSize="24sp"
+                        android:textColor="@color/color_accent"
+                        android:background="@drawable/bg_badge_yes"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:rotation="-18"
+                        android:alpha="0" />
+
+                    <!-- NON badge — top-right, appears on left swipe -->
+                    <TextView
+                        android:id="@+id/tvOverlayNo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:layout_margin="20dp"
+                        android:text="@string/onboard_no"
+                        android:fontFamily="@font/fraunces"
+                        android:textSize="24sp"
+                        android:textColor="@color/color_ink_soft"
+                        android:background="@drawable/bg_badge_no"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:paddingTop="6dp"
+                        android:paddingBottom="6dp"
+                        android:rotation="18"
+                        android:alpha="0" />
+
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </FrameLayout>
+
+        <!-- Swipe hint below card -->
+        <TextView
+            android:id="@+id/tvSwipeHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/onboard_swipe_hint"
+            android:fontFamily="@font/geist"
+            android:textSize="13sp"
+            android:textColor="@color/color_ink_soft"
+            android:gravity="center"
+            android:paddingTop="16dp" />
+
+    </LinearLayout>
+
+    <!-- ── Success overlay (shown after last card) ────────────────────────── -->
+    <LinearLayout
+        android:id="@+id/successOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@color/color_bg"
+        android:padding="40dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvCtaTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/onboard_ready_title"
+            android:fontFamily="@font/fraunces"
+            android:textSize="40sp"
+            android:textColor="@color/color_ink"
+            android:gravity="center"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/tvCtaSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/onboard_ready_subtitle"
+            android:fontFamily="@font/geist"
+            android:textSize="15sp"
+            android:textColor="@color/color_ink_soft"
+            android:gravity="center"
+            android:layout_marginBottom="48dp" />
+
+        <Button
+            android:id="@+id/btnCta"
+            style="@style/Widget.TravelPath.Button.Accent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/onboard_cta"
+            android:paddingStart="48dp"
+            android:paddingEnd="48dp" />
+
+    </LinearLayout>
+
+</FrameLayout>

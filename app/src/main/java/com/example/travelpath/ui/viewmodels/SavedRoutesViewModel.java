@@ -7,42 +7,42 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.travelpath.TravelApplication;
 import com.example.travelpath.data.entities.Itinerary;
-import com.example.travelpath.data.repository.TravelRepository;
+import com.example.travelpath.domain.usecase.GetSavedItinerariesUseCase;
+import com.example.travelpath.domain.usecase.SaveItineraryUseCase;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import timber.log.Timber;
 import java.util.List;
 
 /**
- * ViewModel de SavedFragment (et ProfileFragment pour le compteur).
- * Scope Activity — les deux fragments partagent les mêmes données sans double requête.
+ * ViewModel for SavedFragment (and ProfileFragment's saved count badge).
+ * Activity-scoped so both fragments share one database subscription.
  *
- * <h2>Corrections apportées</h2>
- * <ul>
- *   <li>{@code isLoading} supprimé — remplacé par {@link UiState} unifié qui
- *       expose aussi les erreurs (l'original les ignorait silencieusement).</li>
- *   <li>{@link #toggleSave(Itinerary)} ajouté — était dans SavedFragment.</li>
- *   <li>Le Flowable Room est souscrit une seule fois et reste actif tant que le
- *       ViewModel existe. Chaque nouvelle écriture Room (insert/update/delete)
- *       émet automatiquement une nouvelle liste — pas besoin de recharger manuellement.</li>
- *   <li>{@link #getSavedItineraries()} conservé pour compatibilité avec ProfileFragment
- *       qui observe uniquement la liste (pas l'UiState complet).</li>
- * </ul>
+ * Improvements:
+ *  - Delegates to GetSavedItinerariesUseCase and SaveItineraryUseCase
+ *    (same save logic as RouteViewModel — DRY, no duplication).
+ *  - Exposes full UiState so SavedFragment can display error banners,
+ *    not just silently fail.
+ *  - savedItineraries LiveData kept for ProfileFragment's count badge
+ *    without requiring it to parse UiState.
  */
 public final class SavedRoutesViewModel extends AndroidViewModel {
 
-    private final TravelRepository    repository;
-    private final CompositeDisposable disposables = new CompositeDisposable();
+    private final GetSavedItinerariesUseCase getSavedUseCase;
+    private final SaveItineraryUseCase       saveUseCase;
+    private final CompositeDisposable        disposables = new CompositeDisposable();
 
     private final MutableLiveData<UiState<List<Itinerary>>> uiState =
             new MutableLiveData<>(UiState.loading());
 
-    /** Exposé séparément pour ProfileFragment qui n'a besoin que du compteur. */
+    /** Separate LiveData for ProfileFragment which only needs the list count. */
     private final MutableLiveData<List<Itinerary>> savedItineraries = new MutableLiveData<>();
 
     public SavedRoutesViewModel(@NonNull Application application) {
         super(application);
-        repository = ((TravelApplication) application).getRepository();
+        TravelApplication app = (TravelApplication) application;
+        this.getSavedUseCase = app.getGetSavedItinerariesUseCase();
+        this.saveUseCase     = app.getSaveItineraryUseCase();
         observeSavedItineraries();
     }
 
@@ -50,78 +50,68 @@ public final class SavedRoutesViewModel extends AndroidViewModel {
     // Getters
     // =========================================================================
 
-    public LiveData<UiState<List<Itinerary>>> getUiState()          { return uiState; }
-    public LiveData<List<Itinerary>>          getSavedItineraries()  { return savedItineraries; }
+    public LiveData<UiState<List<Itinerary>>> getUiState()         { return uiState; }
+    public LiveData<List<Itinerary>>          getSavedItineraries() { return savedItineraries; }
 
     // =========================================================================
     // Actions
     // =========================================================================
 
-    /**
-     * Bascule l'état sauvegardé d'un itinéraire.
-     * Si on le "délike" depuis SavedFragment, il disparaîtra automatiquement
-     * de la liste car le Flowable Room émet une nouvelle valeur après chaque update.
-     */
+    /** Toggles saved state (same behavior as RouteViewModel — shared use case). */
     public void toggleSave(@NonNull Itinerary itinerary) {
-        itinerary.setSaved(!itinerary.isSaved());
-        disposables.add(repository.save(itinerary)
+        disposables.add(saveUseCase.toggleSave(itinerary)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                    ()  -> Timber.d("toggleSave OK : %s → isSaved=%b",
+                    ()  -> Timber.d("Saved toggled: %s → isSaved=%b",
                                 itinerary.getName(), itinerary.isSaved()),
                     err -> {
-                        Timber.w("Erreur toggleSave : %s", err.getMessage());
-                        uiState.setValue(UiState.error(
-                            "Impossible de mettre à jour la sauvegarde."));
+                        Timber.w("toggleSave error: %s", err.getMessage());
+                        uiState.setValue(UiState.error("Unable to update saved state."));
                     }
                 ));
     }
 
+    /** Permanently removes an itinerary from Room. */
     public void deleteItinerary(@NonNull Itinerary itinerary) {
-        disposables.add(repository.delete(itinerary)
+        disposables.add(saveUseCase.delete(itinerary)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                    ()  -> Timber.d("Itinéraire supprimé : %s", itinerary.getName()),
+                    ()  -> Timber.d("Deleted: %s", itinerary.getName()),
                     err -> {
-                        Timber.w("Erreur suppression : %s", err.getMessage());
-                        uiState.setValue(UiState.error("Impossible de supprimer l'itinéraire."));
+                        Timber.w("Delete error: %s", err.getMessage());
+                        uiState.setValue(UiState.error("Unable to delete itinerary."));
                     }
                 ));
     }
 
     // =========================================================================
-    // Observation du Flowable Room
+    // Room observation
     // =========================================================================
 
     /**
-     * Souscrit une seule fois au Flowable Room.
-     *
-     * Le Flowable {@code getSavedItineraries()} émet automatiquement une nouvelle
-     * liste à chaque modification de la table (insert, update, delete) — pas besoin
-     * de recharger manuellement après un toggleSave ou deleteItinerary.
+     * Subscribes once to the Room Flowable.
+     * Emits a new list on every insert / update / delete — no manual refresh needed.
      */
     private void observeSavedItineraries() {
-        disposables.add(repository.getSavedItineraries()
+        disposables.add(getSavedUseCase.execute()
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                     itineraries -> {
                         savedItineraries.setValue(itineraries);
-                        if (itineraries.isEmpty()) {
-                            uiState.setValue(UiState.empty());
-                        } else {
-                            uiState.setValue(UiState.success(itineraries));
-                        }
+                        uiState.setValue(
+                            itineraries.isEmpty()
+                                ? UiState.empty()
+                                : UiState.success(itineraries));
                     },
                     err -> {
-                        Timber.w("Erreur chargement favoris : %s", err.getMessage());
-                        uiState.setValue(UiState.error(
-                            "Impossible de charger vos itinéraires sauvegardés."));
+                        Timber.w("Load saved error: %s", err.getMessage());
+                        uiState.setValue(UiState.error("Unable to load saved itineraries."));
                     }
                 ));
     }
 
     // =========================================================================
-    // Cycle de vie
+    // Lifecycle
     // =========================================================================
 
     @Override

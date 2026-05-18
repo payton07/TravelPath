@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_main">#000000</color> 
-    <color name="card_bg">#121212</color> 
-    <color name="border_color">#2D2D2D</color> 
-    
-    <color name="text_primary">#F7F7F7</color> 
-    <color name="text_secondary">#A0A0A0</color> 
-    <color name="text_muted">#666666</color> 
-
-    <color name="brand_light">#2A0D15</color> 
-    <color name="emerald_light">@color/brand_light</color>
-    <color name="emerald_primary">#FF385C</color>
+    <!--
+        Direction 01 "Bright & Airy" is a light-only design.
+        No night-mode overrides — the light palette applies in all modes.
+    -->
 </resources>
