@@ -223,7 +223,7 @@ export class PdfBuilder {
         const W         = doc.page.width;
         const H         = doc.page.height;
         const stopColor = STOP_COLORS[index % STOP_COLORS.length];
-        const PHOTO_H   = 340;
+        const PHOTO_H   = 210;
         const BADGE_R   = 28;
         const BADGE_CX  = 60;
         const BADGE_CY  = PHOTO_H;
@@ -231,10 +231,13 @@ export class PdfBuilder {
         // Fond crème
         doc.rect(0, 0, W, H).fill(P.BG);
 
-        // Photo plein cadre — aucun texte, aucun overlay
+        // Photo — clippée strictement à PHOTO_H pour éviter tout débordement sur le contenu
         if (photo) {
             try {
+                doc.save();
+                doc.rect(0, 0, W, PHOTO_H).clip();
                 doc.image(photo, 0, 0, { cover: [W, PHOTO_H] });
+                doc.restore();
             } catch {
                 this.log.warn(`Photo embedding échoué pour ${poi.name}`);
                 doc.rect(0, 0, W, PHOTO_H).fill(stopColor);
@@ -295,15 +298,18 @@ export class PdfBuilder {
 
         // Statut ouverture + horaires
         if (poi.openingHours) {
-            const open      = poi.openingHours.isOpenNow;
-            const dotColor  = open ? '#22C55E' : '#EF4444';
-            const statusTxt = open ? '● Ouvert actuellement' : '● Fermé actuellement';
+            const open       = poi.openingHours.isOpenNow;
+            const pillColor  = open ? '#22C55E' : '#EF4444';
+            const statusTxt  = open ? 'Ouvert actuellement' : 'Fermé actuellement';
+            const pillW      = 154;
+            const pillH      = 26;
 
-            doc.fillColor(dotColor)
+            doc.roundedRect(50, curY, pillW, pillH, 13).fill(pillColor);
+            doc.fillColor('#FFFFFF')
                .fontSize(11)
                .font('Helvetica-Bold')
-               .text(statusTxt, 50, curY, { lineBreak: false });
-            curY += 20;
+               .text(statusTxt, 50, curY + 7, { width: pillW, align: 'center', lineBreak: false });
+            curY += pillH + 10;
 
             const weekdays = poi.openingHours.weekdayText?.slice(0, 7) ?? [];
             if (weekdays.length) {
