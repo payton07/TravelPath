@@ -38,7 +38,7 @@ public final class AppModule {
     public AppModule(Context appContext) {
         Gson               gson       = new Gson();
         ItineraryDao       dao        = AppDatabase.getInstance(appContext).itineraryDao();
-        FirebaseDataSource dataSource = new FirebaseDataSource(FirebaseFunctions.getInstance(), gson);
+        FirebaseDataSource dataSource = new FirebaseDataSource(FirebaseFunctions.getInstance("europe-west1"), gson);
 
         this.repository              = new TravelRepository(dao, dataSource);
         this.preferencesManager      = UserPreferencesManager.getInstance(appContext);
